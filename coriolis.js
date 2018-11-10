@@ -44,6 +44,7 @@ var bvh;
 let arrows = [];
 
 const blue = vec4(0,0,0.8,1);
+const lightBlue = vec4(0,0,1,1);
 const red = vec4(0.8,0,0,1);
 
 // Stack stuff
@@ -223,8 +224,7 @@ function renderGreatCircle(greatCircle) {
   gl.vertexAttribPointer(flatLineProgram.vertexLoc, 4, gl.FLOAT, false, 0, 0);
 
   gl.uniform4fv(flatLineProgram.lookAtLoc, flatten(vec4(subtract(at, eye), 1)));
-  let c = 0.4;
-  gl.uniform4fv(flatLineProgram.colorLoc, flatten(vec4(c,c,c,1)));
+  gl.uniform4fv(flatLineProgram.colorLoc, flatten(vec4(.8,.8,0,1)));
   gl.uniformMatrix4fv(flatLineProgram.mvMatrixLoc, false, flatten(mvMatrix));
   gl.uniformMatrix4fv(flatLineProgram.pMatrixLoc, false, flatten(pMatrix));
   gl.uniformMatrix4fv(flatLineProgram.rotMatrixLoc, false, flatten(activeRotMatrix));
