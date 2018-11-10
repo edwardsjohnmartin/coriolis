@@ -48,6 +48,8 @@
     uniform mat4 mvMatrix;
     uniform mat4 pMatrix;
     uniform mat4 rotMatrix;
+    uniform float depthOffset;
+    uniform float grayOutFactor;
     
     void main() {
       vec4 temp = mvMatrix*vPosition;
@@ -57,15 +59,12 @@
       //  fColor.x = abs(temp.z);//1.0;// = sqrt(fColor);
       //fColor.x = abs(temp.z);
  
-     //if (dot(normalize(vPosition.xyz), normalize(lookAt.xyz)) > 0.0) {
       if (dot(normalize((rotMatrix*vPosition).xyz), vec3(0.0,0.0,1.0)) < 0.0) {
-        const float f = 0.85;
-        fColor = fColor + (vec4(1.0, 1.0, 1.0, 1.0) - fColor)*f;
-        //const float f = 5.0;
-        //fColor.x = fColor.x*2.0 < 1.0 ? fColor.x*2.0 : 1.0;
-        //fColor.y = fColor.y*2.0 < 1.0 ? fColor.y*2.0 : 1.0;
-        //fColor.z = fColor.z*2.0 < 1.0 ? fColor.z*2.0 : 1.0;
+        //const float f = grayOutFactor;
+        fColor = fColor + (vec4(1.0, 1.0, 1.0, 1.0) - fColor)*grayOutFactor;
       }
+
+      gl_Position.z = gl_Position.z + depthOffset;
     } 
   </script>
   

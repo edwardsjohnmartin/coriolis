@@ -19,6 +19,10 @@ let activeRotMatrix;
 const LEFT_BUTTON = 0;
 const RIGHT_BUTTON = 2;
 
+let grayOutFactor = 0.65;
+let worldColor = 0.4;
+let arrowLen = 0.17;
+
 var flatLineProgram;
 var lineProgram;
 var sphereProgram;
@@ -71,6 +75,8 @@ var FlatLineProgram = function() {
 
   this.vertexLoc = gl.getAttribLocation(this.program, "vPosition");
 
+  this.depthOffsetLoc = gl.getUniformLocation(this.program, "depthOffset");
+  this.grayOutFactor = gl.getUniformLocation(this.program, "grayOutFactor");
   this.colorLoc = gl.getUniformLocation(this.program, "uColor");
   this.lookAtLoc = gl.getUniformLocation(this.program, "lookAt");
   this.mvMatrixLoc = gl.getUniformLocation(this.program, "mvMatrix");
@@ -169,19 +175,27 @@ function renderSegment() {
   gl.bindBuffer(gl.ARRAY_BUFFER, segment.colorBuffer);
   gl.vertexAttribPointer(flatLineProgram.colorLoc, 4, gl.FLOAT, false, 0, 0);
 
+  gl.uniform1f(flatLineProgram.depthOffsetLoc, 0);
+  gl.uniform1f(flatLineProgram.grayOutFactor, grayOutFactor);
   gl.uniformMatrix4fv(flatLineProgram.mvMatrixLoc, false, flatten(mvMatrix));
   gl.uniformMatrix4fv(flatLineProgram.pMatrixLoc, false, flatten(pMatrix));
 
   gl.drawArrays(gl.LINES, 0, segment.numPoints);
 };
 
-function renderArrow(color, activeRotMatrix) {
+function renderArrow(color, activeRotMatrix, base, onTop=false) {
   gl.useProgram(flatLineProgram.program);
 
   gl.enableVertexAttribArray(flatLineProgram.vertexLoc);
   gl.bindBuffer(gl.ARRAY_BUFFER, arrow.vertexBuffer);
   gl.vertexAttribPointer(flatLineProgram.vertexLoc, 4, gl.FLOAT, false, 0, 0);
 
+  if (onTop) {
+    gl.uniform1f(flatLineProgram.depthOffsetLoc, -0.1);
+  } else {
+    gl.uniform1f(flatLineProgram.depthOffsetLoc, 0);
+  }
+  gl.uniform1f(flatLineProgram.grayOutFactor, grayOutFactor);
   gl.uniform4fv(flatLineProgram.lookAtLoc, flatten(vec4(subtract(at, eye), 1)));
   gl.uniform4fv(flatLineProgram.colorLoc, flatten(color));
   gl.uniformMatrix4fv(flatLineProgram.mvMatrixLoc, false, flatten(mvMatrix));
@@ -189,7 +203,11 @@ function renderArrow(color, activeRotMatrix) {
   gl.uniformMatrix4fv(flatLineProgram.rotMatrixLoc, false, flatten(activeRotMatrix));
   // gl.uniformMatrix4fv(flatLineProgram.rotMatrixLoc, false, flatten(mat4(1)));
 
-  gl.drawArrays(gl.LINES, 0, arrow.numPoints);
+  if (base) {
+    gl.drawArrays(gl.LINES, 0, 2);
+  } else {
+    gl.drawArrays(gl.LINES, 2, arrow.numPoints-2);
+  }
 };
 
 function renderWorld() {
@@ -199,8 +217,10 @@ function renderWorld() {
   gl.bindBuffer(gl.ARRAY_BUFFER, world.vertexBuffer);
   gl.vertexAttribPointer(flatLineProgram.vertexLoc, 4, gl.FLOAT, false, 0, 0);
 
+  gl.uniform1f(flatLineProgram.depthOffsetLoc, 0);
+  gl.uniform1f(flatLineProgram.grayOutFactor, grayOutFactor);
   gl.uniform4fv(flatLineProgram.lookAtLoc, flatten(vec4(subtract(at, eye), 1)));
-  let c = 0.4;
+  let c = worldColor;
   gl.uniform4fv(flatLineProgram.colorLoc, flatten(vec4(c,c,c,1)));
   gl.uniformMatrix4fv(flatLineProgram.mvMatrixLoc, false, flatten(mvMatrix));
   gl.uniformMatrix4fv(flatLineProgram.pMatrixLoc, false, flatten(pMatrix));
@@ -223,6 +243,8 @@ function renderGreatCircle(greatCircle) {
   gl.bindBuffer(gl.ARRAY_BUFFER, greatCircle.vertexBuffer);
   gl.vertexAttribPointer(flatLineProgram.vertexLoc, 4, gl.FLOAT, false, 0, 0);
 
+  gl.uniform1f(flatLineProgram.depthOffsetLoc, 0);
+  gl.uniform1f(flatLineProgram.grayOutFactor, grayOutFactor);
   gl.uniform4fv(flatLineProgram.lookAtLoc, flatten(vec4(subtract(at, eye), 1)));
   gl.uniform4fv(flatLineProgram.colorLoc, flatten(vec4(.8,.8,0,1)));
   gl.uniformMatrix4fv(flatLineProgram.mvMatrixLoc, false, flatten(mvMatrix));
@@ -299,40 +321,51 @@ function latLon2xyz(lat, lon) {
 }
 
 function renderArrows() {
+  let drawArrow = arrow;
   arrows.forEach(arrow => {
     let f = arrow.length;
+    if (f > 0) {
+      let p = latLon2xyz(radians(arrow.lat), radians(arrow.lon));
+      let x = p[0];
+      let y = p[1];
+      let z = p[2];
 
-    let p = latLon2xyz(radians(arrow.lat), radians(arrow.lon));
-    let x = p[0];
-    let y = p[1];
-    let z = p[2];
+      let n = normalize(vec3(x,y,z));
+      let up = vec3(0,1,0);
+      let t = cross(up, n);
+      // let d = t;
+      let d = t;
+      
+      let v = cross(vec3(1,0,0), normalize(d));
+      let theta = Math.acos(dot(vec3(1,0,0), d) / length(d));
 
-    let n = normalize(vec3(x,y,z));
-    let up = vec3(0,1,0);
-    let t = cross(up, n);
-    // let d = t;
-    let d = t;
-    
-    let v = cross(vec3(1,0,0), normalize(d));
-    let theta = Math.acos(dot(vec3(1,0,0), d) / length(d));
+      pushMatrix();
+      mvMatrix = mult(mvMatrix, translate(x, y, z));
+      if (theta == theta && theta != 0.0) {
+        mvMatrix = mult(mvMatrix, rotate(degrees(theta), v));
+        mvMatrix = mult(mvMatrix, rotate(arrow.lat, vec3(-1,0,0)));
+      }
+      mvMatrix = mult(mvMatrix, rotate(arrow.angle, vec3(0,0,1)));
 
-    // let myRotMatrix = mult(activeRotMatrix, scalem(1,1,1));
+      pushMatrix();
+      mvMatrix = mult(mvMatrix, scalem(f, f, 1));
+      renderArrow(arrow.color, mat4(1), true, arrow.onTop);
+      popMatrix();
 
-    pushMatrix();
-    mvMatrix = mult(mvMatrix, translate(x, y, z));
-    if (theta == theta && theta != 0.0) {
-      mvMatrix = mult(mvMatrix, rotate(degrees(theta), v));
-      mvMatrix = mult(mvMatrix, rotate(arrow.lat, vec3(-1,0,0)));
+      pushMatrix();
+      if (f < drawArrow.headLen * arrowLen) {
+        mvMatrix = mult(mvMatrix, translate(-(arrowLen-f), 0, 0));
+        mvMatrix = mult(mvMatrix, scalem(0.5, 0.5, 1));
+        mvMatrix = mult(mvMatrix, translate(arrowLen, 0, 0));
+      } else {
+        mvMatrix = mult(mvMatrix, translate(-(arrowLen-f), 0, 0));
+      }
+      mvMatrix = mult(mvMatrix, scalem(arrowLen, arrowLen, 1));
+      renderArrow(arrow.color, mat4(1), false, arrow.onTop);
+      popMatrix();
 
-      // myRotMatrix = mult(myRotMatrix, rotate(degrees(theta), v));
-      // myRotMatrix = mult(myRotMatrix, rotate(arrow.lat, vec3(-1,0,0)));
+      popMatrix();
     }
-    mvMatrix = mult(mvMatrix, rotate(arrow.angle, vec3(0,0,1)));
-    // myRotMatrix = mult(myRotMatrix, rotate(arrow.angle, vec3(0,0,1)));
-    mvMatrix = mult(mvMatrix, scalem(f, f, 1));
-    // renderArrow(arrow.color, myRotMatrix);
-    renderArrow(arrow.color, mat4(1));
-    popMatrix();
   });
 }
 
@@ -423,7 +456,7 @@ function render() {
   const up = vec3(0.0, 1.0, 0.0);
 
   // pMatrix = perspective(fovy, aspect, near, far);
-  const w = 1.1;
+  const w = 1.0;
   pMatrix = ortho(-w, w, -w, w, -w, 2*w);//near, far);
   // mvMatrix = lookAt(eye, at, up);
 
@@ -467,22 +500,54 @@ function keyDown(e) {
   switch (e.keyCode) {
   case 37:
     // left
-    theta -= Math.PI / 180.0;
+    // theta -= Math.PI / 180.0;
+    if (!!window.event.shiftKey) {
+      worldColor += 0.05;
+    } else {
+      grayOutFactor += 0.05;
+    }
     break;
   case 38:
     // up
     // zoom *= 0.9;
-    phi -= Math.PI / 180.0;
+    // phi -= Math.PI / 180.0;
+    if (!!window.event.shiftKey) {
+      arrowLen += 0.01;
+      initArrows();
+    } else {
+      canvas.width = canvas.width+10;
+      canvas.height = canvas.height+10;
+      canvasWidth = canvas.width;
+      canvasHeight = canvas.height;
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      aspect =  canvas.width/canvas.height;
+    }
     // console.log(zoom);
     break;
   case 39:
     // right
-    theta += Math.PI / 180.0;
+    // theta += Math.PI / 180.0;
+    if (!!window.event.shiftKey) {
+      worldColor -= 0.05;
+    } else {
+      grayOutFactor -= 0.05;
+    }
     break;
   case 40:
     // down
     // zoom *= 1.1;
-    phi += Math.PI / 180.0;
+    // phi += Math.PI / 180.0;
+    if (!!window.event.shiftKey) {
+      arrowLen -= 0.01;
+      initArrows();
+    } else {
+      canvas.width = canvas.width-10;
+      canvas.height = canvas.height-10;
+      canvasWidth = canvas.width;
+      canvasHeight = canvas.height;
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      aspect =  canvas.width/canvas.height;
+    }
     // console.log(zoom);
     break;
   case "F".charCodeAt(0):
@@ -518,6 +583,31 @@ function win2obj(p) {
   return vec2(x, y);
 }
 
+function initArrows() {
+  arrows = [];
+  let len = arrowLen;
+  // lond is longitude in degrees
+  for (let lond = -90; lond <= 0; lond += 15) {
+    // for (let lond = 0; lond < 1; lond += 15) {
+    let lon = radians(lond);
+    let lat = greatCircle.getlat(lon);
+    let veast = greatCircle.veast(lat, lon, len);
+    let vnorth = greatCircle.vnorth(lat, lon, len);
+    let dlatdlon = greatCircle.dlatdlon(lat, lon);
+    // east
+    arrows.push({ lat:degrees(lat), lon:degrees(lon), angle:0,
+                  length:veast, color:blue, onTop:false });
+    // north
+    arrows.push({ lat:degrees(lat), lon:degrees(lon), angle:90,
+                  length:vnorth, color:blue, onTop:false });
+
+    // arrow
+    arrows.push({ lat:degrees(lat), lon:degrees(lon),
+                  angle:degrees(Math.atan(dlatdlon)),
+                  length:len, color:red, onTop:true });
+  }
+}
+
 window.onload = function init() {
   document.onkeydown = keyDown;
   document.onmousedown = onMouseDown;
@@ -550,30 +640,7 @@ window.onload = function init() {
   // greatCircle = new GreatCircle(1, Math.PI/4, -90);
   // greatCircle = new GreatCircle(1, Math.PI/3, 0);
 
-  arrows = [];
-  let len = 0.2;
-  // lond is longitude in degrees
-  for (let lond = -120; lond <= 0; lond += 15) {
-  // for (let lond = 0; lond < 1; lond += 15) {
-    let lon = radians(lond);
-    let lat = greatCircle.getlat(lon);
-    let veast = greatCircle.veast(lat, lon, len);
-    let vnorth = greatCircle.vnorth(lat, lon, len);
-    let dlatdlon = greatCircle.dlatdlon(lat, lon);
-    // east
-    arrows.push({ lat:degrees(lat), lon:degrees(lon), angle:0,
-                  length:veast, color:blue });
-    // north
-    arrows.push({ lat:degrees(lat), lon:degrees(lon), angle:90,
-                  length:vnorth, color:blue });
-
-    // arrow
-    arrows.push({ lat:degrees(lat), lon:degrees(lon),
-                  angle:degrees(Math.atan(dlatdlon)),
-                  length:len, color:red });
-  }
-
-
+  initArrows();
 
   //  Load shaders and initialize attribute buffers
   flatLineProgram = new FlatLineProgram();
