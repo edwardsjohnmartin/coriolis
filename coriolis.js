@@ -11,6 +11,7 @@ var segment;
 var arrow;
 var sphere;
 var world;
+var greatCircle;
 
 let eye, at;
 let canvasWidth, canvasHeight;
@@ -139,7 +140,7 @@ function renderFloor() {
   gl.drawArrays(gl.LINES, 0, floor.numPoints);
 };
 
-function renderSegment() {
+function renderSegmentBak() {
   gl.useProgram(lineProgram.program);
 
   gl.enableVertexAttribArray(lineProgram.vertexLoc);
@@ -156,7 +157,24 @@ function renderSegment() {
   gl.drawArrays(gl.LINES, 0, segment.numPoints);
 };
 
-function renderArrow(color) {
+function renderSegment() {
+  gl.useProgram(flatLineProgram.program);
+
+  gl.enableVertexAttribArray(flatLineProgram.vertexLoc);
+  gl.bindBuffer(gl.ARRAY_BUFFER, segment.vertexBuffer);
+  gl.vertexAttribPointer(flatLineProgram.vertexLoc, 4, gl.FLOAT, false, 0, 0);
+
+  gl.enableVertexAttribArray(flatLineProgram.colorLoc);
+  gl.bindBuffer(gl.ARRAY_BUFFER, segment.colorBuffer);
+  gl.vertexAttribPointer(flatLineProgram.colorLoc, 4, gl.FLOAT, false, 0, 0);
+
+  gl.uniformMatrix4fv(flatLineProgram.mvMatrixLoc, false, flatten(mvMatrix));
+  gl.uniformMatrix4fv(flatLineProgram.pMatrixLoc, false, flatten(pMatrix));
+
+  gl.drawArrays(gl.LINES, 0, segment.numPoints);
+};
+
+function renderArrow(color, activeRotMatrix) {
   gl.useProgram(flatLineProgram.program);
 
   gl.enableVertexAttribArray(flatLineProgram.vertexLoc);
@@ -167,8 +185,8 @@ function renderArrow(color) {
   gl.uniform4fv(flatLineProgram.colorLoc, flatten(color));
   gl.uniformMatrix4fv(flatLineProgram.mvMatrixLoc, false, flatten(mvMatrix));
   gl.uniformMatrix4fv(flatLineProgram.pMatrixLoc, false, flatten(pMatrix));
-  // gl.uniformMatrix4fv(flatLineProgram.rotMatrixLoc, false, flatten(activeRotMatrix));
-  gl.uniformMatrix4fv(flatLineProgram.rotMatrixLoc, false, flatten(mat4(1)));
+  gl.uniformMatrix4fv(flatLineProgram.rotMatrixLoc, false, flatten(activeRotMatrix));
+  // gl.uniformMatrix4fv(flatLineProgram.rotMatrixLoc, false, flatten(mat4(1)));
 
   gl.drawArrays(gl.LINES, 0, arrow.numPoints);
 };
@@ -195,6 +213,23 @@ function renderWorld() {
     gl.drawArrays(gl.LINE_STRIP, world.lonOffset+i*cols, cols);
   }
   // gl.drawArrays(gl.LINE_STRIP, 0, world.numPoints);
+};
+
+function renderGreatCircle(greatCircle) {
+  gl.useProgram(flatLineProgram.program);
+
+  gl.enableVertexAttribArray(flatLineProgram.vertexLoc);
+  gl.bindBuffer(gl.ARRAY_BUFFER, greatCircle.vertexBuffer);
+  gl.vertexAttribPointer(flatLineProgram.vertexLoc, 4, gl.FLOAT, false, 0, 0);
+
+  gl.uniform4fv(flatLineProgram.lookAtLoc, flatten(vec4(subtract(at, eye), 1)));
+  let c = 0.4;
+  gl.uniform4fv(flatLineProgram.colorLoc, flatten(vec4(c,c,c,1)));
+  gl.uniformMatrix4fv(flatLineProgram.mvMatrixLoc, false, flatten(mvMatrix));
+  gl.uniformMatrix4fv(flatLineProgram.pMatrixLoc, false, flatten(pMatrix));
+  gl.uniformMatrix4fv(flatLineProgram.rotMatrixLoc, false, flatten(activeRotMatrix));
+
+  gl.drawArrays(gl.LINE_STRIP, 0, greatCircle.numPoints);
 };
 
 function renderSphere() {
@@ -254,14 +289,23 @@ function setSpeedFactor(f) {
   speedFactor = f;
 }
 
+// Lat and lon are given in radians.
+function latLon2xyz(lat, lon) {
+  let r = Math.cos(lat);
+  let x = r*Math.cos(-lon);
+  let y = Math.sin(lat);
+  let z = r*Math.sin(-lon);
+  return vec3(x,y,z);
+}
+
 function renderArrows() {
   arrows.forEach(arrow => {
     let f = arrow.length;
 
-    let r = Math.cos(radians(arrow.lat));
-    let x = r*Math.cos(radians(-arrow.lon));
-    let y = Math.sin(radians(arrow.lat));
-    let z = r*Math.sin(radians(-arrow.lon));
+    let p = latLon2xyz(radians(arrow.lat), radians(arrow.lon));
+    let x = p[0];
+    let y = p[1];
+    let z = p[2];
 
     let n = normalize(vec3(x,y,z));
     let up = vec3(0,1,0);
@@ -272,15 +316,22 @@ function renderArrows() {
     let v = cross(vec3(1,0,0), normalize(d));
     let theta = Math.acos(dot(vec3(1,0,0), d) / length(d));
 
+    // let myRotMatrix = mult(activeRotMatrix, scalem(1,1,1));
+
     pushMatrix();
     mvMatrix = mult(mvMatrix, translate(x, y, z));
     if (theta == theta && theta != 0.0) {
       mvMatrix = mult(mvMatrix, rotate(degrees(theta), v));
       mvMatrix = mult(mvMatrix, rotate(arrow.lat, vec3(-1,0,0)));
+
+      // myRotMatrix = mult(myRotMatrix, rotate(degrees(theta), v));
+      // myRotMatrix = mult(myRotMatrix, rotate(arrow.lat, vec3(-1,0,0)));
     }
     mvMatrix = mult(mvMatrix, rotate(arrow.angle, vec3(0,0,1)));
+    // myRotMatrix = mult(myRotMatrix, rotate(arrow.angle, vec3(0,0,1)));
     mvMatrix = mult(mvMatrix, scalem(f, f, 1));
-    renderArrow(arrow.color);
+    // renderArrow(arrow.color, myRotMatrix);
+    renderArrow(arrow.color, mat4(1));
     popMatrix();
   });
 }
@@ -377,7 +428,11 @@ function render() {
   // mvMatrix = lookAt(eye, at, up);
 
   // activeRotMatrix = rotate(rotAngle*180.0/Math.PI, rotVec);
-  activeRotMatrix = mult(rotate(rotAngle*180.0/Math.PI, rotVec), rotMatrix);
+  if (rotVec[0] == rotVec[0]) {
+    activeRotMatrix = mult(rotate(rotAngle*180.0/Math.PI, rotVec), rotMatrix);
+  } else {
+    activeRotMatrix = rotMatrix;
+  }
   
   mvMatrix = lookAt(vec3(0, 0, radius), vec3(0, 0, 0), vec3(0, 1, 0));
   mvMatrix = mult(mvMatrix, activeRotMatrix);
@@ -404,6 +459,7 @@ function render() {
   renderWorld();
   popMatrix();
 
+  renderGreatCircle(greatCircle);
   renderArrows();
 }
 
@@ -490,29 +546,34 @@ window.onload = function init() {
   sphere = new Sphere(1, 20, 20);
   // world = new World(1, 20, 20);
   world = new World(1, 1, 15, 15);
+  greatCircle = new GreatCircle(1, Math.PI/4, 0);
+  // greatCircle = new GreatCircle(1, Math.PI/4, -90);
+  // greatCircle = new GreatCircle(1, Math.PI/3, 0);
 
-  let len = Math.sqrt(2*0.2*0.2);
-  arrows = [
-    { lat:0, lon:-90, angle:0, length:0.2, color:blue },
-    { lat:0, lon:-90, angle:90, length:0.2, color:blue },
-    { lat:0, lon:-90, angle:45, length:len, color:red },
+  arrows = [];
+  let len = 0.2;
+  // lond is longitude in degrees
+  for (let lond = -120; lond <= 0; lond += 15) {
+  // for (let lond = 0; lond < 1; lond += 15) {
+    let lon = radians(lond);
+    let lat = greatCircle.getlat(lon);
+    let veast = greatCircle.veast(lat, lon, len);
+    let vnorth = greatCircle.vnorth(lat, lon, len);
+    let dlatdlon = greatCircle.dlatdlon(lat, lon);
+    // east
+    arrows.push({ lat:degrees(lat), lon:degrees(lon), angle:0,
+                  length:veast, color:blue });
+    // north
+    arrows.push({ lat:degrees(lat), lon:degrees(lon), angle:90,
+                  length:vnorth, color:blue });
 
-    { lat:15, lon:-75, angle:0, length:0.2+(len-.2)/4, color:blue },
-    { lat:15, lon:-75, angle:90, length:0.15, color:blue },
-    { lat:15, lon:-75, angle:33.75, length:len, color:red },
+    // arrow
+    arrows.push({ lat:degrees(lat), lon:degrees(lon),
+                  angle:degrees(Math.atan(dlatdlon)),
+                  length:len, color:red });
+  }
 
-    { lat:30, lon:-60, angle:0, length:0.2+(len-.2)/2, color:blue },
-    { lat:30, lon:-60, angle:90, length:0.1, color:blue },
-    { lat:30, lon:-60, angle:22.5, length:len, color:red },
 
-    { lat:45, lon:-45, angle:0, length:0.2+3*(len-.2)/4, color:blue },
-    { lat:45, lon:-45, angle:90, length:0.05, color:blue },
-    { lat:45, lon:-45, angle:11.25, length:len, color:red },
-
-    // { lat:60, lon:-30, angle:0, length:len, color:blue },
-    // { lat:60, lon:-30, angle:90, length:0.0, color:blue },
-    { lat:60, lon:-30, angle:0, length:len, color:red },
-  ];
 
   //  Load shaders and initialize attribute buffers
   flatLineProgram = new FlatLineProgram();

@@ -31,7 +31,9 @@ function onMouseUp() {
   if (mouseDown) {
     mouseDown = false;
     if (button == LEFT_BUTTON) {
-      rotMatrix = mult(rotate(rotAngle*180.0/Math.PI, rotVec), rotMatrix);
+      if (rotVec[0] == rotVec[0]) {
+        rotMatrix = mult(rotate(rotAngle*180.0/Math.PI, rotVec), rotMatrix);
+      }
       rotAngle = 0;
     } else {
 
