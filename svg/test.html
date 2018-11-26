@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>three.js svg - lines</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+      body {
+      /*background-color: #000000;*/
+      background-color: #ffffff;
+      margin: 0px;
+      overflow: hidden;
+      }
+
+      a {
+      color:#0078ff;
+      }
+
+      #info {
+      position: absolute;
+      top: 10px; width: 100%;
+      color: #ffffff;
+      padding: 5px;
+      font-family: Monospace;
+      font-size: 13px;
+      text-align: center;
+      z-index:100;
+      }
+
+      a:hover {
+      color: #0080ff;
+      }
+
+    </style>
+  </head>
+  <body>
+
+    <!--div id="info">
+      <a href="http://threejs.org" target="_blank" rel="noopener">three.js</a> svg - lines
+    </div-->
+
+    <div id="test">
+      <a style="cursor:pointer" onclick="snap()">SVG snapshot</a>
+    </div>
+
+    <textarea id="output"></textarea>
+
+    <script src="three.min.js"></script>
+    <!--script src="../build/three.js"></script>
+
+    <script src="js/renderers/Projector.js"></script>
+    <script src="js/renderers/SVGRenderer.js"></script-->
+    <script src="Projector.js"></script>
+    <script src="SVGRenderer.js"></script>
+    <script src="OrbitControls.js"></script>
+    <script src="greatCircle.js"></script>
+    <script src="test.js"></script>
+
+  </body>
+</html>
