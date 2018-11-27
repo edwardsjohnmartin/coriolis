@@ -1,17 +1,28 @@
 let camera, scene, rotScene, renderer, controls;
 
-let plane, arrows;
+let plane;//, arrows;
 let arrowLen = 0.27;
 
 let animation = false;
+let lineWidth = 2;
 
 const blue = 0x0000cc;
 const lightBlue = 0x0000ff;
 const red = 0xcc0000;
 
+const vecRenderOrder = 10;
+const eastRenderOrder = 8;
+const northRenderOrder = 8;
+const greatCircleRenderOrder = 0;
+const globeRenderOrder = 0;
+
 init();
 render();
 animate();
+
+//------------------------------------------------------------
+// Coordinate conversion functions
+//------------------------------------------------------------
 
 function radians(deg) {
   return deg * Math.PI / 180;
@@ -30,8 +41,11 @@ function latLon2xyz(lat, lon) {
   return new THREE.Vector3(x,y,z);
 }
 
-function init() {
+//------------------------------------------------------------
+// Initialization/setup
+//------------------------------------------------------------
 
+function init() {
   // camera = new THREE.PerspectiveCamera(
   //   33, window.innerWidth / window.innerHeight, 0.1, 100);
   let width = 3;
@@ -54,10 +68,28 @@ function init() {
   if (window.innerHeight < w) {
     w = window.innerHeight;
   }
-  // renderer.setSize( window.innerWidth, window.innerHeight );
   renderer.setSize(w, w);
   document.body.appendChild(renderer.domElement);
 
+  scene.add(getTransparentPlane());
+
+  greatCircle = new GreatCircle(1, Math.PI/4, 0);
+  scene.add(getGlobe());
+  scene.add(getGreatCircle());
+  scene.add(getArrowsGroup());
+
+  window.addEventListener( 'resize', onWindowResize, false );
+  controls.addEventListener('change', render);
+}
+
+//------------------------------------------------------------
+// Functions to create 3D objects
+//------------------------------------------------------------
+
+//----------------------------------------
+// getGlobe
+//----------------------------------------
+function getGlobe() {
   var vertices = [];
   var divisions = 80;
   for ( var i = 0; i <= divisions; i ++ ) {
@@ -67,62 +99,108 @@ function init() {
     vertices.push( x, y, 0 );
   }
 
+  var circleGeometry = new THREE.BufferGeometry();
+  circleGeometry.addAttribute(
+    'position', new THREE.Float32BufferAttribute( vertices, 3 ));
+
   rotScene = new THREE.Scene();
   scene.add(rotScene);
-
-  var geometry = new THREE.BufferGeometry();
-  geometry.addAttribute(
-    'position', new THREE.Float32BufferAttribute( vertices, 3 ));
 
   // Lat/lon
   let lineMaterial = new THREE.LineBasicMaterial( {
     color: 0xaaaaaa,
-    linewidth: 2
+    linewidth: lineWidth
   } );
   let inc = 15;
 
+  let latlon = new THREE.Group();
   // Latitude
   for (let i = -90; i < 90; i+=inc) {
-    var lat = new THREE.Line(geometry, lineMaterial);
+    var lat = new THREE.Line(circleGeometry, lineMaterial);
+    lat.renderOrder = globeRenderOrder;
     lat.scale.setScalar(Math.cos(i*Math.PI/180));
     lat.translateY(Math.sin(i*Math.PI/180));
     lat.rotateX(Math.PI/2);
-    scene.add(lat);
+    latlon.add(lat);
   }
 
   // Longitude
   for (let i = 0; i < 180; i+=inc) {
-    var lon = new THREE.Line( geometry, lineMaterial );
+    var lon = new THREE.Line( circleGeometry, lineMaterial );
+    lon.renderOrder = globeRenderOrder;
     lon.scale.setScalar(1);
     lon.rotateY(i*Math.PI/180);
-    scene.add(lon);
+    latlon.add(lon);
   }
+  return latlon;
+}
 
+//----------------------------------------
+// getTransparentPlane
+//----------------------------------------
+function getTransparentPlane() {
   plane = new THREE.Mesh(
     new THREE.PlaneBufferGeometry(20, 20),
     new THREE.MeshBasicMaterial({
       color:0xffffff, opacity:0.8, transparent:true, wireframe:false
     }));
-  scene.add( plane );
+  return plane;
+}
 
-  // var material = new THREE.LineDashedMaterial( {
-  //   color: 'blue',
-  //   linewidth: 1,
-  //   dashSize: 10,
-  //   gapSize: 10
-  // } );
-  // var line = new THREE.Line( geometry, material );
-  // line.scale.setScalar( 2 );
-  // rotScene.add( line );
+//----------------------------------------
+// getGreatCircle
+//----------------------------------------
+function getGreatCircle() {
+  var greatCircleGeometry = new THREE.BufferGeometry();
+  greatCircleGeometry.addAttribute(
+    'position', new THREE.Float32BufferAttribute(greatCircle.vertices, 3));
+  let greatCircleMaterial = new THREE.LineBasicMaterial( {
+    color: 0xaaaa00,
+    linewidth: lineWidth
+  } );
+  var gcLine = new THREE.Line(greatCircleGeometry, greatCircleMaterial);
+  gcLine.renderOrder = greatCircleRenderOrder;
+  return gcLine;
+}
 
-  initArrows();
+//----------------------------------------
+// getArrowsGroup
+//----------------------------------------
+function getArrowsGroup() {
+  let arrows = [];
+  let len = arrowLen;
+  // lond is longitude in degrees
+  for (let lond = -90; lond <= 0; lond += 15) {
+  // for (let lond = -75; lond <= -75; lond += 15) {
+    let lon = radians(lond);
+    let lat = greatCircle.getlat(lon);
+    let veast = greatCircle.veast(lat, lon, len);
+    let vnorth = greatCircle.vnorth(lat, lon, len);
+    let dlatdlon = greatCircle.dlatdlon(lat, lon);
+    let angle = degrees(Math.atan(dlatdlon));
+    // east
+    if (Math.abs(angle) > 1) {
+      arrows.push({ lat:degrees(lat), lon:degrees(lon), angle:0,
+                    renderOrder:eastRenderOrder,
+                    length:veast, color:blue, onTop:false });
+    }
+    // north
+    arrows.push({ lat:degrees(lat), lon:degrees(lon), angle:90,
+                  renderOrder:northRenderOrder,
+                  length:vnorth, color:blue, onTop:false });
+    // arrow
+    arrows.push({ lat:degrees(lat), lon:degrees(lon),
+                  angle:angle, renderOrder:vecRenderOrder,
+                  length:len, color:red, onTop:true });
+  }
 
+  let arrowsGroup = new THREE.Group();
   arrows.forEach(arrow => {
-    const headLen = 0.07;
+    const headLen = 0.03;
     if (arrow.length > headLen) {
       let p = latLon2xyz(radians(arrow.lat), radians(arrow.lon));
       // Move the origin out just a bit to minimize z fighting
-      p = p.multiplyScalar(1.001);
+      // p = p.multiplyScalar(1.01);
 
       let n = new THREE.Vector3().copy(p).normalize();
       let east = new THREE.Vector3(0,1,0).cross(n);
@@ -131,43 +209,24 @@ function init() {
       let dir = east;
       let origin = p;
       let length = arrow.length;
-      let arrowHelper =
-        new THREE.ArrowHelper(dir, origin, length, arrow.color, headLen, 0.06);
+      let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+                                        arrow.color, 20, headLen, 0.6*headLen);
       arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
-      scene.add(arrowHelper);
+      arrowHelper.children[0].renderOrder = arrow.renderOrder;
+      arrowHelper.children[1].renderOrder = arrow.renderOrder;
+      arrowsGroup.add(arrowHelper);
     }
   });
-
-  window.addEventListener( 'resize', onWindowResize, false );
-  controls.addEventListener('change', render);
+  return arrowsGroup;
 }
 
-function initArrows() {
-  greatCircle = new GreatCircle(1, Math.PI/4, 0);
-  arrows = [];
-  let len = arrowLen;
-  // lond is longitude in degrees
-  for (let lond = -90; lond <= 0; lond += 15) {
-    // for (let lond = 0; lond < 1; lond += 15) {
-    let lon = radians(lond);
-    let lat = greatCircle.getlat(lon);
-    let veast = greatCircle.veast(lat, lon, len);
-    let vnorth = greatCircle.vnorth(lat, lon, len);
-    let dlatdlon = greatCircle.dlatdlon(lat, lon);
-    // east
-    arrows.push({ lat:degrees(lat), lon:degrees(lon), angle:0,
-                  length:veast, color:blue, onTop:false });
-    // north
-    arrows.push({ lat:degrees(lat), lon:degrees(lon), angle:90,
-                  length:vnorth, color:blue, onTop:false });
+//------------------------------------------------------------
+// Utility functions
+//------------------------------------------------------------
 
-    // arrow
-    arrows.push({ lat:degrees(lat), lon:degrees(lon),
-                  angle:degrees(Math.atan(dlatdlon)),
-                  length:len, color:red, onTop:true });
-  }
-}
-
+//----------------------------------------
+// onWindowResize
+//----------------------------------------
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
@@ -175,16 +234,22 @@ function onWindowResize() {
   renderer.setSize( window.innerWidth, window.innerHeight );
 }
 
+//----------------------------------------
+// render
+//----------------------------------------
 function render() {
-  plane.rotation.x = camera.rotation.x;
-  plane.rotation.y = camera.rotation.y;
-  plane.rotation.z = camera.rotation.z;
+  if (plane) {
+    plane.rotation.x = camera.rotation.x;
+    plane.rotation.y = camera.rotation.y;
+    plane.rotation.z = camera.rotation.z;
+  }
 
   renderer.render( scene, camera );
 }
 
-
-
+//----------------------------------------
+// animate
+//----------------------------------------
 function animate() {
   if (!animation) return;
 
@@ -204,21 +269,14 @@ function animate() {
   requestAnimationFrame( animate );
 }
 
+//----------------------------------------
+// snap
+//----------------------------------------
 function snap() {
   console.log('snap');
   XMLS = new XMLSerializer();
   svgfile = XMLS.serializeToString(renderer.domElement);
-  // console.log(svgfile);
 
   let test = document.getElementById("output");
   test.innerHTML = svgfile;
-
-  // var w = window.open();
-  // w.document.open("text/html", "replace");
-  // w.document.write(svgfile);
-  // w.document.close();
-
-  // document.open("text/html", "replace");
-  // document.write(svgfile);
-  // document.close();
 }

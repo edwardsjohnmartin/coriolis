@@ -163,6 +163,7 @@ THREE.Projector = function () {
 
     function setObject( value ) {
 
+      // console.log(object);
       object = value;
       material = object.material;
 

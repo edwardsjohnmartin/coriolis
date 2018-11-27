@@ -11,12 +11,14 @@ var GreatCircle = function(radius, latmax, lon0) {
   for (let lon = this.lon0; lon <= 2*Math.PI + this.lon0; lon+=inc) {
     let lat = this.getlat(lon);
     let p = latLon2xyz(lat, lon);
-    // pointsArray.push(vec4(radius * p[0], radius * p[1], radius * p[2], 1.0));
+    // pointsArray.push(new THREE.Vector3(radius * p.x, radius * p.y, radius * p.z));
+    pointsArray.push(radius * p.x, radius * p.y, radius * p.z);
   }
   // this.vertexBuffer = gl.createBuffer();
   // gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
   // gl.bufferData(gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW);
 
+  this.vertices = pointsArray;
   this.numPoints = pointsArray.length;
 }
 

@@ -143,6 +143,9 @@ THREE.SVGRenderer = function () {
 
   };
 
+  //------------------------------------------------------------
+  // render()
+  //------------------------------------------------------------
   this.render = function ( scene, camera ) {
 
     if ( camera instanceof THREE.Camera === false ) {
@@ -188,6 +191,8 @@ THREE.SVGRenderer = function () {
 
       var element = _elements[ e ];
       var material = element.material;
+
+      // console.log(element);
 
       if ( material === undefined || material.opacity === 0 ) continue;
 
