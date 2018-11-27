@@ -1,7 +1,7 @@
 let camera, scene, rotScene, renderer, controls;
 
 let plane;//, arrows;
-let arrowLen = 0.27;
+let arrowLen = 0.22;
 
 let animation = false;
 let lineWidth = 2;
@@ -196,7 +196,7 @@ function getArrowsGroup() {
 
   let arrowsGroup = new THREE.Group();
   arrows.forEach(arrow => {
-    const headLen = 0.03;
+    const headLen = 0.045;
     if (arrow.length > headLen) {
       let p = latLon2xyz(radians(arrow.lat), radians(arrow.lon));
       // Move the origin out just a bit to minimize z fighting
