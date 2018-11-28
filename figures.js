@@ -2,6 +2,7 @@ let camera, scene, rotScene, renderer, controls;
 
 let plane;//, arrows;
 let arrowLen = 0.22;
+const headLen = 0.045;
 
 let animation = false;
 let lineWidth = 2;
@@ -19,27 +20,6 @@ const globeRenderOrder = 0;
 init();
 render();
 animate();
-
-//------------------------------------------------------------
-// Coordinate conversion functions
-//------------------------------------------------------------
-
-function radians(deg) {
-  return deg * Math.PI / 180;
-}
-
-function degrees(rad) {
-  return rad * 180 / Math.PI;
-}
-
-// Lat and lon are given in radians.
-function latLon2xyz(lat, lon) {
-  let r = Math.cos(lat);
-  let x = r*Math.cos(-lon);
-  let y = Math.sin(lat);
-  let z = r*Math.sin(-lon);
-  return new THREE.Vector3(x,y,z);
-}
 
 //------------------------------------------------------------
 // Initialization/setup
@@ -76,7 +56,82 @@ function init() {
   greatCircle = new GreatCircle(1, Math.PI/4, 0);
   scene.add(getGlobe());
   scene.add(getGreatCircle());
-  scene.add(getArrowsGroup());
+  // scene.add(getArrowsGroup());
+
+  let arrowsGroup = new THREE.Group();
+  let sim = new CoriolisSim(radians(-90));
+  for (let hours = 0; hours <= 4; hours++) {
+    const t = hours*60*60;
+    const phi = sim.phi(t);
+    const phi_ = sim.phi_(t);
+    const lat = sim.lat(t);
+    // console.log(hours + ": " + degrees(phi) + "\n\t" +
+    //             degrees(phi_) + "\n\t" +
+    //             degrees(phi_-phi));
+
+    {
+      // longitude line
+      var geometry = new THREE.SphereBufferGeometry(.02, 32, 32);
+      var material = new THREE.MeshBasicMaterial({color: 0xaa0000});
+      var sphere = new THREE.Mesh(geometry, material);
+      // sphere.translateY(Math.sin(lat));
+      sphere.translateX(Math.cos(-phi));
+      sphere.translateZ(Math.sin(-phi));
+      scene.add(sphere);
+    } {
+      // puck
+      let geometry = new THREE.SphereBufferGeometry(.02, 32, 32);
+      let material = new THREE.MeshBasicMaterial({color: 0x0000aa});
+      let sphere = new THREE.Mesh(geometry, material);
+      const p = sim.p(t);
+      sphere.translateOnAxis(p, 1);
+      scene.add(sphere);
+
+      const v = sim.v(t);
+      let E = east(p);
+      let N = north(p);
+      E = E.multiplyScalar(v.clone().dot(E));
+      N = N.multiplyScalar(v.clone().dot(N));
+      const f = 0.25;
+      {
+        // v
+        let length = v.length() * f;
+        let dir = v.normalize();
+        let origin = p;
+        let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+                                          red, 20, headLen, 0.6*headLen);
+        // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
+        arrowHelper.children[0].renderOrder = vecRenderOrder;
+        arrowHelper.children[1].renderOrder = vecRenderOrder;
+        arrowsGroup.add(arrowHelper);
+      } {
+        // east
+        let length = E.length() * f;
+        let dir = E.normalize();
+        let origin = p;
+        let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+                                          blue, 20, headLen, 0.6*headLen);
+        // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
+        arrowHelper.children[0].renderOrder = eastRenderOrder;
+        arrowHelper.children[1].renderOrder = eastRenderOrder;
+        arrowsGroup.add(arrowHelper);
+      } {
+        // north
+        let length = N.length() * f;
+        if (length > headLen) {
+          let dir = N.normalize();
+          let origin = p;
+          let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+                                            blue, 20, headLen, 0.6*headLen);
+          // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
+          arrowHelper.children[0].renderOrder = northRenderOrder;
+          arrowHelper.children[1].renderOrder = northRenderOrder;
+          arrowsGroup.add(arrowHelper);
+        }
+      }
+    }
+  }
+  scene.add(arrowsGroup);
 
   window.addEventListener( 'resize', onWindowResize, false );
   controls.addEventListener('change', render);
@@ -196,7 +251,6 @@ function getArrowsGroup() {
 
   let arrowsGroup = new THREE.Group();
   arrows.forEach(arrow => {
-    const headLen = 0.045;
     if (arrow.length > headLen) {
       let p = latLon2xyz(radians(arrow.lat), radians(arrow.lon));
       // Move the origin out just a bit to minimize z fighting

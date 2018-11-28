@@ -2,8 +2,6 @@
 var GreatCircle = function(radius, latmax, lon0) {
   let pointsArray = [];
 
-  // this.latmax = 2*Math.PI/3;
-  // this.lon0 = Math.PI;
   this.latmax = latmax;
   this.lon0 = lon0;
 
@@ -14,16 +12,8 @@ var GreatCircle = function(radius, latmax, lon0) {
     // pointsArray.push(new THREE.Vector3(radius * p.x, radius * p.y, radius * p.z));
     pointsArray.push(radius * p.x, radius * p.y, radius * p.z);
   }
-  // this.vertexBuffer = gl.createBuffer();
-  // gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-  // gl.bufferData(gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW);
 
   this.vertices = pointsArray;
-  this.numPoints = pointsArray.length;
-}
-
-function sq(x) {
-  return x*x;
 }
 
 GreatCircle.prototype.getlat = function(lon) {
@@ -36,15 +26,11 @@ GreatCircle.prototype.dlatdlon = function(lat, lon) {
 }
 
 GreatCircle.prototype.veast = function(lat, lon, mag) {
-  // let dlatdlon = (-Math.tan(this.latmax)*Math.sin(lon-this.lon0)) /
-  //   (1 + sq(Math.tan(this.latmax)) * sq(Math.cos(lon-this.lon0)));
   let dlatdlon = this.dlatdlon(lat, lon);
   return mag * Math.cos(Math.atan(dlatdlon));
 }
 
 GreatCircle.prototype.vnorth = function(lat, lon, mag) {
-  // let dlatdlon = (-Math.tan(this.latmax)*Math.sin(lon-this.lon0)) /
-  //   (1 + sq(Math.tan(this.latmax)) * sq(Math.cos(lon-this.lon0)));
   let dlatdlon = this.dlatdlon(lat, lon);
   return mag * Math.sin(Math.atan(dlatdlon));
 }
