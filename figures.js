@@ -234,9 +234,15 @@ function getLonLine(lonRadians, color) {
 function getPuckPath(t, color) {
   var points = sim.path(0, t, 30);
   var circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
-  let lineMaterial = new THREE.LineBasicMaterial( {
+  // let lineMaterial = new THREE.LineBasicMaterial( {
+  //   color: color,
+  //   linewidth: lineWidth
+  // } );
+  let lineMaterial = new THREE.LineDashedMaterial( {
     color: color,
-    linewidth: lineWidth
+    linewidth: lineWidth,
+    dashSize: 5,
+    gapSize: 10,
   } );
   var path = new THREE.Line( circleGeometry, lineMaterial );
   path.renderOrder = pathRenderOrder;
