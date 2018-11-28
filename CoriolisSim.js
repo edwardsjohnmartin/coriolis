@@ -47,15 +47,6 @@ CoriolisSim.prototype.phi_ = function(t) {
 }
 
 //------------------------------------------------------------
-// lat
-// Computes the time-dependent latitude of the puck at time t.
-// Return value is in radians.
-//------------------------------------------------------------
-CoriolisSim.prototype.lat = function(t) {
-  return (t/T_) * 2 * Math.PI;
-}
-
-//------------------------------------------------------------
 // p
 // Computes the time-dependent position of the puck in
 // Cartesian coordinates in the fixed frame.
@@ -73,5 +64,26 @@ CoriolisSim.prototype.p = function(t) {
 CoriolisSim.prototype.v = function(t) {
   let ret = this.v0.clone();
   return ret.normalize().applyAxisAngle(this.rotAxis, (t/T_)*2*Math.PI);
+}
+
+//------------------------------------------------------------
+// path
+// Computes the puck's path from time t0 to time t1. divisions
+// is the number of pieces to divide the curve into. Coordinates
+// returned in fixed-frame cartesian coordinates.
+//------------------------------------------------------------
+CoriolisSim.prototype.path = function(t0, t1, divisions) {
+  if (t0 == t1) return [];
+
+  const inc = (t1-t0)/divisions;
+  let points = [];
+  for (let t = t0; t <= t1; t += inc) {
+    const pFixed = this.p(t);
+    const latLonFixed = xyz2latLon(pFixed);
+    const lonRotating = this.phi(t1) + latLonFixed.lon - this.phi(t);
+    const pRotating = latLon2xyz(latLonFixed.lat, lonRotating);
+    points.push(pRotating);
+  }
+  return points;
 }
 

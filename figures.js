@@ -1,5 +1,7 @@
 let camera, scene, rotScene, renderer, controls;
 
+const radius = 1;
+
 let plane;//, arrows;
 let arrowLen = 0.22;
 const headLen = 0.045;
@@ -14,8 +16,11 @@ const red = 0xcc0000;
 const vecRenderOrder = 10;
 const eastRenderOrder = 8;
 const northRenderOrder = 8;
-const greatCircleRenderOrder = 0;
+const pathRenderOrder = 2;
+const greatCircleRenderOrder = 1;
 const globeRenderOrder = 0;
+
+let sim;
 
 init();
 render();
@@ -54,37 +59,38 @@ function init() {
   scene.add(getTransparentPlane());
 
   greatCircle = new GreatCircle(1, Math.PI/4, 0);
+  sim = new CoriolisSim(radians(-90));
   scene.add(getGlobe());
   scene.add(getGreatCircle());
   // scene.add(getArrowsGroup());
 
   let arrowsGroup = new THREE.Group();
-  let sim = new CoriolisSim(radians(-90));
   for (let hours = 0; hours <= 4; hours++) {
     const t = hours*60*60;
     const phi = sim.phi(t);
     const phi_ = sim.phi_(t);
-    const lat = sim.lat(t);
-    // console.log(hours + ": " + degrees(phi) + "\n\t" +
-    //             degrees(phi_) + "\n\t" +
-    //             degrees(phi_-phi));
+    const colorL = sq(0.9-hours/12);
+    const vcolor = new THREE.Color().setHSL(0, 1, colorL);
+    const necolor = new THREE.Color().setHSL(0.7, 1, colorL);
+    const rotatingPathColor = new THREE.Color().setHSL(0.15, 1, colorL);
 
     {
-      // longitude line
-      var geometry = new THREE.SphereBufferGeometry(.02, 32, 32);
-      var material = new THREE.MeshBasicMaterial({color: 0xaa0000});
-      var sphere = new THREE.Mesh(geometry, material);
-      // sphere.translateY(Math.sin(lat));
-      sphere.translateX(Math.cos(-phi));
-      sphere.translateZ(Math.sin(-phi));
-      scene.add(sphere);
+      // // longitude line
+      // var geometry = new THREE.SphereBufferGeometry(.02, 32, 32);
+      // var material = new THREE.MeshBasicMaterial({color: 0xaa0000});
+      // var sphere = new THREE.Mesh(geometry, material);
+      // // sphere.translateY(Math.sin(lat));
+      // sphere.translateX(Math.cos(-phi));
+      // sphere.translateZ(Math.sin(-phi));
+      // scene.add(sphere);
     } {
       // puck
       let geometry = new THREE.SphereBufferGeometry(.02, 32, 32);
-      let material = new THREE.MeshBasicMaterial({color: 0x0000aa});
+      let material = new THREE.MeshBasicMaterial({color: vcolor});
       let sphere = new THREE.Mesh(geometry, material);
       const p = sim.p(t);
       sphere.translateOnAxis(p, 1);
+      sphere.renderOrder = vecRenderOrder;
       scene.add(sphere);
 
       const v = sim.v(t);
@@ -99,7 +105,7 @@ function init() {
         let dir = v.normalize();
         let origin = p;
         let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                          red, 20, headLen, 0.6*headLen);
+                                          vcolor, 20, headLen, 0.6*headLen);
         // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
         arrowHelper.children[0].renderOrder = vecRenderOrder;
         arrowHelper.children[1].renderOrder = vecRenderOrder;
@@ -110,7 +116,7 @@ function init() {
         let dir = E.normalize();
         let origin = p;
         let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                          blue, 20, headLen, 0.6*headLen);
+                                          necolor, 20, headLen, 0.6*headLen);
         // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
         arrowHelper.children[0].renderOrder = eastRenderOrder;
         arrowHelper.children[1].renderOrder = eastRenderOrder;
@@ -122,13 +128,20 @@ function init() {
           let dir = N.normalize();
           let origin = p;
           let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                            blue, 20, headLen, 0.6*headLen);
+                                            necolor, 20, headLen, 0.6*headLen);
           // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
           arrowHelper.children[0].renderOrder = northRenderOrder;
           arrowHelper.children[1].renderOrder = northRenderOrder;
           arrowsGroup.add(arrowHelper);
         }
       }
+      // Longitude line
+      let lonLine = getLonLine(phi, vcolor);
+      scene.add(lonLine);
+
+      // puck's path
+      let path = getPuckPath(t, rotatingPathColor);
+      scene.add(path);
     }
   }
   scene.add(arrowsGroup);
@@ -185,9 +198,49 @@ function getGlobe() {
     lon.renderOrder = globeRenderOrder;
     lon.scale.setScalar(1);
     lon.rotateY(i*Math.PI/180);
-    latlon.add(lon);
+    // latlon.add(lon);
   }
   return latlon;
+}
+
+//----------------------------------------
+// getLonLine
+//----------------------------------------
+function getLonLine(lonRadians, color) {
+  var circle =
+    new THREE.EllipseCurve(0, 0, radius, radius, -Math.PI/2, Math.PI/2);
+  var points = circle.getPoints(50);
+  var circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
+
+  let lineMaterial = new THREE.LineBasicMaterial( {
+    color: color,
+    linewidth: lineWidth
+  } );
+  let inc = 15;
+
+  let latlon = new THREE.Group();
+  // Longitude
+  var lon = new THREE.Line( circleGeometry, lineMaterial );
+  lon.renderOrder = globeRenderOrder;
+  lon.scale.setScalar(1);
+  lon.rotateY(lonRadians);
+  latlon.add(lon);
+  return latlon;
+}
+
+//----------------------------------------
+// getLonLine
+//----------------------------------------
+function getPuckPath(t, color) {
+  var points = sim.path(0, t, 30);
+  var circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
+  let lineMaterial = new THREE.LineBasicMaterial( {
+    color: color,
+    linewidth: lineWidth
+  } );
+  var path = new THREE.Line( circleGeometry, lineMaterial );
+  path.renderOrder = pathRenderOrder;
+  return path;
 }
 
 //----------------------------------------
@@ -202,20 +255,35 @@ function getTransparentPlane() {
   return plane;
 }
 
+// //----------------------------------------
+// // getGreatCircle
+// //----------------------------------------
+// function getGreatCircle() {
+//   var greatCircleGeometry = new THREE.BufferGeometry();
+//   greatCircleGeometry.addAttribute(
+//     'position', new THREE.Float32BufferAttribute(greatCircle.vertices, 3));
+//   let greatCircleMaterial = new THREE.LineBasicMaterial( {
+//     color: 0xaaaa00,
+//     linewidth: lineWidth
+//   } );
+//   var gcLine = new THREE.Line(greatCircleGeometry, greatCircleMaterial);
+//   gcLine.renderOrder = greatCircleRenderOrder;
+//   return gcLine;
+// }
+
 //----------------------------------------
 // getGreatCircle
 //----------------------------------------
 function getGreatCircle() {
-  var greatCircleGeometry = new THREE.BufferGeometry();
-  greatCircleGeometry.addAttribute(
-    'position', new THREE.Float32BufferAttribute(greatCircle.vertices, 3));
-  let greatCircleMaterial = new THREE.LineBasicMaterial( {
-    color: 0xaaaa00,
-    linewidth: lineWidth
-  } );
-  var gcLine = new THREE.Line(greatCircleGeometry, greatCircleMaterial);
-  gcLine.renderOrder = greatCircleRenderOrder;
-  return gcLine;
+  var circle = new THREE.EllipseCurve(0, 0, radius, radius);
+  var points = circle.getPoints(50);
+  var geometry = new THREE.BufferGeometry().setFromPoints(points);
+  var material = new THREE.LineBasicMaterial({ color : 0xaaaa00 });
+  var ellipse = new THREE.Line(geometry, material);
+  let theta = -new THREE.Vector3(-1,0,0).angleTo(sim.rotAxis);
+  ellipse.rotateOnAxis(new THREE.Vector3(0,0,1), theta);
+  ellipse.rotateOnAxis(new THREE.Vector3(0,1,0), Math.PI/2);
+  return ellipse;
 }
 
 //----------------------------------------

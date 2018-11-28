@@ -19,6 +19,13 @@ function latLon2xyz(lat, lon) {
   return new THREE.Vector3(x,y,z);
 }
 
+function xyz2latLon(p) {
+  const lat = Math.asin(p.y);
+  const r = Math.cos(lat);
+  const lon = -Math.acos(p.x/r);
+  return {lat:lat, lon:lon};
+}
+
 //------------------------------------------------------------
 // Sphere math stuff
 //------------------------------------------------------------
