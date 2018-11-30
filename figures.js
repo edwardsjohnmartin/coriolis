@@ -6,6 +6,8 @@ let plane;//, arrows;
 let arrowLen = 0.22;
 const headLen = 0.045;
 
+let map = new Map();
+
 let animation = false;
 let lineWidth = 2;
 
@@ -31,6 +33,8 @@ animate();
 //------------------------------------------------------------
 
 function init() {
+  document.onkeydown = keydown;
+
   // camera = new THREE.PerspectiveCamera(
   //   33, window.innerWidth / window.innerHeight, 0.1, 100);
   let width = 3;
@@ -39,9 +43,10 @@ function init() {
      width / - 2, width / 2, height / 2, height / - 2, 1, 100);
 
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(1, 1, 1);
+  // scene.background = new THREE.Color(1, 1, 1);
 
   renderer = new THREE.SVGRenderer();
+  renderer.autoClear = false;
   // renderer = new THREE.WebGLRenderer();
 
   controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -56,21 +61,23 @@ function init() {
   renderer.setSize(w, w);
   document.body.appendChild(renderer.domElement);
 
-  scene.add(getTransparentPlane());
+  // scene.add(getTransparentPlane());
 
   greatCircle = new GreatCircle(1, Math.PI/4, 0);
   sim = new CoriolisSim(radians(-90));
-  scene.add(getGlobe());
-  scene.add(getGreatCircle());
+  // scene.add(getGlobe());
+  // scene.add(getGreatCircle());
   // scene.add(getArrowsGroup());
 
   let arrowsGroup = new THREE.Group();
-  for (let hours = 0; hours <= 4; hours++) {
+  // for (let hours = 0; hours <= 4; hours++) {
+  for (let hours = 4; hours <= 4; hours++) {
     const t = hours*60*60;
     const phi = sim.phi(t);
     const phi_ = sim.phi_(t);
     const colorL = sq(0.9-hours/12);
     const vcolor = new THREE.Color().setHSL(0, 1, colorL);
+    const lonLineColor = new THREE.Color().setHSL(0, 1, colorL);
     const necolor = new THREE.Color().setHSL(0.7, 1, colorL);
     const rotatingPathColor = new THREE.Color().setHSL(0.15, 1, colorL);
 
@@ -136,7 +143,7 @@ function init() {
         }
       }
       // Longitude line
-      let lonLine = getLonLine(phi, vcolor);
+      let lonLine = getLonLine(phi, lonLineColor);
       scene.add(lonLine);
 
       // puck's path
@@ -146,13 +153,98 @@ function init() {
   }
   scene.add(arrowsGroup);
 
+  scene.add(getBackgroundPlanet());
+  // scene.add(getEarth());
+  getEarth();
+
+  // drawMap();
+  // map.draw();
+
   window.addEventListener( 'resize', onWindowResize, false );
   controls.addEventListener('change', render);
+}
+
+function keydown(event) {
+  var x = event.keyCode;
+  var key = event.key;
+  var changed = false;
+  if (x == 40 || key == "j" || key == "J") {
+    console.log('down');
+    // Down arrow
+    if (event.shiftKey) {
+    } else if (event.ctrlKey) {
+    } else {
+    }
+    // changed = true;
+  } else if (x == 38 || key == "k" || key == "K") {
+    // Up arrow
+    // changed = true;
+  } else if (x == 39) {
+    // Right arrow
+    // changed = true;
+  } else if (x == 37) {
+    // Left arrow
+    // changed = true;
+  } else if (key == "d") {
+  }
+  if (changed) {
+    map.draw();
+  }
 }
 
 //------------------------------------------------------------
 // Functions to create 3D objects
 //------------------------------------------------------------
+
+function getEarth() {
+  // new THREE.TextureLoader().load("test.jpg", texture => {
+  //   let geometry = new THREE.SphereBufferGeometry(0.5,100,100);
+  //   let material = new THREE.MeshBasicMaterial({map: texture});
+
+  //   let sphere = new THREE.Mesh(geometry, material);
+  //   scene.add(sphere);
+  // });
+
+  // let texture = new THREE.TextureLoader().load("test.jpg");
+  // let geometry = new THREE.SphereBufferGeometry(0.5,100,100);
+  // let material = new THREE.MeshBasicMaterial({map: texture});
+
+  // let sphere = new THREE.Mesh(geometry, material);
+  // scene.add(sphere);
+}
+
+function getBackgroundPlanet() {
+  let group = new THREE.Group();
+
+  //-----------------------
+  // Background sphere
+  let geometry = new THREE.SphereBufferGeometry(.08, 32, 32);
+  let material = new THREE.MeshBasicMaterial({color: blue});
+  let sphere = new THREE.Mesh(geometry, material);
+  const p = new THREE.Vector3(-1.5, 1, -2);
+  sphere.translateOnAxis(p, 1);
+  group.add(sphere);
+
+  const r = 0.2;
+  var circle =
+    new THREE.EllipseCurve(0, 0, r, r);
+  var points = circle.getPoints(50);
+  var circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
+  let lineMaterial = new THREE.LineBasicMaterial( {
+    color: 0xaa0000,
+    linewidth: lineWidth
+  } );
+  let inc = 15;
+
+  let latlon = new THREE.Group();
+  // Longitude
+  var ring = new THREE.Line( circleGeometry, lineMaterial );
+  ring.translateOnAxis(p, 1);
+  ring.rotateZ(Math.PI/8);
+  ring.rotateX(Math.PI/2);
+  group.add(ring);
+  return group;
+}
 
 //----------------------------------------
 // getGlobe
@@ -372,6 +464,8 @@ function render() {
     plane.rotation.z = camera.rotation.z;
   }
 
+  renderer.clear();
+  map.draw();
   renderer.render( scene, camera );
 }
 
