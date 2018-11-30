@@ -15,7 +15,8 @@ Map.prototype.draw = function() {
   let target = new THREE.Vector3(0,0,0);
   let dir = camera.getWorldDirection(target).normalize();
   let latLon = xyz2latLon(dir.multiplyScalar(-1));
-  let rotation = [-degrees(latLon.lon), -degrees(latLon.lat)];
+  let yaw = degrees(latLon.lon) + viewRotation();
+  let rotation = [yaw, -degrees(latLon.lat)];
   this.projection.rotate(rotation);
 
   // Extent
@@ -38,7 +39,7 @@ Map.prototype.draw = function() {
 
   let lineColor = '#cccccc';
 
-  let graticule = d3.geoGraticule().step([10, 10]);
+  let graticule = d3.geoGraticule().step([15, 15]);
   // d3.select("#map").selectAll("path")
   d3.select(renderer.domElement).selectAll("path")
     .data([graticule()])

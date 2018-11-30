@@ -1,4 +1,10 @@
-let camera, scene, rotScene, renderer, controls;
+let camera;
+// The entire scene
+let scene;
+// The scene with everything in the earth's rotational frame.
+let rotScene;
+let renderer;
+let controls;
 
 const radius = 1;
 let radiusInWindow;
@@ -9,7 +15,7 @@ const headLen = 0.045;
 
 let map = new Map();
 
-let animation = false;
+let animation = true;
 let lineWidth = 2;
 
 const blue = 0x0000cc;
@@ -23,7 +29,26 @@ const pathRenderOrder = 2;
 const greatCircleRenderOrder = 1;
 const globeRenderOrder = 0;
 
+// Longitude for the different views
+// Where we're looking when in the rotational view
+const rotationalViewLon = -90;
+// Number of degrees we rotate the fixed frame for the view
+const fixedViewRotation = 90;
+// Number of degrees the earth is rotated from the Prime Meridian
+// in the fixed frame view.
+let earthRotation = 0;
+
+const ROTATIONAL_VIEW = 0;
+const FIXED_VIEW = 1;
+const view = ROTATIONAL_VIEW;
+
+function viewRotation() {
+  return fixedViewRotation - earthRotation;
+}
+
 let sim;
+
+runTests();
 
 init();
 render();
@@ -44,6 +69,7 @@ function init() {
      width / - 2, width / 2, height / 2, height / - 2, 1, 100);
 
   scene = new THREE.Scene();
+  rotScene = new THREE.Scene();
   // Don't remove this comment.
   // Setting the background makes the renderer clear everything
   // before rendering. We want control over the clear so we can
@@ -57,8 +83,38 @@ function init() {
   controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enablePan = false;
 
+  // camera.position.z = 10;
   camera.position.z = 10;
+
+  // if (view == ROTATIONAL_VIEW) {
+  //   const theta = radians(rotationalViewLon);
+  //   camera.position.x = 10 * Math.sin(theta);
+  //   camera.position.z = 10 * Math.cos(theta);
+  // } else {
+  //   const theta = radians(rotationalViewLon);
+  //   camera.position.x = 10 * Math.sin(theta);
+  //   camera.position.z = 10 * Math.cos(theta);
+  // }
+
+  // camera.quaternion = new THREE.Quaternion().setFromAxisAngle(
+  //   new THREE.Vector3( 0, 1, 0 ), Math.PI / 2);
+  // camera.updateProjectionMatrix();
+  // console.log(camera.rotation);
+  // camera.rotation.y = -rotationalViewLon;
+  // console.log('a ' + camera.rotation.y);
+  // console.log('e ', radians(rotationalViewLon));//camera.quaternion);
+  // camera.rotateY(-radians(rotationalViewLon));
+  // camera.rotation.y = 13;
+  // console.log('e ', camera.quaternion);
+  // camera.updateProjectionMatrix();
+  // console.log('e ', camera.quaternion);
+  // console.log(controls);
+  // controls.rotateLeft(rotationalViewLon);
+  // console.log('b ' + camera.rotation.y);
   controls.update();
+  // console.log('e ', camera.quaternion);
+  // console.log('bb ' + camera.rotation.y);
+  // console.log('d ' + camera.position.z);
   
   // Set the window sizes
   let graphicParent = document.getElementById("graphic");
@@ -75,14 +131,13 @@ function init() {
   // scene.add(getTransparentPlane());
 
   // greatCircle = new GreatCircle(1, Math.PI/4, 0);
-  sim = new CoriolisSim(radians(-90));
+  sim = new CoriolisSim(radians(-75));
   // scene.add(getGlobe());
   // scene.add(getGreatCircle());
   // scene.add(getArrowsGroup());
 
   let arrowsGroup = new THREE.Group();
-  // for (let hours = 0; hours <= 4; hours++) {
-  for (let hours = 4; hours <= 4; hours++) {
+  for (let hours = 0; hours <= 4; hours++) {
     const t = hours*60*60;
     const phi = sim.phi(t);
     const phi_ = sim.phi_(t);
@@ -106,10 +161,11 @@ function init() {
       let geometry = new THREE.SphereBufferGeometry(.02, 32, 32);
       let material = new THREE.MeshBasicMaterial({color: vcolor});
       let sphere = new THREE.Mesh(geometry, material);
-      const p = sim.p(t);
+      // const p = sim.pFixed(t);
+      const p = sim.pRotating(t);
       sphere.translateOnAxis(p, 1);
       sphere.renderOrder = vecRenderOrder;
-      scene.add(sphere);
+      rotScene.add(sphere);
 
       const v = sim.v(t);
       let E = east(p);
@@ -153,16 +209,18 @@ function init() {
           arrowsGroup.add(arrowHelper);
         }
       }
-      // Longitude line
-      let lonLine = getLonLine(phi, lonLineColor);
-      scene.add(lonLine);
+      // // Longitude line
+      // let lonLine = getLonLine(phi, lonLineColor);
+      // scene.add(lonLine);
 
       // puck's path
-      let path = getPuckPath(t, rotatingPathColor);
-      scene.add(path);
+      let path = getPuckPathRotating(t, rotatingPathColor);
+      rotScene.add(path);
     }
   }
-  scene.add(arrowsGroup);
+  rotScene.add(arrowsGroup);
+
+  scene.add(rotScene);
 
   scene.add(getBackgroundPlanet());
 
@@ -312,9 +370,10 @@ function getLonLine(lonRadians, color) {
 //----------------------------------------
 // getLonLine
 //----------------------------------------
-function getPuckPath(t, color) {
-  var points = sim.path(0, t, 30);
-  var circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
+function getPuckPathRotating(t, color) {
+  let points = sim.pathRotating(0, t, 30);
+  // let points = sim.pathFixed(0, t, 30);
+  let circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
   // let lineMaterial = new THREE.LineBasicMaterial( {
   //   color: color,
   //   linewidth: lineWidth
@@ -453,6 +512,8 @@ function render() {
     plane.rotation.z = camera.rotation.z;
   }
 
+  rotScene.rotateY(earthRotation);
+
   renderer.clear();
   map.draw();
   renderer.render( scene, camera );
@@ -461,18 +522,19 @@ function render() {
 //----------------------------------------
 // animate
 //----------------------------------------
+var prevTime = null;
 function animate() {
   if (!animation) return;
 
-  var count = 0;
   var time = performance.now() / 1000;
+  if (prevTime) {
+    earthRotation += (time-prevTime)*2;
 
-  rotScene.traverse( function ( child ) {
-    child.rotation.x = count + ( time / 3 );
-    child.rotation.z = count + ( time / 4 );
-
-    count ++;
-  } );
+    rotScene.traverse( function ( child ) {
+      child.rotation.y = earthRotation;
+    } );
+  }
+  prevTime = time;
 
   controls.update();
   render();
@@ -484,10 +546,10 @@ function animate() {
 // snap
 //----------------------------------------
 function snap() {
-  console.log('snap');
+  console.log('Taking SVG snapshot');
   XMLS = new XMLSerializer();
   svgfile = XMLS.serializeToString(renderer.domElement);
 
-  let test = document.getElementById("output");
-  test.innerHTML = svgfile;
+  let textarea = document.getElementById("snapshot-output");
+  textarea.innerHTML = svgfile;
 }

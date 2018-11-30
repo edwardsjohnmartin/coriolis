@@ -30,7 +30,8 @@ var CoriolisSim = function(lon0) {
 // Computes the time-dependent azimuthal position of the
 // launch point of the puck as seen by an observer in the
 // fixed frame. It tracks the line of longitude from which the
-// puck was fired. Return value is in radians.
+// puck was fired. Return value is the azimuthal position in
+// radians.
 //------------------------------------------------------------
 CoriolisSim.prototype.phi = function(t) {
   return this.lon0 + 2 * Math.PI * t / T;
@@ -38,22 +39,46 @@ CoriolisSim.prototype.phi = function(t) {
 
 //------------------------------------------------------------
 // phi_
-// Computes the time-dependent position of the line of
-// longitude through which the puck is passing at time t. At
-// t=0, phi == phi_. Return value is in radians.
+// Computes the time-dependent azimuthal position of the puck
+// at time t in the fixed frame. At t=0, phi == phi_. Return
+// value is the azimuthal angle in radians.
 //------------------------------------------------------------
 CoriolisSim.prototype.phi_ = function(t) {
   return this.lon0 + Math.atan((2/3)*Math.tan(2*Math.PI*t/T_));
 }
 
 //------------------------------------------------------------
-// p
+// phi_rotating
+// Computes the time-dependent longitudinal position of the puck
+// at time t in the rotating frame, or the starting longitude
+// plus azimuthal degrees of
+// travel from the starting point. At t=0, phi_ == 0. Return
+// value is the azimuthal angle in radians.
+//------------------------------------------------------------
+CoriolisSim.prototype.phi_rotating = function(t) {
+  return this.lon0 + (this.phi_(t) - this.phi(t));
+}
+
+//------------------------------------------------------------
+// pFixed
 // Computes the time-dependent position of the puck in
 // Cartesian coordinates in the fixed frame.
 //------------------------------------------------------------
-CoriolisSim.prototype.p = function(t) {
+CoriolisSim.prototype.pFixed = function(t) {
   let ret = this.p0.clone();
   return ret.applyAxisAngle(this.rotAxis, (t/T_)*2*Math.PI);
+}
+
+//------------------------------------------------------------
+// pRotating
+// Computes the time-dependent position of the puck in
+// Cartesian coordinates in the rotating frame.
+//------------------------------------------------------------
+CoriolisSim.prototype.pRotating = function(t) {
+  let pFixed = this.pFixed(t);
+  let lat = xyz2latLon(pFixed).lat;
+  let lon = this.phi_rotating(t);
+  return latLon2xyz(lat, lon);
 }
 
 //------------------------------------------------------------
@@ -67,21 +92,41 @@ CoriolisSim.prototype.v = function(t) {
 }
 
 //------------------------------------------------------------
-// path
-// Computes the puck's path from time t0 to time t1. divisions
+// pathFixed
+// Computes the puck's path from time t0 to time t1 in the
+// fixed frame. divisions
 // is the number of pieces to divide the curve into. Coordinates
 // returned in fixed-frame cartesian coordinates.
 //------------------------------------------------------------
-CoriolisSim.prototype.path = function(t0, t1, divisions) {
+CoriolisSim.prototype.pathFixed = function(t0, t1, divisions) {
   if (t0 == t1) return [];
 
   const inc = (t1-t0)/divisions;
   let points = [];
   for (let t = t0; t <= t1; t += inc) {
-    const pFixed = this.p(t);
+    const pFixed = this.pFixed(t);
     const latLonFixed = xyz2latLon(pFixed);
     const lonRotating = this.phi(t1) + latLonFixed.lon - this.phi(t);
     const pRotating = latLon2xyz(latLonFixed.lat, lonRotating);
+    points.push(pRotating);
+  }
+  return points;
+}
+
+//------------------------------------------------------------
+// pathRotating
+// Computes the puck's path from time t0 to time t1 in the
+// rotating frame. divisions
+// is the number of pieces to divide the curve into. Coordinates
+// returned in rotating frame cartesian coordinates.
+//------------------------------------------------------------
+CoriolisSim.prototype.pathRotating = function(t0, t1, divisions) {
+  if (t0 == t1) return [];
+
+  const inc = (t1-t0)/divisions;
+  let points = [];
+  for (let t = t0; t <= t1; t += inc) {
+    const pRotating = this.pRotating(t);
     points.push(pRotating);
   }
   return points;

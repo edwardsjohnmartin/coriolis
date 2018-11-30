@@ -19,11 +19,15 @@ function latLon2xyz(lat, lon) {
   return new THREE.Vector3(x,y,z);
 }
 
+// Given an xyz position on a unit sphere, returns the lat/lon
+// (in radians) as if the observer is looking at the equator-
+// prime meridian intersection.
 function xyz2latLon(p) {
   const lat = Math.asin(p.y);
-  const r = Math.cos(lat);
+  // const r = Math.cos(lat);
   // const lon = -Math.acos(p.x/r);
-  const lon = -Math.atan2(p.z, p.x);
+  // const lon = -Math.atan2(p.z, p.x);
+  const lon = -Math.atan2(p.x, p.z);
   return {lat:lat, lon:lon};
 }
 
