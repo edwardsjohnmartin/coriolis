@@ -1,15 +1,8 @@
 var Map = function() {
-  this.width = 1257;
-  this.height = 1257;
-  this.sphere = ({type: "Sphere"})
-
   d3.json("world-small.json")
     .then(world => {
       this.world = world;
-      this.projection = d3.geoOrthographic()
-        // .translate([this.width / 2, this.height / 2])
-        // .fitExtent([[1, 1], [this.width - 1, this.height - 1]], this.sphere)
-      ;
+      this.projection = d3.geoOrthographic();
       render();
     })
   ;
@@ -27,12 +20,16 @@ Map.prototype.draw = function() {
 
   // Extent
   let box = renderer.domElement.viewBox.animVal;
-  let scale = 0.67;
-  let w = box.width*scale;
-  let h = box.height*scale;
+  // let scale = 0.67;
+  // let w = box.width*scale;
+  // let h = box.height*scale;
+  const zoom = camera.zoom;
+  let w = radiusInWindow*2*zoom;
+  let h = w;
   let center = [box.x + box.width/2, box.y + box.height/2];
   let extent = [[center[0]-w/2, center[1]-h/2], [center[0]+w/2, center[1]+h/2]];
-  this.projection.fitExtent(extent, this.sphere)
+  let sphere = ({type: "Sphere"});
+  this.projection.fitExtent(extent, sphere)
 
   let path = d3.geoPath()
     .projection(this.projection);

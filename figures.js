@@ -1,6 +1,7 @@
 let camera, scene, rotScene, renderer, controls;
 
 const radius = 1;
+let radiusInWindow;
 
 let plane;//, arrows;
 let arrowLen = 0.22;
@@ -37,7 +38,7 @@ function init() {
 
   // camera = new THREE.PerspectiveCamera(
   //   33, window.innerWidth / window.innerHeight, 0.1, 100);
-  let width = 3;
+  let width = 2.5;
   let height = width;
   camera = new THREE.OrthographicCamera(
      width / - 2, width / 2, height / 2, height / - 2, 1, 100);
@@ -53,6 +54,7 @@ function init() {
   // renderer = new THREE.WebGLRenderer();
 
   controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enablePan = false;
 
   camera.position.z = 10;
   controls.update();
@@ -66,6 +68,8 @@ function init() {
   }
   renderer.setSize(w, w);
   graphicParent.appendChild(renderer.domElement);
+
+  radiusInWindow = radius/(width/2)*(w/2);
 
   // scene.add(getTransparentPlane());
 
