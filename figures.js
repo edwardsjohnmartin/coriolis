@@ -44,6 +44,7 @@ function init() {
      width / - 2, width / 2, height / 2, height / - 2, 1, 100);
 
   scene = new THREE.Scene();
+  // Don't remove this comment.
   // Setting the background makes the renderer clear everything
   // before rendering. We want control over the clear so we can
   // draw the earth.
@@ -73,7 +74,7 @@ function init() {
 
   // scene.add(getTransparentPlane());
 
-  greatCircle = new GreatCircle(1, Math.PI/4, 0);
+  // greatCircle = new GreatCircle(1, Math.PI/4, 0);
   sim = new CoriolisSim(radians(-90));
   // scene.add(getGlobe());
   // scene.add(getGreatCircle());
@@ -372,61 +373,61 @@ function getGreatCircle() {
   return ellipse;
 }
 
-//----------------------------------------
-// getArrowsGroup
-//----------------------------------------
-function getArrowsGroup() {
-  let arrows = [];
-  let len = arrowLen;
-  // lond is longitude in degrees
-  for (let lond = -90; lond <= 0; lond += 15) {
-  // for (let lond = -75; lond <= -75; lond += 15) {
-    let lon = radians(lond);
-    let lat = greatCircle.getlat(lon);
-    let veast = greatCircle.veast(lat, lon, len);
-    let vnorth = greatCircle.vnorth(lat, lon, len);
-    let dlatdlon = greatCircle.dlatdlon(lat, lon);
-    let angle = degrees(Math.atan(dlatdlon));
-    // east
-    if (Math.abs(angle) > 1) {
-      arrows.push({ lat:degrees(lat), lon:degrees(lon), angle:0,
-                    renderOrder:eastRenderOrder,
-                    length:veast, color:blue, onTop:false });
-    }
-    // north
-    arrows.push({ lat:degrees(lat), lon:degrees(lon), angle:90,
-                  renderOrder:northRenderOrder,
-                  length:vnorth, color:blue, onTop:false });
-    // arrow
-    arrows.push({ lat:degrees(lat), lon:degrees(lon),
-                  angle:angle, renderOrder:vecRenderOrder,
-                  length:len, color:red, onTop:true });
-  }
+// //----------------------------------------
+// // getArrowsGroup
+// //----------------------------------------
+// function getArrowsGroup() {
+//   let arrows = [];
+//   let len = arrowLen;
+//   // lond is longitude in degrees
+//   for (let lond = -90; lond <= 0; lond += 15) {
+//   // for (let lond = -75; lond <= -75; lond += 15) {
+//     let lon = radians(lond);
+//     let lat = greatCircle.getlat(lon);
+//     let veast = greatCircle.veast(lat, lon, len);
+//     let vnorth = greatCircle.vnorth(lat, lon, len);
+//     let dlatdlon = greatCircle.dlatdlon(lat, lon);
+//     let angle = degrees(Math.atan(dlatdlon));
+//     // east
+//     if (Math.abs(angle) > 1) {
+//       arrows.push({ lat:degrees(lat), lon:degrees(lon), angle:0,
+//                     renderOrder:eastRenderOrder,
+//                     length:veast, color:blue, onTop:false });
+//     }
+//     // north
+//     arrows.push({ lat:degrees(lat), lon:degrees(lon), angle:90,
+//                   renderOrder:northRenderOrder,
+//                   length:vnorth, color:blue, onTop:false });
+//     // arrow
+//     arrows.push({ lat:degrees(lat), lon:degrees(lon),
+//                   angle:angle, renderOrder:vecRenderOrder,
+//                   length:len, color:red, onTop:true });
+//   }
 
-  let arrowsGroup = new THREE.Group();
-  arrows.forEach(arrow => {
-    if (arrow.length > headLen) {
-      let p = latLon2xyz(radians(arrow.lat), radians(arrow.lon));
-      // Move the origin out just a bit to minimize z fighting
-      // p = p.multiplyScalar(1.01);
+//   let arrowsGroup = new THREE.Group();
+//   arrows.forEach(arrow => {
+//     if (arrow.length > headLen) {
+//       let p = latLon2xyz(radians(arrow.lat), radians(arrow.lon));
+//       // Move the origin out just a bit to minimize z fighting
+//       // p = p.multiplyScalar(1.01);
 
-      let n = new THREE.Vector3().copy(p).normalize();
-      let east = new THREE.Vector3(0,1,0).cross(n);
-      let north = new THREE.Vector3(1,0,0).cross(east);
+//       let n = new THREE.Vector3().copy(p).normalize();
+//       let east = new THREE.Vector3(0,1,0).cross(n);
+//       let north = new THREE.Vector3(1,0,0).cross(east);
 
-      let dir = east;
-      let origin = p;
-      let length = arrow.length;
-      let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                        arrow.color, 20, headLen, 0.6*headLen);
-      arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
-      arrowHelper.children[0].renderOrder = arrow.renderOrder;
-      arrowHelper.children[1].renderOrder = arrow.renderOrder;
-      arrowsGroup.add(arrowHelper);
-    }
-  });
-  return arrowsGroup;
-}
+//       let dir = east;
+//       let origin = p;
+//       let length = arrow.length;
+//       let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+//                                         arrow.color, 20, headLen, 0.6*headLen);
+//       arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
+//       arrowHelper.children[0].renderOrder = arrow.renderOrder;
+//       arrowHelper.children[1].renderOrder = arrow.renderOrder;
+//       arrowsGroup.add(arrowHelper);
+//     }
+//   });
+//   return arrowsGroup;
+// }
 
 //------------------------------------------------------------
 // Utility functions
