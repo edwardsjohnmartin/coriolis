@@ -43,6 +43,9 @@ function init() {
      width / - 2, width / 2, height / 2, height / - 2, 1, 100);
 
   scene = new THREE.Scene();
+  // Setting the background makes the renderer clear everything
+  // before rendering. We want control over the clear so we can
+  // draw the earth.
   // scene.background = new THREE.Color(1, 1, 1);
 
   renderer = new THREE.SVGRenderer();
@@ -54,12 +57,15 @@ function init() {
   camera.position.z = 10;
   controls.update();
   
-  let w = window.innerWidth;
-  if (window.innerHeight < w) {
-    w = window.innerHeight;
+  // Set the window sizes
+  let graphicParent = document.getElementById("graphic");
+  console.log(graphicParent.clientWidth);
+  let w = graphicParent.clientWidth;
+  if (graphicParent.clientHeight < w) {
+    w = graphicParent.clientHeight;
   }
   renderer.setSize(w, w);
-  document.body.appendChild(renderer.domElement);
+  graphicParent.appendChild(renderer.domElement);
 
   // scene.add(getTransparentPlane());
 
@@ -154,13 +160,8 @@ function init() {
   scene.add(arrowsGroup);
 
   scene.add(getBackgroundPlanet());
-  // scene.add(getEarth());
-  getEarth();
 
-  // drawMap();
-  // map.draw();
-
-  window.addEventListener( 'resize', onWindowResize, false );
+  window.addEventListener('resize', onWindowResize, false);
   controls.addEventListener('change', render);
 }
 
@@ -195,23 +196,6 @@ function keydown(event) {
 //------------------------------------------------------------
 // Functions to create 3D objects
 //------------------------------------------------------------
-
-function getEarth() {
-  // new THREE.TextureLoader().load("test.jpg", texture => {
-  //   let geometry = new THREE.SphereBufferGeometry(0.5,100,100);
-  //   let material = new THREE.MeshBasicMaterial({map: texture});
-
-  //   let sphere = new THREE.Mesh(geometry, material);
-  //   scene.add(sphere);
-  // });
-
-  // let texture = new THREE.TextureLoader().load("test.jpg");
-  // let geometry = new THREE.SphereBufferGeometry(0.5,100,100);
-  // let material = new THREE.MeshBasicMaterial({map: texture});
-
-  // let sphere = new THREE.Mesh(geometry, material);
-  // scene.add(sphere);
-}
 
 function getBackgroundPlanet() {
   let group = new THREE.Group();

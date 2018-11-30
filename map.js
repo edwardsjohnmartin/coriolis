@@ -18,18 +18,19 @@ var Map = function() {
 Map.prototype.draw = function() {
   if (!this.projection) return;
 
-  // [yaw, pitch, roll]
-  let rotation = [-degrees(camera.rotation.y), degrees(camera.rotation.x), 0];
+  // Rotation: [yaw, pitch, roll]
+  let target = new THREE.Vector3(0,0,0);
+  let dir = camera.getWorldDirection(target).normalize();
+  let latLon = xyz2latLon(dir.multiplyScalar(-1));
+  let rotation = [-degrees(latLon.lon), -degrees(latLon.lat)];
   this.projection.rotate(rotation);
 
-  console.log(renderer.domElement.viewBox);
+  // Extent
   let box = renderer.domElement.viewBox.animVal;
-  // let extent = [[1, 1], [this.width - 1, this.height - 1]];
   let scale = 0.67;
   let w = box.width*scale;
   let h = box.height*scale;
   let center = [box.x + box.width/2, box.y + box.height/2];
-  // let extent = [[box.x, box.y], [box.width+box.x, box.height+box.y]];
   let extent = [[center[0]-w/2, center[1]-h/2], [center[0]+w/2, center[1]+h/2]];
   this.projection.fitExtent(extent, this.sphere)
 
@@ -57,7 +58,7 @@ Map.prototype.draw = function() {
   // let geoJSON = this.world;
 
   // d3.select("#map").selectAll("path")
-  console.log(d3.select(renderer.domElement));
+  // console.log(d3.select(renderer.domElement));
   d3.select(renderer.domElement).selectAll("path")
     // .data(geoJSON.features)
     .data(this.world.features)

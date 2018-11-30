@@ -22,7 +22,8 @@ function latLon2xyz(lat, lon) {
 function xyz2latLon(p) {
   const lat = Math.asin(p.y);
   const r = Math.cos(lat);
-  const lon = -Math.acos(p.x/r);
+  // const lon = -Math.acos(p.x/r);
+  const lon = -Math.atan2(p.z, p.x);
   return {lat:lat, lon:lon};
 }
 
