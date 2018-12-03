@@ -18,13 +18,15 @@ var CoriolisSim = function(lon0) {
   this.p0 = new Position(0, lon0);
 
   // north0 and east0 are in rotating frame cartesian coordinates
-  this.north0 = new THREE.Vector3(0, Math.sqrt(5/4)*V, 0);
-  this.east0 =
-    new THREE.Vector3(V*Math.cos(this.p0.lon), 0, -V*Math.sin(this.p0.lon));
+  // this.north0 = new THREE.Vector3(0, Math.sqrt(5/4)*V, 0);
+  // this.east0 =
+  //   new THREE.Vector3(V*Math.cos(this.p0.lon), 0, -V*Math.sin(this.p0.lon));
 
-  this.v0_fixed = this.north0.clone().add(this.east0);
-  this.rotAxis_fixed =
-    this.p0.cartesian.clone().cross(this.v0_fixed.clone().normalize()).normalize();
+  // this.v0 = this.north0.clone().add(this.east0);
+  this.v0 = new Velocity(V, Math.sqrt(5/4)*V, 0);
+  this.speed = Math.sqrt(sq(this.v0.east)+sq(this.v0.north));
+  // this.rotAxis_fixed =
+  //   this.p0.cartesian.clone().cross(this.v0.clone().normalize()).normalize();
 }
 
 //------------------------------------------------------------
@@ -48,7 +50,18 @@ CoriolisSim.prototype.phi = function(t) {
 //------------------------------------------------------------
 CoriolisSim.prototype.phi_ = function(t) {
   // return this.lon0 + Math.atan((2/3)*Math.tan(2*Math.PI*t/T_));
-  return this.p0.lon + Math.atan((2/3)*Math.tan(2*Math.PI*t/T_));
+  // return this.p0.lon + Math.atan((2/3)*Math.tan(2*Math.PI*t/T_));
+  return this.p0.lon + Math.atan((V/this.speed)*Math.tan(2*Math.PI*t/T_));
+}
+
+//------------------------------------------------------------
+// theta_
+// Computes the time-dependent pitch position of the puck
+// at time t in the fixed frame. At t=0, theta_ == 0. Return
+// value is the pitch angle in radians.
+//------------------------------------------------------------
+CoriolisSim.prototype.theta_ = function(t) {
+  return this.p0.lat + Math.asin((this.v0.north/this.speed) * Math.sin(2*Math.PI*t/T_));
 }
 
 //------------------------------------------------------------
@@ -65,26 +78,38 @@ CoriolisSim.prototype.phi_rotating = function(t) {
 }
 
 //------------------------------------------------------------
-// pFixed
-// Computes the time-dependent position of the puck in
-// Cartesian coordinates in the fixed frame.
+// p
+// Computes the time-dependent position of the puck.
 //------------------------------------------------------------
-CoriolisSim.prototype.pFixed = function(t) {
-  let ret = this.p0.cartesian.clone();
-  return ret.applyAxisAngle(this.rotAxis_fixed, (t/T_)*2*Math.PI);
+CoriolisSim.prototype.p = function(t) {
+  const lat = this.theta_(t);
+  const lon = this.phi_rotating(t);
+  return new Position(lat, lon);
+  // let ret = this.p0.cartesian.clone();
+  // return ret.applyAxisAngle(this.rotAxis_fixed, (t/T_)*2*Math.PI);
 }
 
-//------------------------------------------------------------
-// pRotating
-// Computes the time-dependent position of the puck in
-// Cartesian coordinates in the rotating frame.
-//------------------------------------------------------------
-CoriolisSim.prototype.pRotating = function(t) {
-  let pFixed = this.pFixed(t);
-  let lat = xyz2latLon(pFixed).lat;
-  let lon = this.phi_rotating(t);
-  return latLon2xyz(lat, lon);
-}
+// //------------------------------------------------------------
+// // pFixed
+// // Computes the time-dependent position of the puck in
+// // Cartesian coordinates in the fixed frame.
+// //------------------------------------------------------------
+// CoriolisSim.prototype.pFixed = function(t) {
+//   let ret = this.p0.cartesian.clone();
+//   return ret.applyAxisAngle(this.rotAxis_fixed, (t/T_)*2*Math.PI);
+// }
+
+// //------------------------------------------------------------
+// // pRotating
+// // Computes the time-dependent position of the puck in
+// // Cartesian coordinates in the rotating frame.
+// //------------------------------------------------------------
+// CoriolisSim.prototype.pRotating = function(t) {
+//   let pFixed = this.pFixed(t);
+//   let lat = xyz2latLon(pFixed).lat;
+//   let lon = this.phi_rotating(t);
+//   return latLon2xyz(lat, lon);
+// }
 
 //------------------------------------------------------------
 // v
@@ -92,8 +117,9 @@ CoriolisSim.prototype.pRotating = function(t) {
 // the fixed frame.
 //------------------------------------------------------------
 CoriolisSim.prototype.v = function(t) {
-  let ret = this.v0_fixed.clone();
-  return ret.normalize().applyAxisAngle(this.rotAxis_fixed, (t/T_)*2*Math.PI);
+  // let ret = this.v0.clone();
+  // return ret.normalize().applyAxisAngle(this.rotAxis_fixed, (t/T_)*2*Math.PI);
+  return this.v0.cartesian(this.p(t));
 }
 
 //------------------------------------------------------------
@@ -103,37 +129,55 @@ CoriolisSim.prototype.v = function(t) {
 // is the number of pieces to divide the curve into. Coordinates
 // returned in fixed-frame cartesian coordinates.
 //------------------------------------------------------------
-CoriolisSim.prototype.pathFixed = function(t0, t1, divisions) {
+CoriolisSim.prototype.path = function(t0, t1, divisions) {
   if (t0 == t1) return [];
 
   const inc = (t1-t0)/divisions;
   let points = [];
   for (let t = t0; t <= t1; t += inc) {
-    const pFixed = this.pFixed(t);
-    const latLonFixed = xyz2latLon(pFixed);
-    const lonRotating = this.phi(t1) + latLonFixed.lon - this.phi(t);
-    const pRotating = latLon2xyz(latLonFixed.lat, lonRotating);
-    points.push(pRotating);
+    points.push(this.p(t));
   }
   return points;
 }
 
-//------------------------------------------------------------
-// pathRotating
-// Computes the puck's path from time t0 to time t1 in the
-// rotating frame. divisions
-// is the number of pieces to divide the curve into. Coordinates
-// returned in rotating frame cartesian coordinates.
-//------------------------------------------------------------
-CoriolisSim.prototype.pathRotating = function(t0, t1, divisions) {
-  if (t0 == t1) return [];
+// //------------------------------------------------------------
+// // pathFixed
+// // Computes the puck's path from time t0 to time t1 in the
+// // fixed frame. divisions
+// // is the number of pieces to divide the curve into. Coordinates
+// // returned in fixed-frame cartesian coordinates.
+// //------------------------------------------------------------
+// CoriolisSim.prototype.pathFixed = function(t0, t1, divisions) {
+//   if (t0 == t1) return [];
 
-  const inc = (t1-t0)/divisions;
-  let points = [];
-  for (let t = t0; t <= t1; t += inc) {
-    const pRotating = this.pRotating(t);
-    points.push(pRotating);
-  }
-  return points;
-}
+//   const inc = (t1-t0)/divisions;
+//   let points = [];
+//   for (let t = t0; t <= t1; t += inc) {
+//     const pFixed = this.pFixed(t);
+//     const latLonFixed = xyz2latLon(pFixed);
+//     const lonRotating = this.phi(t1) + latLonFixed.lon - this.phi(t);
+//     const pRotating = latLon2xyz(latLonFixed.lat, lonRotating);
+//     points.push(pRotating);
+//   }
+//   return points;
+// }
+
+// //------------------------------------------------------------
+// // pathRotating
+// // Computes the puck's path from time t0 to time t1 in the
+// // rotating frame. divisions
+// // is the number of pieces to divide the curve into. Coordinates
+// // returned in rotating frame cartesian coordinates.
+// //------------------------------------------------------------
+// CoriolisSim.prototype.pathRotating = function(t0, t1, divisions) {
+//   if (t0 == t1) return [];
+
+//   const inc = (t1-t0)/divisions;
+//   let points = [];
+//   for (let t = t0; t <= t1; t += inc) {
+//     const pRotating = this.pRotating(t);
+//     points.push(pRotating);
+//   }
+//   return points;
+// }
 

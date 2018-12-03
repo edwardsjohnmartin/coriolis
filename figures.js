@@ -38,7 +38,7 @@ const globeRenderOrder = 0;
 
 // Longitude for the different views
 // Where we're looking when in the rotational view
-const rotationalViewLon = -90;
+const rotationalViewLon = 0;
 // Number of degrees we rotate the fixed frame for the view
 // const fixedViewRotation = 75;
 const fixedViewRotation = 0;
@@ -46,7 +46,7 @@ const fixedViewRotation = 0;
 // in the fixed frame view.
 let earthRotation = 0;
 
-const launchLongitude = -75;
+const launchLongitude = -30;
 let sim = new CoriolisSim(radians(launchLongitude));
 
 const ROTATIONAL_VIEW = 0;
@@ -285,8 +285,11 @@ function getLonLine(lonRadians, color) {
 //----------------------------------------
 // getLonLine
 //----------------------------------------
-function getPuckPathRotating(t, color) {
-  let points = sim.pathRotating(0, t, 30);
+function getPuckPath(t, color) {
+  let points = sim.path(0, t, 30);
+  points.forEach((p, i, arr) => {
+    arr[i] = p.cartesian;
+  });
   // let points = sim.pathFixed(0, t, 30);
   let circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
   // let lineMaterial = new THREE.LineBasicMaterial( {
@@ -303,6 +306,28 @@ function getPuckPathRotating(t, color) {
   path.renderOrder = pathRenderOrder;
   return path;
 }
+
+// //----------------------------------------
+// // getLonLine
+// //----------------------------------------
+// function getPuckPathRotating(t, color) {
+//   let points = sim.pathRotating(0, t, 30);
+//   // let points = sim.pathFixed(0, t, 30);
+//   let circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
+//   // let lineMaterial = new THREE.LineBasicMaterial( {
+//   //   color: color,
+//   //   linewidth: lineWidth
+//   // } );
+//   let lineMaterial = new THREE.LineDashedMaterial( {
+//     color: color,
+//     linewidth: lineWidth,
+//     dashSize: 5,
+//     gapSize: 10,
+//   } );
+//   var path = new THREE.Line( circleGeometry, lineMaterial );
+//   path.renderOrder = pathRenderOrder;
+//   return path;
+// }
 
 //----------------------------------------
 // getTransparentPlane
@@ -438,41 +463,41 @@ function updateRotGroup() {
       let geometry = new THREE.SphereBufferGeometry(.02, 32, 32);
       let material = new THREE.MeshBasicMaterial({color: vcolor});
       let sphere = new THREE.Mesh(geometry, material);
-      const p = sim.pRotating(t);
+      // const p = sim.pRotating(t);
+      const p = sim.p(t);
       sphere.translateOnAxis(p, 1);
       sphere.renderOrder = vecRenderOrder;
       rotGroup.add(sphere);
 
       const v = sim.v(t).normalize();
-      let E = east(p);
-      let N = north(p);
+      let E = east(p.cartesian);
+      let N = north(p.cartesian);
       E = E.multiplyScalar(v.clone().dot(E));
       N = N.multiplyScalar(v.clone().dot(N));
       const f = 0.25;
       
       {
-        // test
-        let testp = new Position(radians(45), radians(-45));
-        let testdir = new Velocity(1, 1);
-        testdir = testdir.cartesian(testp);
-        console.log(testdir);
-        const length = testdir.length()*f;
-        let arrowHelper = new ArrowHelper(testdir.clone().normalize(),
-                                          testp.cartesian,
-                                          length, lineWidth,
-                                          green, 20, headLen, 0.6*headLen);
-        // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
-        arrowHelper.children[0].renderOrder = vecRenderOrder;
-        arrowHelper.children[1].renderOrder = vecRenderOrder;
-        arrowsGroup.add(arrowHelper);
-
+        // // test
+        // let testp = new Position(radians(45), radians(-45));
+        // let testdir = new Velocity(1, 1);
+        // testdir = testdir.cartesian(testp);
+        // // console.log(testdir);
+        // const length = testdir.length()*f;
+        // let arrowHelper = new ArrowHelper(testdir.clone().normalize(),
+        //                                   testp.cartesian,
+        //                                   length, lineWidth,
+        //                                   green, 20, headLen, 0.6*headLen);
+        // // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
+        // arrowHelper.children[0].renderOrder = vecRenderOrder;
+        // arrowHelper.children[1].renderOrder = vecRenderOrder;
+        // arrowsGroup.add(arrowHelper);
       }
       {
         // v
         let length = v.length() * f;
         let dir = v.normalize();
-        let origin = p;
-        // console.log("dir", dir);
+        let origin = p.cartesian;
+
         let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
                                           vcolor, 20, headLen, 0.6*headLen);
         // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
@@ -483,8 +508,7 @@ function updateRotGroup() {
         // east
         let length = E.length() * f;
         let dir = E.normalize();
-        let origin = p;
-        // console.log("e = ", dir);
+        let origin = p.cartesian;
         let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
                                           necolor, 20, headLen, 0.6*headLen);
         // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
@@ -496,8 +520,7 @@ function updateRotGroup() {
         let length = N.length() * f;
         if (length > headLen) {
           let dir = N.normalize();
-          let origin = p;
-          // console.log("n = ", dir);
+          let origin = p.cartesian;
           let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
                                             necolor, 20, headLen, 0.6*headLen);
           // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
@@ -510,9 +533,10 @@ function updateRotGroup() {
       // let lonLine = getLonLine(phi, lonLineColor);
       // scene.add(lonLine);
 
-      // puck's path
-      let path = getPuckPathRotating(t, rotatingPathColor);
-      rotGroup.add(path);
+      // // puck's path
+      // // let path = getPuckPathRotating(t, rotatingPathColor);
+      // let path = getPuckPath(t, rotatingPathColor);
+      // rotGroup.add(path);
     }
   }
   rotGroup.add(arrowsGroup);
