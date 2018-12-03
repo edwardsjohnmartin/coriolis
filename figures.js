@@ -1,10 +1,17 @@
 let camera;
 // The entire scene
-let scene;
+let scene = new THREE.Scene();
 // The scene with everything in the earth's rotational frame.
-let rotScene;
+let rotGroup = new THREE.Group();
 let renderer;
 let controls;
+
+// Between 1 and 10-ish
+let animSpeed = 5;
+let animInc = animSpeed*0.01;
+if (localStorage.animInc) {
+  animInc = Number(localStorage.animInc);
+}
 
 const radius = 1;
 let radiusInWindow;
@@ -15,7 +22,7 @@ const headLen = 0.045;
 
 let map = new Map();
 
-let animation = true;
+let animation = false;
 let lineWidth = 2;
 
 const blue = 0x0000cc;
@@ -33,25 +40,27 @@ const globeRenderOrder = 0;
 // Where we're looking when in the rotational view
 const rotationalViewLon = -90;
 // Number of degrees we rotate the fixed frame for the view
-const fixedViewRotation = 90;
+// const fixedViewRotation = 75;
+const fixedViewRotation = 0;
 // Number of degrees the earth is rotated from the Prime Meridian
 // in the fixed frame view.
 let earthRotation = 0;
+
+const launchLongitude = -75;
+let sim = new CoriolisSim(radians(launchLongitude));
 
 const ROTATIONAL_VIEW = 0;
 const FIXED_VIEW = 1;
 const view = ROTATIONAL_VIEW;
 
 function viewRotation() {
-  return fixedViewRotation - earthRotation;
+  return fixedViewRotation + earthRotation;
 }
-
-let sim;
 
 runTests();
 
 init();
-render();
+tick();
 animate();
 
 //------------------------------------------------------------
@@ -68,8 +77,6 @@ function init() {
   camera = new THREE.OrthographicCamera(
      width / - 2, width / 2, height / 2, height / - 2, 1, 100);
 
-  scene = new THREE.Scene();
-  rotScene = new THREE.Scene();
   // Don't remove this comment.
   // Setting the background makes the renderer clear everything
   // before rendering. We want control over the clear so we can
@@ -83,7 +90,6 @@ function init() {
   controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enablePan = false;
 
-  // camera.position.z = 10;
   camera.position.z = 10;
 
   // if (view == ROTATIONAL_VIEW) {
@@ -96,29 +102,11 @@ function init() {
   //   camera.position.z = 10 * Math.cos(theta);
   // }
 
-  // camera.quaternion = new THREE.Quaternion().setFromAxisAngle(
-  //   new THREE.Vector3( 0, 1, 0 ), Math.PI / 2);
-  // camera.updateProjectionMatrix();
-  // console.log(camera.rotation);
-  // camera.rotation.y = -rotationalViewLon;
-  // console.log('a ' + camera.rotation.y);
-  // console.log('e ', radians(rotationalViewLon));//camera.quaternion);
-  // camera.rotateY(-radians(rotationalViewLon));
-  // camera.rotation.y = 13;
-  // console.log('e ', camera.quaternion);
-  // camera.updateProjectionMatrix();
-  // console.log('e ', camera.quaternion);
-  // console.log(controls);
-  // controls.rotateLeft(rotationalViewLon);
-  // console.log('b ' + camera.rotation.y);
   controls.update();
-  // console.log('e ', camera.quaternion);
-  // console.log('bb ' + camera.rotation.y);
-  // console.log('d ' + camera.position.z);
   
   // Set the window sizes
   let graphicParent = document.getElementById("graphic");
-  console.log(graphicParent.clientWidth);
+  // console.log(graphicParent.clientWidth);
   let w = graphicParent.clientWidth;
   if (graphicParent.clientHeight < w) {
     w = graphicParent.clientHeight;
@@ -131,96 +119,12 @@ function init() {
   // scene.add(getTransparentPlane());
 
   // greatCircle = new GreatCircle(1, Math.PI/4, 0);
-  sim = new CoriolisSim(radians(-75));
   // scene.add(getGlobe());
   // scene.add(getGreatCircle());
   // scene.add(getArrowsGroup());
 
-  let arrowsGroup = new THREE.Group();
-  for (let hours = 0; hours <= 4; hours++) {
-    const t = hours*60*60;
-    const phi = sim.phi(t);
-    const phi_ = sim.phi_(t);
-    const colorL = sq(0.9-hours/12);
-    const vcolor = new THREE.Color().setHSL(0, 1, colorL);
-    const lonLineColor = new THREE.Color().setHSL(0, 1, colorL);
-    const necolor = new THREE.Color().setHSL(0.7, 1, colorL);
-    const rotatingPathColor = new THREE.Color().setHSL(0.15, 1, colorL);
-
-    {
-      // // longitude line
-      // var geometry = new THREE.SphereBufferGeometry(.02, 32, 32);
-      // var material = new THREE.MeshBasicMaterial({color: 0xaa0000});
-      // var sphere = new THREE.Mesh(geometry, material);
-      // // sphere.translateY(Math.sin(lat));
-      // sphere.translateX(Math.cos(-phi));
-      // sphere.translateZ(Math.sin(-phi));
-      // scene.add(sphere);
-    } {
-      // puck
-      let geometry = new THREE.SphereBufferGeometry(.02, 32, 32);
-      let material = new THREE.MeshBasicMaterial({color: vcolor});
-      let sphere = new THREE.Mesh(geometry, material);
-      // const p = sim.pFixed(t);
-      const p = sim.pRotating(t);
-      sphere.translateOnAxis(p, 1);
-      sphere.renderOrder = vecRenderOrder;
-      rotScene.add(sphere);
-
-      const v = sim.v(t);
-      let E = east(p);
-      let N = north(p);
-      E = E.multiplyScalar(v.clone().dot(E));
-      N = N.multiplyScalar(v.clone().dot(N));
-      const f = 0.25;
-      {
-        // v
-        let length = v.length() * f;
-        let dir = v.normalize();
-        let origin = p;
-        let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                          vcolor, 20, headLen, 0.6*headLen);
-        // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
-        arrowHelper.children[0].renderOrder = vecRenderOrder;
-        arrowHelper.children[1].renderOrder = vecRenderOrder;
-        arrowsGroup.add(arrowHelper);
-      } {
-        // east
-        let length = E.length() * f;
-        let dir = E.normalize();
-        let origin = p;
-        let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                          necolor, 20, headLen, 0.6*headLen);
-        // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
-        arrowHelper.children[0].renderOrder = eastRenderOrder;
-        arrowHelper.children[1].renderOrder = eastRenderOrder;
-        arrowsGroup.add(arrowHelper);
-      } {
-        // north
-        let length = N.length() * f;
-        if (length > headLen) {
-          let dir = N.normalize();
-          let origin = p;
-          let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                            necolor, 20, headLen, 0.6*headLen);
-          // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
-          arrowHelper.children[0].renderOrder = northRenderOrder;
-          arrowHelper.children[1].renderOrder = northRenderOrder;
-          arrowsGroup.add(arrowHelper);
-        }
-      }
-      // // Longitude line
-      // let lonLine = getLonLine(phi, lonLineColor);
-      // scene.add(lonLine);
-
-      // puck's path
-      let path = getPuckPathRotating(t, rotatingPathColor);
-      rotScene.add(path);
-    }
-  }
-  rotScene.add(arrowsGroup);
-
-  scene.add(rotScene);
+  updateRotGroup();
+  scene.add(rotGroup);
 
   scene.add(getBackgroundPlanet());
 
@@ -229,30 +133,41 @@ function init() {
 }
 
 function keydown(event) {
+  event.stopPropagation();
   var x = event.keyCode;
   var key = event.key;
   var changed = false;
   if (x == 40 || key == "j" || key == "J") {
-    console.log('down');
+    // console.log('down');
     // Down arrow
     if (event.shiftKey) {
     } else if (event.ctrlKey) {
     } else {
     }
-    // changed = true;
+    animInc /= 1.1;
+    localStorage.setItem("animInc", animInc);
+    changed = true;
   } else if (x == 38 || key == "k" || key == "K") {
     // Up arrow
-    // changed = true;
+    animInc *= 1.1;
+    localStorage.setItem("animInc", animInc);
+    changed = true;
   } else if (x == 39) {
     // Right arrow
-    // changed = true;
+    earthRotation += animInc*2;
+    changed = true;
   } else if (x == 37) {
     // Left arrow
-    // changed = true;
+    earthRotation -= animInc*2;
+    changed = true;
   } else if (key == "d") {
+  } else if (key == " ") {
+    animation = !animation;
+    if (animation)
+      animate();
   }
   if (changed) {
-    map.draw();
+    tick();
   }
 }
 
@@ -293,54 +208,54 @@ function getBackgroundPlanet() {
   return group;
 }
 
-//----------------------------------------
-// getGlobe
-//----------------------------------------
-function getGlobe() {
-  var vertices = [];
-  var divisions = 80;
-  for ( var i = 0; i <= divisions; i ++ ) {
-    var v = ( i / divisions ) * ( Math.PI * 2 );
-    var x = Math.sin( v );
-    var y = Math.cos( v );
-    vertices.push( x, y, 0 );
-  }
+// //----------------------------------------
+// // getGlobe
+// //----------------------------------------
+// function getGlobe() {
+//   var vertices = [];
+//   var divisions = 80;
+//   for ( var i = 0; i <= divisions; i ++ ) {
+//     var v = ( i / divisions ) * ( Math.PI * 2 );
+//     var x = Math.sin( v );
+//     var y = Math.cos( v );
+//     vertices.push( x, y, 0 );
+//   }
 
-  var circleGeometry = new THREE.BufferGeometry();
-  circleGeometry.addAttribute(
-    'position', new THREE.Float32BufferAttribute( vertices, 3 ));
+//   var circleGeometry = new THREE.BufferGeometry();
+//   circleGeometry.addAttribute(
+//     'position', new THREE.Float32BufferAttribute( vertices, 3 ));
 
-  rotScene = new THREE.Scene();
-  scene.add(rotScene);
+//   rotGroup = new THREE.Scene();
+//   scene.add(rotGroup);
 
-  // Lat/lon
-  let lineMaterial = new THREE.LineBasicMaterial( {
-    color: 0xaaaaaa,
-    linewidth: lineWidth
-  } );
-  let inc = 15;
+//   // Lat/lon
+//   let lineMaterial = new THREE.LineBasicMaterial( {
+//     color: 0xaaaaaa,
+//     linewidth: lineWidth
+//   } );
+//   let inc = 15;
 
-  let latlon = new THREE.Group();
-  // Latitude
-  for (let i = -90; i < 90; i+=inc) {
-    var lat = new THREE.Line(circleGeometry, lineMaterial);
-    lat.renderOrder = globeRenderOrder;
-    lat.scale.setScalar(Math.cos(i*Math.PI/180));
-    lat.translateY(Math.sin(i*Math.PI/180));
-    lat.rotateX(Math.PI/2);
-    latlon.add(lat);
-  }
+//   let latlon = new THREE.Group();
+//   // Latitude
+//   for (let i = -90; i < 90; i+=inc) {
+//     var lat = new THREE.Line(circleGeometry, lineMaterial);
+//     lat.renderOrder = globeRenderOrder;
+//     lat.scale.setScalar(Math.cos(i*Math.PI/180));
+//     lat.translateY(Math.sin(i*Math.PI/180));
+//     lat.rotateX(Math.PI/2);
+//     latlon.add(lat);
+//   }
 
-  // Longitude
-  for (let i = 0; i < 180; i+=inc) {
-    var lon = new THREE.Line( circleGeometry, lineMaterial );
-    lon.renderOrder = globeRenderOrder;
-    lon.scale.setScalar(1);
-    lon.rotateY(i*Math.PI/180);
-    // latlon.add(lon);
-  }
-  return latlon;
-}
+//   // Longitude
+//   for (let i = 0; i < 180; i+=inc) {
+//     var lon = new THREE.Line( circleGeometry, lineMaterial );
+//     lon.renderOrder = globeRenderOrder;
+//     lon.scale.setScalar(1);
+//     lon.rotateY(i*Math.PI/180);
+//     // latlon.add(lon);
+//   }
+//   return latlon;
+// }
 
 //----------------------------------------
 // getLonLine
@@ -502,6 +417,107 @@ function onWindowResize() {
   renderer.setSize( window.innerWidth, window.innerHeight );
 }
 
+function updateRotGroup() {
+  let arrowsGroup = new THREE.Group();
+  rotGroup.children = [];
+  // for (let hours = 0; hours <= 4; hours++) {
+  {
+    const hours = 24*earthRotation/360;
+    const t = hours*60*60;
+    const phi = sim.phi(t);
+    const phi_ = sim.phi_(t);
+    const colorL = sq(0.9-hours/12);
+    const vcolor = new THREE.Color().setHSL(0, 1, colorL);
+    const lonLineColor = new THREE.Color().setHSL(0, 1, colorL);
+    const necolor = new THREE.Color().setHSL(0.7, 1, colorL);
+    const rotatingPathColor = new THREE.Color().setHSL(0.15, 1, colorL);
+    const green = new THREE.Color(0, 1, 0);
+
+    {
+      // puck
+      let geometry = new THREE.SphereBufferGeometry(.02, 32, 32);
+      let material = new THREE.MeshBasicMaterial({color: vcolor});
+      let sphere = new THREE.Mesh(geometry, material);
+      const p = sim.pRotating(t);
+      sphere.translateOnAxis(p, 1);
+      sphere.renderOrder = vecRenderOrder;
+      rotGroup.add(sphere);
+
+      const v = sim.v(t).normalize();
+      let E = east(p);
+      let N = north(p);
+      E = E.multiplyScalar(v.clone().dot(E));
+      N = N.multiplyScalar(v.clone().dot(N));
+      const f = 0.25;
+      
+      {
+        // test
+        let testp = new Position(radians(45), radians(-45));
+        let testdir = new Velocity(1, 1);
+        testdir = testdir.cartesian(testp);
+        console.log(testdir);
+        const length = testdir.length()*f;
+        let arrowHelper = new ArrowHelper(testdir.clone().normalize(),
+                                          testp.cartesian,
+                                          length, lineWidth,
+                                          green, 20, headLen, 0.6*headLen);
+        // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
+        arrowHelper.children[0].renderOrder = vecRenderOrder;
+        arrowHelper.children[1].renderOrder = vecRenderOrder;
+        arrowsGroup.add(arrowHelper);
+
+      }
+      {
+        // v
+        let length = v.length() * f;
+        let dir = v.normalize();
+        let origin = p;
+        // console.log("dir", dir);
+        let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+                                          vcolor, 20, headLen, 0.6*headLen);
+        // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
+        arrowHelper.children[0].renderOrder = vecRenderOrder;
+        arrowHelper.children[1].renderOrder = vecRenderOrder;
+        arrowsGroup.add(arrowHelper);
+      } {
+        // east
+        let length = E.length() * f;
+        let dir = E.normalize();
+        let origin = p;
+        // console.log("e = ", dir);
+        let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+                                          necolor, 20, headLen, 0.6*headLen);
+        // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
+        arrowHelper.children[0].renderOrder = eastRenderOrder;
+        arrowHelper.children[1].renderOrder = eastRenderOrder;
+        arrowsGroup.add(arrowHelper);
+      } {
+        // north
+        let length = N.length() * f;
+        if (length > headLen) {
+          let dir = N.normalize();
+          let origin = p;
+          // console.log("n = ", dir);
+          let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+                                            necolor, 20, headLen, 0.6*headLen);
+          // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
+          arrowHelper.children[0].renderOrder = northRenderOrder;
+          arrowHelper.children[1].renderOrder = northRenderOrder;
+          arrowsGroup.add(arrowHelper);
+        }
+      }
+      // // Longitude line
+      // let lonLine = getLonLine(phi, lonLineColor);
+      // scene.add(lonLine);
+
+      // puck's path
+      let path = getPuckPathRotating(t, rotatingPathColor);
+      rotGroup.add(path);
+    }
+  }
+  rotGroup.add(arrowsGroup);
+}
+
 //----------------------------------------
 // render
 //----------------------------------------
@@ -512,11 +528,23 @@ function render() {
     plane.rotation.z = camera.rotation.z;
   }
 
-  rotScene.rotateY(earthRotation);
+  updateRotGroup();
+  // rotGroup.rotateY(earthRotation);
+  // rotGroup.rotation.y = earthRotation;
+  // rotGroup.traverse(function (child) {
+  //   child.rotation.y = radians(earthRotation);
+  // });
+  rotGroup.rotation.y = radians(earthRotation);
+  scene.rotation.y = radians(fixedViewRotation);
 
   renderer.clear();
   map.draw();
-  renderer.render( scene, camera );
+  renderer.render(scene, camera);
+}
+
+function tick() {
+  controls.update();
+  render();
 }
 
 //----------------------------------------
@@ -526,18 +554,15 @@ var prevTime = null;
 function animate() {
   if (!animation) return;
 
-  var time = performance.now() / 1000;
-  if (prevTime) {
-    earthRotation += (time-prevTime)*2;
+  // var time = performance.now() * (animSpeed/1000);
+  // if (prevTime) {
+  //   earthRotation += (time-prevTime)*2;
+  // }
+  // prevTime = time;
 
-    rotScene.traverse( function ( child ) {
-      child.rotation.y = earthRotation;
-    } );
-  }
-  prevTime = time;
+  earthRotation += animInc;
 
-  controls.update();
-  render();
+  tick();
 
   requestAnimationFrame( animate );
 }

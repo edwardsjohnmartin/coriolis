@@ -14,15 +14,17 @@ const T_ = 16*60*60;
 // struck.
 //------------------------------------------------------------
 var CoriolisSim = function(lon0) {
-  // Store lon0 in radians
-  this.lon0 = lon0;
-
   // The initial position in cartesian coordinates
-  this.p0 = latLon2xyz(0, lon0);
+  this.p0 = new Position(0, lon0);
+
+  // north0 and east0 are in rotating frame cartesian coordinates
   this.north0 = new THREE.Vector3(0, Math.sqrt(5/4)*V, 0);
-  this.east0 = new THREE.Vector3(V, 0, 0);
-  this.v0 = this.north0.clone().add(this.east0);
-  this.rotAxis = this.p0.clone().cross(this.v0.clone().normalize()).normalize();
+  this.east0 =
+    new THREE.Vector3(V*Math.cos(this.p0.lon), 0, -V*Math.sin(this.p0.lon));
+
+  this.v0_fixed = this.north0.clone().add(this.east0);
+  this.rotAxis_fixed =
+    this.p0.cartesian.clone().cross(this.v0_fixed.clone().normalize()).normalize();
 }
 
 //------------------------------------------------------------
@@ -34,7 +36,8 @@ var CoriolisSim = function(lon0) {
 // radians.
 //------------------------------------------------------------
 CoriolisSim.prototype.phi = function(t) {
-  return this.lon0 + 2 * Math.PI * t / T;
+  // return this.lon0 + 2 * Math.PI * t / T;
+  return this.p0.lon + 2 * Math.PI * t / T;
 }
 
 //------------------------------------------------------------
@@ -44,7 +47,8 @@ CoriolisSim.prototype.phi = function(t) {
 // value is the azimuthal angle in radians.
 //------------------------------------------------------------
 CoriolisSim.prototype.phi_ = function(t) {
-  return this.lon0 + Math.atan((2/3)*Math.tan(2*Math.PI*t/T_));
+  // return this.lon0 + Math.atan((2/3)*Math.tan(2*Math.PI*t/T_));
+  return this.p0.lon + Math.atan((2/3)*Math.tan(2*Math.PI*t/T_));
 }
 
 //------------------------------------------------------------
@@ -56,7 +60,8 @@ CoriolisSim.prototype.phi_ = function(t) {
 // value is the azimuthal angle in radians.
 //------------------------------------------------------------
 CoriolisSim.prototype.phi_rotating = function(t) {
-  return this.lon0 + (this.phi_(t) - this.phi(t));
+  // return this.lon0 + (this.phi_(t) - this.phi(t));
+  return this.p0.lon + (this.phi_(t) - this.phi(t));
 }
 
 //------------------------------------------------------------
@@ -65,8 +70,8 @@ CoriolisSim.prototype.phi_rotating = function(t) {
 // Cartesian coordinates in the fixed frame.
 //------------------------------------------------------------
 CoriolisSim.prototype.pFixed = function(t) {
-  let ret = this.p0.clone();
-  return ret.applyAxisAngle(this.rotAxis, (t/T_)*2*Math.PI);
+  let ret = this.p0.cartesian.clone();
+  return ret.applyAxisAngle(this.rotAxis_fixed, (t/T_)*2*Math.PI);
 }
 
 //------------------------------------------------------------
@@ -84,11 +89,11 @@ CoriolisSim.prototype.pRotating = function(t) {
 //------------------------------------------------------------
 // v
 // Computes the time-dependent velocity vector of the puck in
-// the puck's frame.
+// the fixed frame.
 //------------------------------------------------------------
 CoriolisSim.prototype.v = function(t) {
-  let ret = this.v0.clone();
-  return ret.normalize().applyAxisAngle(this.rotAxis, (t/T_)*2*Math.PI);
+  let ret = this.v0_fixed.clone();
+  return ret.normalize().applyAxisAngle(this.rotAxis_fixed, (t/T_)*2*Math.PI);
 }
 
 //------------------------------------------------------------
