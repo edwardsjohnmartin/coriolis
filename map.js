@@ -10,6 +10,7 @@ var Map = function() {
 
 Map.prototype.draw = function() {
   if (!this.projection) return;
+  if (!renderer.domElement.viewBox) return;//.viewBox.animVal;
 
   // Rotation: [yaw, pitch, roll]
   let target = new THREE.Vector3(0,0,0);

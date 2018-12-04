@@ -91,12 +91,15 @@ animate();
 function init() {
   document.onkeydown = keydown;
 
+  const zPosition = 10;
+
   // camera = new THREE.PerspectiveCamera(
   //   33, window.innerWidth / window.innerHeight, 0.1, 100);
   let width = 2.5;
   let height = width;
   camera = new THREE.OrthographicCamera(
-     width / - 2, width / 2, height / 2, height / - 2, 1, 100);
+    width / - 2, width / 2, height / 2, height / - 2,
+    zPosition-1.1, zPosition+10);
 
   // Don't remove this comment.
   // Setting the background makes the renderer clear everything
@@ -108,10 +111,15 @@ function init() {
   renderer.autoClear = false;
   // renderer = new THREE.WebGLRenderer();
 
+  if (!renderer.domElement.viewBox) {
+    renderer.setClearColor(0xffffff, 0);
+    renderer.clear();
+  }
+
   controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enablePan = false;
 
-  camera.position.z = 10;
+  camera.position.z = zPosition;
 
   // if (view == ROTATIONAL_VIEW) {
   //   const theta = radians(rotationalViewLon);
@@ -634,6 +642,10 @@ function tick() {
 var prevTime = null;
 function animate() {
   if (!animation) return;
+  if (time > T_/2) {
+    animation = false;
+    return;
+  }
 
   // var time = performance.now() * (animSpeed/1000);
   // if (prevTime) {
