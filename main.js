@@ -8,7 +8,7 @@ let controls;
 
 // Between 1 and 10-ish
 let animSpeed = 5;
-let animInc = animSpeed*0.01;
+let animInc = animSpeed*5;
 if (localStorage.animInc) {
   animInc = Number(localStorage.animInc);
 }
@@ -42,9 +42,9 @@ const rotationalViewLon = 0;
 // Number of degrees we rotate the fixed frame for the view
 // const fixedViewRotation = 75;
 const fixedViewRotation = -15;
-// Number of degrees the earth is rotated from the Prime Meridian
-// in the fixed frame view.
-let earthRotation = 59;
+// Number of seconds the simulation has gone
+// let time = 0;
+let time = T_/4;
 
 const launchLongitude = -75;
 let sim = new CoriolisSim(radians(launchLongitude));
@@ -54,7 +54,7 @@ const FIXED_VIEW = 1;
 const view = ROTATIONAL_VIEW;
 
 function viewRotation() {
-  return fixedViewRotation + earthRotation;
+  return fixedViewRotation + degrees(earthRotation(time));
 }
 
 runTests();
@@ -154,11 +154,13 @@ function keydown(event) {
     changed = true;
   } else if (x == 39) {
     // Right arrow
-    earthRotation += animInc*2;
+    // earthRotation += animInc*2;
+    time += animInc*2;
     changed = true;
   } else if (x == 37) {
     // Left arrow
-    earthRotation -= animInc*2;
+    // earthRotation -= animInc*2;
+    time -= animInc*2;
     changed = true;
   } else if (key == "d") {
   } else if (key == " ") {
@@ -285,17 +287,12 @@ function getLonLine(lonRadians, color) {
 //----------------------------------------
 // getLonLine
 //----------------------------------------
-function getPuckPath(t, color) {
+function getPuckPathRotating(t, color) {
   let points = sim.path(0, t, 30);
   points.forEach((p, i, arr) => {
     arr[i] = p.cartesian;
   });
-  // let points = sim.pathFixed(0, t, 30);
   let circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
-  // let lineMaterial = new THREE.LineBasicMaterial( {
-  //   color: color,
-  //   linewidth: lineWidth
-  // } );
   let lineMaterial = new THREE.LineDashedMaterial( {
     color: color,
     linewidth: lineWidth,
@@ -306,28 +303,6 @@ function getPuckPath(t, color) {
   path.renderOrder = pathRenderOrder;
   return path;
 }
-
-// //----------------------------------------
-// // getLonLine
-// //----------------------------------------
-// function getPuckPathRotating(t, color) {
-//   let points = sim.pathRotating(0, t, 30);
-//   // let points = sim.pathFixed(0, t, 30);
-//   let circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
-//   // let lineMaterial = new THREE.LineBasicMaterial( {
-//   //   color: color,
-//   //   linewidth: lineWidth
-//   // } );
-//   let lineMaterial = new THREE.LineDashedMaterial( {
-//     color: color,
-//     linewidth: lineWidth,
-//     dashSize: 5,
-//     gapSize: 10,
-//   } );
-//   var path = new THREE.Line( circleGeometry, lineMaterial );
-//   path.renderOrder = pathRenderOrder;
-//   return path;
-// }
 
 //----------------------------------------
 // getTransparentPlane
@@ -447,8 +422,10 @@ function updateRotGroup() {
   rotGroup.children = [];
   // for (let hours = 0; hours <= 4; hours++) {
   {
-    const hours = 24*earthRotation/360;
-    const t = hours*60*60;
+    // const hours = 24*earthRotation/360;
+    // const t = hours*60*60;
+    const hours = time / (60*60);
+    const t = time;
     const phi = sim.phi(t);
     const phi_ = sim.phi_(t);
     const colorL = sq(0.9-hours/12);
@@ -534,9 +511,8 @@ function updateRotGroup() {
       // scene.add(lonLine);
 
       // // puck's path
-      // // let path = getPuckPathRotating(t, rotatingPathColor);
-      // let path = getPuckPath(t, rotatingPathColor);
-      // rotGroup.add(path);
+      let path = getPuckPathRotating(t, rotatingPathColor);
+      rotGroup.add(path);
     }
   }
   rotGroup.add(arrowsGroup);
@@ -558,7 +534,9 @@ function render() {
   // rotGroup.traverse(function (child) {
   //   child.rotation.y = radians(earthRotation);
   // });
-  rotGroup.rotation.y = radians(earthRotation);
+  // rotGroup.rotation.y = radians(earthRotation);
+  // scene.rotation.y = radians(fixedViewRotation);
+  rotGroup.rotation.y = earthRotation(time);
   scene.rotation.y = radians(fixedViewRotation);
 
   renderer.clear();
@@ -584,7 +562,8 @@ function animate() {
   // }
   // prevTime = time;
 
-  earthRotation += animInc;
+  // earthRotation += animInc;
+  time += animInc;
 
   tick();
 

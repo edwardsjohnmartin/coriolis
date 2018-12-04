@@ -7,6 +7,11 @@ const V = 2 * Math.PI * (R / T); // meters per second
 // T_: the period of the puck
 const T_ = 16*60*60;
 
+// returns the number of radians the earth has rotated after
+// time seconds
+function earthRotation(t) {
+  return (t/T_)*2*Math.PI;
+}
 
 //------------------------------------------------------------
 // Constructor
@@ -42,7 +47,11 @@ CoriolisSim.prototype.phi = function(t) {
 // value is the azimuthal angle in radians.
 //------------------------------------------------------------
 CoriolisSim.prototype.phi_ = function(t) {
-  return this.p0.lon + Math.atan((V/this.speed)*Math.tan(2*Math.PI*t/T_));
+  const a = 2*Math.PI*t/T_;
+  const s = Math.sin(a);
+  const c = Math.cos(a);
+  let p = this.p0.lon + Math.atan2((V/this.speed)*s, c);
+  return p;
 }
 
 //------------------------------------------------------------
