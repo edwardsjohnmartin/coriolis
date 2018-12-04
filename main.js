@@ -3,6 +3,7 @@ let camera;
 let scene = new THREE.Scene();
 // The scene with everything in the earth's rotational frame.
 let rotGroup = new THREE.Group();
+let fixedPathGroup = new THREE.Group();
 let renderer;
 let controls;
 
@@ -26,6 +27,7 @@ let animation = false;
 let lineWidth = 2;
 
 const blue = 0x0000cc;
+const black = 0x000000;
 const lightBlue = 0x0000ff;
 const red = 0xcc0000;
 
@@ -38,23 +40,42 @@ const globeRenderOrder = 0;
 
 // Longitude for the different views
 // Where we're looking when in the rotational view
-const rotationalViewLon = 0;
+// const rotationalViewLon = 0;
 // Number of degrees we rotate the fixed frame for the view
 // const fixedViewRotation = 75;
-const fixedViewRotation = -15;
+const startFixedViewRotation = 0;
+let fixedViewRotation = startFixedViewRotation;
 // Number of seconds the simulation has gone
-// let time = 0;
-let time = T_/4;
+let time = 0;
+// let time = T_*0.69;
 
 const launchLongitude = -75;
 let sim = new CoriolisSim(radians(launchLongitude));
 
 const ROTATIONAL_VIEW = 0;
 const FIXED_VIEW = 1;
-const view = ROTATIONAL_VIEW;
+// const view = ROTATIONAL_VIEW;
+let view = FIXED_VIEW;
 
-function viewRotation() {
-  return fixedViewRotation + degrees(earthRotation(time));
+function viewRotationEarthMap() {
+  if (view == FIXED_VIEW) {
+    return radians(fixedViewRotation) + earthRotation(time);
+  }
+  return radians(fixedViewRotation);
+}
+
+function viewRotationEarth() {
+  if (view == FIXED_VIEW) {
+    return earthRotation(time);
+  }
+  return earthRotation(time);
+}
+
+function viewRotationSky() {
+  if (view == FIXED_VIEW) {
+    return radians(fixedViewRotation);// + earthRotation(time);
+  }
+  return radians(fixedViewRotation) - earthRotation(time);
 }
 
 runTests();
@@ -125,8 +146,9 @@ function init() {
 
   updateRotGroup();
   scene.add(rotGroup);
+  scene.add(fixedPathGroup);
 
-  scene.add(getBackgroundPlanet());
+  scene.add(getBackgroundStars());
 
   window.addEventListener('resize', onWindowResize, false);
   controls.addEventListener('change', render);
@@ -162,8 +184,17 @@ function keydown(event) {
     // earthRotation -= animInc*2;
     time -= animInc*2;
     changed = true;
-  } else if (key == "d") {
-  } else if (key == " ") {
+  } else if (key == 'f') {
+    if (view == FIXED_VIEW) {
+      view = ROTATIONAL_VIEW;
+      fixedViewRotation += degrees(earthRotation(time));
+    } else {
+      view = FIXED_VIEW;
+      // fixedViewRotation = startFixedViewRotation + earthRotation(time);
+      // fixedViewRotation -= earthRotation(time);
+      fixedViewRotation -= degrees(earthRotation(time));
+    }
+  } else if (key == ' ') {
     animation = !animation;
     if (animation)
       animate();
@@ -177,36 +208,58 @@ function keydown(event) {
 // Functions to create 3D objects
 //------------------------------------------------------------
 
-function getBackgroundPlanet() {
+// function getBackgroundPlanet() {
+//   let group = new THREE.Group();
+
+//   //-----------------------
+//   // Background sphere
+//   let geometry = new THREE.SphereBufferGeometry(.08, 32, 32);
+//   let material = new THREE.MeshBasicMaterial({color: blue});
+//   let sphere = new THREE.Mesh(geometry, material);
+//   const p = new THREE.Vector3(-1.5, 1, -2);
+//   sphere.translateOnAxis(p, 1);
+//   group.add(sphere);
+
+//   const r = 0.2;
+//   var circle =
+//     new THREE.EllipseCurve(0, 0, r, r);
+//   var points = circle.getPoints(50);
+//   var circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
+//   let lineMaterial = new THREE.LineBasicMaterial( {
+//     color: 0xaa0000,
+//     linewidth: lineWidth
+//   } );
+//   let inc = 15;
+
+//   let latlon = new THREE.Group();
+//   // Longitude
+//   var ring = new THREE.Line( circleGeometry, lineMaterial );
+//   ring.translateOnAxis(p, 1);
+//   ring.rotateZ(Math.PI/8);
+//   ring.rotateX(Math.PI/2);
+//   group.add(ring);
+//   return group;
+// }
+
+function getBackgroundStars() {
   let group = new THREE.Group();
 
   //-----------------------
-  // Background sphere
-  let geometry = new THREE.SphereBufferGeometry(.08, 32, 32);
-  let material = new THREE.MeshBasicMaterial({color: blue});
-  let sphere = new THREE.Mesh(geometry, material);
-  const p = new THREE.Vector3(-1.5, 1, -2);
-  sphere.translateOnAxis(p, 1);
-  group.add(sphere);
+  // Background stars
+  const w = 0.007;
+  let geometry = new THREE.BoxBufferGeometry(w,w,w);
+  let material = new THREE.MeshBasicMaterial({color: black});
+  for (let i = 0; i < 1000; ++i) {
+    // let geometry = new THREE.SphereBufferGeometry(.005, 4, 4);
+    let sphere = new THREE.Mesh(geometry, material);
+    const p = new THREE.Vector3(3,0,0).applyAxisAngle(
+      new THREE.Vector3(Math.random()*2-1,Math.random()*2-1,Math.random()*2-1)
+      .normalize(), Math.random()*Math.PI*2);;
+    sphere.translateOnAxis(p, 1);
+    sphere.visible = true;
+    group.add(sphere);
+  }
 
-  const r = 0.2;
-  var circle =
-    new THREE.EllipseCurve(0, 0, r, r);
-  var points = circle.getPoints(50);
-  var circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
-  let lineMaterial = new THREE.LineBasicMaterial( {
-    color: 0xaa0000,
-    linewidth: lineWidth
-  } );
-  let inc = 15;
-
-  let latlon = new THREE.Group();
-  // Longitude
-  var ring = new THREE.Line( circleGeometry, lineMaterial );
-  ring.translateOnAxis(p, 1);
-  ring.rotateZ(Math.PI/8);
-  ring.rotateX(Math.PI/2);
-  group.add(ring);
   return group;
 }
 
@@ -285,14 +338,32 @@ function getLonLine(lonRadians, color) {
 }
 
 //----------------------------------------
-// getLonLine
 //----------------------------------------
 function getPuckPathRotating(t, color) {
-  let points = sim.path(0, t, 30);
-  points.forEach((p, i, arr) => {
+  let pointsRot = sim.pathRot(0, t, 30);
+  pointsRot.forEach((p, i, arr) => {
     arr[i] = p.cartesian;
   });
-  let circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
+  let circleGeometry = new THREE.BufferGeometry().setFromPoints(pointsRot);
+  let lineMaterial = new THREE.LineDashedMaterial( {
+    color: color,
+    linewidth: lineWidth,
+    dashSize: 5,
+    gapSize: 10,
+  } );
+  var path = new THREE.Line( circleGeometry, lineMaterial );
+  path.renderOrder = pathRenderOrder;
+  return path;
+}
+
+//----------------------------------------
+//----------------------------------------
+function getPuckPathFixed(t, color) {
+  let pointsFixed = sim.pathFixed(0, t, 30);
+  pointsFixed.forEach((p, i, arr) => {
+    arr[i] = p.cartesian;
+  });
+  let circleGeometry = new THREE.BufferGeometry().setFromPoints(pointsFixed);
   let lineMaterial = new THREE.LineDashedMaterial( {
     color: color,
     linewidth: lineWidth,
@@ -420,6 +491,7 @@ function onWindowResize() {
 function updateRotGroup() {
   let arrowsGroup = new THREE.Group();
   rotGroup.children = [];
+  fixedPathGroup.children = [];
   // for (let hours = 0; hours <= 4; hours++) {
   {
     // const hours = 24*earthRotation/360;
@@ -428,11 +500,13 @@ function updateRotGroup() {
     const t = time;
     const phi = sim.phi(t);
     const phi_ = sim.phi_(t);
-    const colorL = sq(0.9-hours/12);
+    // const colorL = sq(0.9-hours/12);
+    const colorL = 0.4;
     const vcolor = new THREE.Color().setHSL(0, 1, colorL);
     const lonLineColor = new THREE.Color().setHSL(0, 1, colorL);
     const necolor = new THREE.Color().setHSL(0.7, 1, colorL);
     const rotatingPathColor = new THREE.Color().setHSL(0.15, 1, colorL);
+    const fixedPathColor = new THREE.Color().setHSL(0.45, 1, colorL);
     const green = new THREE.Color(0, 1, 0);
 
     {
@@ -513,6 +587,8 @@ function updateRotGroup() {
       // // puck's path
       let path = getPuckPathRotating(t, rotatingPathColor);
       rotGroup.add(path);
+      path = getPuckPathFixed(t, fixedPathColor);
+      fixedPathGroup.add(path);
     }
   }
   rotGroup.add(arrowsGroup);
@@ -536,8 +612,11 @@ function render() {
   // });
   // rotGroup.rotation.y = radians(earthRotation);
   // scene.rotation.y = radians(fixedViewRotation);
-  rotGroup.rotation.y = earthRotation(time);
-  scene.rotation.y = radians(fixedViewRotation);
+  // rotGroup.rotation.y = earthRotation(time);
+  // scene.rotation.y = radians(fixedViewRotation);
+
+  rotGroup.rotation.y = viewRotationEarth();
+  scene.rotation.y = viewRotationSky();
 
   renderer.clear();
   map.draw();

@@ -15,7 +15,7 @@ Map.prototype.draw = function() {
   let target = new THREE.Vector3(0,0,0);
   let dir = camera.getWorldDirection(target).normalize();
   let latLon = xyz2latLon(dir.multiplyScalar(-1));
-  let yaw = degrees(latLon.lon) + viewRotation();
+  let yaw = degrees(latLon.lon) + degrees(viewRotationEarthMap());
   let rotation = [yaw, -degrees(latLon.lat)];
   this.projection.rotate(rotation);
 

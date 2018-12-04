@@ -22,6 +22,7 @@ var Velocity = function(north, east) {
   this.north = north;
   this.east = east;
   this.theta = Math.atan2(north, east);
+  // console.log('theta=',degrees(this.theta));
 }
 
 Velocity.prototype.cartesian = function(p) {
@@ -29,6 +30,7 @@ Velocity.prototype.cartesian = function(p) {
 }
 
 function velFromRadians(theta, speed) {
+  // console.log('theta=',degrees(theta));
   return new Velocity(speed*Math.sin(theta), speed*Math.cos(theta));
 }
 
@@ -45,15 +47,6 @@ function degrees(rad) {
   return rad * 180 / Math.PI;
 }
 
-// // Lat and lon are given in radians.
-// function latLon2xyz_old(lat, lon) {
-//   let r = Math.cos(lat);
-//   let x = r*Math.cos(-lon);
-//   let y = Math.sin(lat);
-//   let z = r*Math.sin(-lon);
-//   return new THREE.Vector3(x,y,z);
-// }
-
 // Lat and lon are given in radians.
 function latLon2xyz(lat, lon) {
   let r = Math.cos(lat);
@@ -68,9 +61,6 @@ function latLon2xyz(lat, lon) {
 // prime meridian intersection.
 function xyz2latLon(p) {
   const lat = Math.asin(p.y);
-  // const r = Math.cos(lat);
-  // const lon = -Math.acos(p.x/r);
-  // const lon = -Math.atan2(p.z, p.x);
   const lon = -Math.atan2(p.x, p.z);
   return {lat:lat, lon:lon};
 }

@@ -47,10 +47,18 @@ CoriolisSim.prototype.phi = function(t) {
 // value is the azimuthal angle in radians.
 //------------------------------------------------------------
 CoriolisSim.prototype.phi_ = function(t) {
-  const a = 2*Math.PI*t/T_;
+  let a = 2*Math.PI*t/T_;
   const s = Math.sin(a);
   const c = Math.cos(a);
   let p = this.p0.lon + Math.atan2((V/this.speed)*s, c);
+
+  // // HACK - hard-coded hack
+  // if (t/T_ > 0.5) {
+  //   const overage = Math.atan2((V/this.speed)*s, c) - Math.PI;
+  //   p -= overage;
+  // }
+  // console.log(Math.atan2((V/this.speed)*Math.sin(Math.PI), Math.cos(Math.PI)));
+
   return p;
 }
 
@@ -89,8 +97,7 @@ CoriolisSim.prototype.p = function(t) {
 
 //------------------------------------------------------------
 // v
-// Computes the time-dependent velocity vector of the puck in
-// the fixed frame.
+// Computes the time-dependent velocity vector of the puck.
 //------------------------------------------------------------
 CoriolisSim.prototype.v = function(t) {
   let rad = this.v0.theta * Math.cos((t/T_)*2*Math.PI);
@@ -98,19 +105,39 @@ CoriolisSim.prototype.v = function(t) {
 }
 
 //------------------------------------------------------------
-// pathFixed
+// path
 // Computes the puck's path from time t0 to time t1 in the
 // fixed frame. divisions
 // is the number of pieces to divide the curve into. Coordinates
 // returned in fixed-frame cartesian coordinates.
 //------------------------------------------------------------
-CoriolisSim.prototype.path = function(t0, t1, divisions) {
+CoriolisSim.prototype.pathRot = function(t0, t1, divisions) {
   if (t0 == t1) return [];
 
   const inc = (t1-t0)/divisions;
   let points = [];
   for (let t = t0; t <= t1; t += inc) {
     points.push(this.p(t));
+  }
+  return points;
+}
+
+//------------------------------------------------------------
+// path
+// Computes the puck's path from time t0 to time t1 in the
+// fixed frame. divisions
+// is the number of pieces to divide the curve into. Coordinates
+// returned in fixed-frame cartesian coordinates.
+//------------------------------------------------------------
+CoriolisSim.prototype.pathFixed = function(t0, t1, divisions) {
+  if (t0 == t1) return [];
+
+  const inc = (t1-t0)/divisions;
+  let points = [];
+  for (let t = t0; t <= t1; t += inc) {
+    let pp = this.p(t);
+    pp = new Position(pp.lat, pp.lon + earthRotation(t));
+    points.push(pp);
   }
   return points;
 }
