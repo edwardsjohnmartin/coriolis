@@ -28,6 +28,10 @@ Velocity.prototype.cartesian = function(p) {
   return p.east.applyAxisAngle(p.cartesian, this.theta);
 }
 
+function velFromRadians(theta, speed) {
+  return new Velocity(speed*Math.sin(theta), speed*Math.cos(theta));
+}
+
 
 //------------------------------------------------------------
 // Coordinate conversion functions

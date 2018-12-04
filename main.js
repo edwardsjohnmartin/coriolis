@@ -41,12 +41,12 @@ const globeRenderOrder = 0;
 const rotationalViewLon = 0;
 // Number of degrees we rotate the fixed frame for the view
 // const fixedViewRotation = 75;
-const fixedViewRotation = 0;
+const fixedViewRotation = -15;
 // Number of degrees the earth is rotated from the Prime Meridian
 // in the fixed frame view.
-let earthRotation = 0;
+let earthRotation = 59;
 
-const launchLongitude = -30;
+const launchLongitude = -75;
 let sim = new CoriolisSim(radians(launchLongitude));
 
 const ROTATIONAL_VIEW = 0;
