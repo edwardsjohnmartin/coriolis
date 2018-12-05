@@ -402,6 +402,12 @@ THREE.Projector = function () {
         Math.sqrt(sq(temp.x)+sq(temp.y)) < 1 &&
         temp.z < -zPosition);
 
+    // if (simType == 'path' && occluded) {
+    //   object = object.clone();
+    //   object.simType = simType;
+    //   _object.object = object;
+    // }
+    
     if (simType) {// == 'star') {
       object.material =
         occluded ? object.materialOccluded : object.materialFront;

@@ -4,25 +4,28 @@
     <title>Coriolis - SVG</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <link rel="stylesheet" href="style.css"/>
+    <link rel="stylesheet" href="style.css?1"/>
   </head>
   <body>
-
-    <div id="snapshot">
-      <a style="cursor:pointer" onclick="snap()">SVG snapshot</a>
-      <br>
-      <textarea id="snapshot-output"></textarea>
-    </div>
 
     <div id="graphic">
     </div>
 
-    <!--input type="checkbox" id="fixed">Fixed</input-->
-    Press spacebar to toggle animation
-    <br>
-    Press right/left arrows to go forward/backward in the animation
-    <br>
-    Press 'f' to toggle between fixed and rotational frames
+    <div class="instructions">
+      Press spacebar to toggle animation
+      <br>
+      Press right/left arrows to go forward/backward in the animation
+      <br>
+      Press 'f' to toggle between fixed and rotational frames
+      <br>
+      <br>
+      <div id="snapshot">
+        <a style="cursor:pointer" onclick="snap()">SVG snapshot</a>
+        <br>
+        <textarea id="snapshot-output"></textarea>
+      </div>
+    </div>
+
 
     <script src="three.min.js"></script>
     <script src="d3.js"></script>

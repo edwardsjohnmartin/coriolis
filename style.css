@@ -24,6 +24,9 @@ a:hover {
     color: #0080ff;
 }
 
+.instructions {
+    padding: 10px;
+}
 
 #graphic {
     width: 700px;

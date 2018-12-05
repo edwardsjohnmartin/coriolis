@@ -2,8 +2,9 @@ let camera;
 // The entire scene
 let scene = new THREE.Scene();
 // The scene with everything in the earth's rotational frame.
-let rotGroup = new THREE.Group();
+let earthGroup = new THREE.Group();
 let fixedPathGroup = new THREE.Group();
+let starGroup = new THREE.Group();
 let renderer;
 let controls;
 
@@ -38,54 +39,53 @@ const pathRenderOrder = 2;
 const greatCircleRenderOrder = 1;
 const globeRenderOrder = 0;
 
-// Longitude for the different views
-// Where we're looking when in the rotational view
-// const rotationalViewLon = 0;
 // Number of degrees we rotate the fixed frame for the view
 // const fixedViewRotation = 75;
 const startFixedViewRotation = 0;
-let fixedViewRotation = startFixedViewRotation;
+let fixedViewRotation1 = radians(startFixedViewRotation);
 // Number of seconds the simulation has gone
 let time = 0;
-// let time = T_*0.69;
+// Number of seconds we've spent in geostationary orbit
+let geoStationaryTime = 0;
 
 const launchLongitude = -75;
 let sim = new CoriolisSim(radians(launchLongitude));
 
 const ROTATIONAL_VIEW = 0;
 const FIXED_VIEW = 1;
-const view = ROTATIONAL_VIEW;
+let view = ROTATIONAL_VIEW;
 // let view = FIXED_VIEW;
 
 const zPosition = 10;
 const zZero = -1.1;
 
-function viewRotationEarthMap() {
-  if (view == FIXED_VIEW) {
-    return radians(fixedViewRotation) + earthRotation(time);
+function incTime(inc) {
+  time += inc;
+  if (view == ROTATIONAL_VIEW) {
+    geoStationaryTime += inc;
   }
-  return radians(fixedViewRotation);
+}
+
+function viewRotationEarthMap() {
+  return earthRotation(-geoStationaryTime) + earthRotation(time);
 }
 
 function viewRotationEarth() {
-  if (view == FIXED_VIEW) {
-    return earthRotation(time);
-  }
   return earthRotation(time);
 }
 
 function viewRotationSky() {
-  if (view == FIXED_VIEW) {
-    return radians(fixedViewRotation);// + earthRotation(time);
-  }
-  return radians(fixedViewRotation) - earthRotation(time);
+  return -earthRotation(-geoStationaryTime)*0.7;
+}
+
+function viewRotationScene() {
+  return earthRotation(-geoStationaryTime);
 }
 
 runTests();
 
 init();
 tick();
-animate();
 
 //------------------------------------------------------------
 // Initialization/setup
@@ -154,7 +154,7 @@ function init() {
   // scene.add(getArrowsGroup());
 
   updateRotGroup();
-  scene.add(rotGroup);
+  scene.add(earthGroup);
   scene.add(fixedPathGroup);
 
   scene.add(getBackgroundStars());
@@ -186,30 +186,30 @@ function keydown(event) {
   } else if (x == 39) {
     // Right arrow
     // earthRotation += animInc*2;
-    time += animInc*2;
+    // time += animInc*2;
+    incTime(2*animInc);
     changed = true;
   } else if (x == 37) {
     // Left arrow
     // earthRotation -= animInc*2;
-    time -= animInc*2;
+    // time -= animInc*2;
+    incTime(-2*animInc);
     changed = true;
   } else if (key == 'f') {
     if (view == FIXED_VIEW) {
       view = ROTATIONAL_VIEW;
-      fixedViewRotation += degrees(earthRotation(time));
+      // fixedViewRotation += degrees(earthRotation(time));
     } else {
       view = FIXED_VIEW;
-      // fixedViewRotation = startFixedViewRotation + earthRotation(time);
-      // fixedViewRotation -= earthRotation(time);
-      fixedViewRotation -= degrees(earthRotation(time));
+      // fixedViewRotation -= degrees(earthRotation(time));
     }
   } else if (key == ' ') {
     animation = !animation;
     if (animation)
-      animate();
+      tick();
   }
   if (changed) {
-    tick();
+    updateAndRender();
   }
 }
 
@@ -251,7 +251,7 @@ function keydown(event) {
 // }
 
 function getBackgroundStars() {
-  let group = new THREE.Group();
+  starGroup.children = [];
 
   //-----------------------
   // Background stars
@@ -262,18 +262,18 @@ function getBackgroundStars() {
     let materialOccluded = new THREE.MeshBasicMaterial({color: black});
     materialOccluded.color.setHSL(0,0,0.8);
     let sphere = new THREE.Mesh(geometry, material);
-    const p = new THREE.Vector3(3,0,0).applyAxisAngle(
-      new THREE.Vector3(Math.random()*2-1,Math.random()*2-1,Math.random()*2-1)
-      .normalize(), Math.random()*Math.PI*2);;
+    const a = 2*Math.PI*Math.random();
+    const r = 3;
+    const p = new THREE.Vector3(r*Math.cos(a), 3*Math.random()-1.5, r*Math.sin(a));
     sphere.translateOnAxis(p, 1);
     sphere.visible = true;
     sphere.simType = 'star';
     sphere.materialFront = material;
     sphere.materialOccluded = materialOccluded;
-    group.add(sphere);
+    starGroup.add(sphere);
   }
 
-  return group;
+  return starGroup;
 }
 
 //----------------------------------------
@@ -414,132 +414,98 @@ function occludeMaterial(m) {
   m.color.offsetHSL(0,0,(1-hsl.l)*.8);
 }
 
+function prepArrowHelper(arrowHelper, renderOrder) {
+  arrowHelper.children[0].renderOrder = renderOrder;
+  arrowHelper.children[1].renderOrder = renderOrder;
+  arrowHelper.traverseVisible(o => {o.simType = 'vector';});
+  arrowHelper.traverseVisible(o => {
+    if (o.material) {
+      o.materialFront = o.material;
+      o.materialOccluded = o.material.clone();
+      o.materialOccluded.color = o.materialOccluded.color.clone();
+      occludeMaterial(o.materialOccluded);
+    }
+  });
+}
+
 function updateRotGroup() {
   let arrowsGroup = new THREE.Group();
-  rotGroup.children = [];
+  earthGroup.children = [];
   fixedPathGroup.children = [];
-  // for (let hours = 0; hours <= 4; hours++) {
+
+  const hours = time / (60*60);
+  const t = time;
+  const phi = sim.phi(t);
+  const phi_ = sim.phi_(t);
+  // const colorL = sq(0.9-hours/12);
+  const colorL = 0.4;
+  const vcolor = new THREE.Color().setHSL(0, 1, colorL);
+  const lonLineColor = new THREE.Color().setHSL(0, 1, colorL);
+  const necolor = new THREE.Color().setHSL(0.7, 1, colorL);
+  const rotatingPathColor = new THREE.Color().setHSL(0.15, 1, colorL);
+  const fixedPathColor = new THREE.Color().setHSL(0.45, 1, colorL);
+  const green = new THREE.Color(0, 1, 0);
+
   {
-    // const hours = 24*earthRotation/360;
-    // const t = hours*60*60;
-    const hours = time / (60*60);
-    const t = time;
-    const phi = sim.phi(t);
-    const phi_ = sim.phi_(t);
-    // const colorL = sq(0.9-hours/12);
-    const colorL = 0.4;
-    const vcolor = new THREE.Color().setHSL(0, 1, colorL);
-    const lonLineColor = new THREE.Color().setHSL(0, 1, colorL);
-    const necolor = new THREE.Color().setHSL(0.7, 1, colorL);
-    const rotatingPathColor = new THREE.Color().setHSL(0.15, 1, colorL);
-    const fixedPathColor = new THREE.Color().setHSL(0.45, 1, colorL);
-    const green = new THREE.Color(0, 1, 0);
+    // puck
+    let geometry = new THREE.SphereBufferGeometry(.02, 32, 32);
+    let material = new THREE.MeshBasicMaterial({color: vcolor});
+    let materialOccluded = new THREE.MeshBasicMaterial({color: vcolor});
+    occludeMaterial(materialOccluded);
+    let sphere = new THREE.Mesh(geometry, material);
+    // const p = sim.pRotating(t);
+    const p = sim.p(t);
+    sphere.translateOnAxis(p, 1);
+    sphere.renderOrder = vecRenderOrder;
+    sphere.materialFront = material;
+    sphere.materialOccluded = materialOccluded;
+    earthGroup.add(sphere);
 
+    const v = sim.v(t).normalize();
+    let E = east(p.cartesian);
+    let N = north(p.cartesian);
+    E = E.multiplyScalar(v.clone().dot(E));
+    N = N.multiplyScalar(v.clone().dot(N));
+    const f = 0.25;
+    
     {
-      // puck
-      let geometry = new THREE.SphereBufferGeometry(.02, 32, 32);
-      let material = new THREE.MeshBasicMaterial({color: vcolor});
-      let materialOccluded = new THREE.MeshBasicMaterial({color: vcolor});
-      occludeMaterial(materialOccluded);
-      let sphere = new THREE.Mesh(geometry, material);
-      // const p = sim.pRotating(t);
-      const p = sim.p(t);
-      sphere.translateOnAxis(p, 1);
-      sphere.renderOrder = vecRenderOrder;
-      sphere.materialFront = material;
-      sphere.materialOccluded = materialOccluded;
-      rotGroup.add(sphere);
+      // v
+      let length = v.length() * f;
+      let dir = v.normalize();
+      let origin = p.cartesian;
 
-      const v = sim.v(t).normalize();
-      let E = east(p.cartesian);
-      let N = north(p.cartesian);
-      E = E.multiplyScalar(v.clone().dot(E));
-      N = N.multiplyScalar(v.clone().dot(N));
-      const f = 0.25;
-      
-      {
-        // // test
-        // let testp = new Position(radians(45), radians(-45));
-        // let testdir = new Velocity(1, 1);
-        // testdir = testdir.cartesian(testp);
-        // // console.log(testdir);
-        // const length = testdir.length()*f;
-        // let arrowHelper = new ArrowHelper(testdir.clone().normalize(),
-        //                                   testp.cartesian,
-        //                                   length, lineWidth,
-        //                                   green, 20, headLen, 0.6*headLen);
-        // // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
-        // arrowHelper.children[0].renderOrder = vecRenderOrder;
-        // arrowHelper.children[1].renderOrder = vecRenderOrder;
-        // arrowsGroup.add(arrowHelper);
-      }
-      {
-        // v
-        let length = v.length() * f;
-        let dir = v.normalize();
-        let origin = p.cartesian;
-
-        let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                          vcolor, 20, headLen, 0.6*headLen);
-        // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
-        arrowHelper.children[0].renderOrder = vecRenderOrder;
-        arrowHelper.children[1].renderOrder = vecRenderOrder;
-        arrowHelper.traverseVisible(o => {o.simType = 'vector';});
-        arrowHelper.traverseVisible(o => {
-          if (o.material) {
-            occludeMaterial(o.material);
-          }
-        });
-        arrowsGroup.add(arrowHelper);
-      } {
-        // east
-        let length = E.length() * f;
-        let dir = E.normalize();
+      let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+                                        vcolor, 20, headLen, 0.6*headLen);
+      prepArrowHelper(arrowHelper, vecRenderOrder);
+      arrowsGroup.add(arrowHelper);
+    } {
+      // east
+      let length = E.length() * f;
+      let dir = E.normalize();
+      let origin = p.cartesian;
+      let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+                                        necolor, 20, headLen, 0.6*headLen);
+      prepArrowHelper(arrowHelper, eastRenderOrder);
+      arrowsGroup.add(arrowHelper);
+    } {
+      // north
+      let length = N.length() * f;
+      if (length > headLen) {
+        let dir = N.normalize();
         let origin = p.cartesian;
         let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
                                           necolor, 20, headLen, 0.6*headLen);
-        // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
-        arrowHelper.children[0].renderOrder = eastRenderOrder;
-        arrowHelper.children[1].renderOrder = eastRenderOrder;
-        arrowHelper.traverseVisible(o => {o.simType = 'vector';});
-        arrowHelper.traverseVisible(o => {
-          if (o.material) {
-            occludeMaterial(o.material);
-          }
-        });
+        prepArrowHelper(arrowHelper, northRenderOrder);
         arrowsGroup.add(arrowHelper);
-      } {
-        // north
-        let length = N.length() * f;
-        if (length > headLen) {
-          let dir = N.normalize();
-          let origin = p.cartesian;
-          let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                            necolor, 20, headLen, 0.6*headLen);
-          // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
-          arrowHelper.children[0].renderOrder = northRenderOrder;
-          arrowHelper.children[1].renderOrder = northRenderOrder;
-          arrowHelper.traverseVisible(o => {o.simType = 'vector';});
-          arrowHelper.traverseVisible(o => {
-            if (o.material) {
-              occludeMaterial(o.material);
-            }
-          });
-          arrowsGroup.add(arrowHelper);
-        }
       }
-      // // Longitude line
-      // let lonLine = getLonLine(phi, lonLineColor);
-      // scene.add(lonLine);
-
-      // // puck's path
-      let path = getPuckPathRotating(t, rotatingPathColor);
-      rotGroup.add(path);
-      path = getPuckPathFixed(t, fixedPathColor);
-      fixedPathGroup.add(path);
     }
+    // puck's path
+    let path = getPuckPathRotating(t, rotatingPathColor);
+    earthGroup.add(path);
+    path = getPuckPathFixed(t, fixedPathColor);
+    fixedPathGroup.add(path);
   }
-  // rotGroup.add(arrowsGroup);
+  earthGroup.add(arrowsGroup);
 }
 
 //----------------------------------------
@@ -553,25 +519,17 @@ function render() {
   }
 
   updateRotGroup();
-  // rotGroup.rotateY(earthRotation);
-  // rotGroup.rotation.y = earthRotation;
-  // rotGroup.traverse(function (child) {
-  //   child.rotation.y = radians(earthRotation);
-  // });
-  // rotGroup.rotation.y = radians(earthRotation);
-  // scene.rotation.y = radians(fixedViewRotation);
-  // rotGroup.rotation.y = earthRotation(time);
-  // scene.rotation.y = radians(fixedViewRotation);
 
-  rotGroup.rotation.y = viewRotationEarth();
-  scene.rotation.y = viewRotationSky();
+  earthGroup.rotation.y = viewRotationEarth();
+  starGroup.rotation.y = viewRotationSky();
+  scene.rotation.y = viewRotationScene();
 
   renderer.clear();
   map.draw();
   renderer.render(scene, camera);
 }
 
-function tick() {
+function updateAndRender() {
   controls.update();
   render();
 }
@@ -580,7 +538,7 @@ function tick() {
 // animate
 //----------------------------------------
 var prevTime = null;
-function animate() {
+function tick() {
   if (!animation) return;
   if (time > T_/2) {
     animation = false;
@@ -593,12 +551,12 @@ function animate() {
   // }
   // prevTime = time;
 
-  // earthRotation += animInc;
-  time += animInc;
+  // time += animInc;
+  incTime(animInc);
 
-  tick();
+  updateAndRender();
 
-  requestAnimationFrame( animate );
+  requestAnimationFrame(tick);
 }
 
 //----------------------------------------
