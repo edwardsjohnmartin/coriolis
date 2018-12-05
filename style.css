@@ -2,7 +2,7 @@ body {
     /*background-color: #000000;*/
     background-color: #ffffff;
     margin: 0px;
-    overflow: hidden;
+    /*overflow: hidden;*/
 }
 
 a {
@@ -29,6 +29,6 @@ a:hover {
 }
 
 #graphic {
-    width: 700px;
-    height: 700px;
+    width: 500px;
+    height: 500px;
 }
