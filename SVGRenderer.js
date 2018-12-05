@@ -224,6 +224,13 @@ THREE.SVGRenderer = function () {
 
 	_v1 = element.v1; _v2 = element.v2; _v3 = element.v3;
 
+        // // jme
+        // if (_v1.positionWorld.x > -1 && _v1.positionWorld.x < 1 &&
+        //   _v1.positionWorld.y > -1 && _v1.positionWorld.y < 1 &&
+        //    _v1.positionWorld.z < 0) {
+        //   continue;
+        // }
+
 	if ( _v1.positionScreen.z < - 1 || _v1.positionScreen.z > 1 ) continue;
 	if ( _v2.positionScreen.z < - 1 || _v2.positionScreen.z > 1 ) continue;
 	if ( _v3.positionScreen.z < - 1 || _v3.positionScreen.z > 1 ) continue;
@@ -251,6 +258,7 @@ THREE.SVGRenderer = function () {
     flushPath(); // just to flush last svg:path
 
     scene.traverseVisible( function ( object ) {
+
 
       if ( object instanceof THREE.SVGObject ) {
 

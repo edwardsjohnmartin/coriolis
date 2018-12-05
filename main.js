@@ -54,8 +54,11 @@ let sim = new CoriolisSim(radians(launchLongitude));
 
 const ROTATIONAL_VIEW = 0;
 const FIXED_VIEW = 1;
-// const view = ROTATIONAL_VIEW;
-let view = FIXED_VIEW;
+const view = ROTATIONAL_VIEW;
+// let view = FIXED_VIEW;
+
+const zPosition = 10;
+const zZero = -1.1;
 
 function viewRotationEarthMap() {
   if (view == FIXED_VIEW) {
@@ -91,15 +94,13 @@ animate();
 function init() {
   document.onkeydown = keydown;
 
-  const zPosition = 10;
-
   // camera = new THREE.PerspectiveCamera(
   //   33, window.innerWidth / window.innerHeight, 0.1, 100);
   let width = 2.5;
   let height = width;
   camera = new THREE.OrthographicCamera(
     width / - 2, width / 2, height / 2, height / - 2,
-    zPosition-1.1, zPosition+10);
+    zPosition+zZero, zPosition+10);
 
   // Don't remove this comment.
   // Setting the background makes the renderer clear everything
@@ -255,70 +256,25 @@ function getBackgroundStars() {
   //-----------------------
   // Background stars
   const w = 0.007;
-  let geometry = new THREE.BoxBufferGeometry(w,w,w);
-  let material = new THREE.MeshBasicMaterial({color: black});
   for (let i = 0; i < 1000; ++i) {
-    // let geometry = new THREE.SphereBufferGeometry(.005, 4, 4);
+    let geometry = new THREE.BoxBufferGeometry(w,w,w);
+    let material = new THREE.MeshBasicMaterial({color: black});
+    let materialOccluded = new THREE.MeshBasicMaterial({color: black});
+    materialOccluded.color.setHSL(0,0,0.8);
     let sphere = new THREE.Mesh(geometry, material);
     const p = new THREE.Vector3(3,0,0).applyAxisAngle(
       new THREE.Vector3(Math.random()*2-1,Math.random()*2-1,Math.random()*2-1)
       .normalize(), Math.random()*Math.PI*2);;
     sphere.translateOnAxis(p, 1);
     sphere.visible = true;
+    sphere.simType = 'star';
+    sphere.materialFront = material;
+    sphere.materialOccluded = materialOccluded;
     group.add(sphere);
   }
 
   return group;
 }
-
-// //----------------------------------------
-// // getGlobe
-// //----------------------------------------
-// function getGlobe() {
-//   var vertices = [];
-//   var divisions = 80;
-//   for ( var i = 0; i <= divisions; i ++ ) {
-//     var v = ( i / divisions ) * ( Math.PI * 2 );
-//     var x = Math.sin( v );
-//     var y = Math.cos( v );
-//     vertices.push( x, y, 0 );
-//   }
-
-//   var circleGeometry = new THREE.BufferGeometry();
-//   circleGeometry.addAttribute(
-//     'position', new THREE.Float32BufferAttribute( vertices, 3 ));
-
-//   rotGroup = new THREE.Scene();
-//   scene.add(rotGroup);
-
-//   // Lat/lon
-//   let lineMaterial = new THREE.LineBasicMaterial( {
-//     color: 0xaaaaaa,
-//     linewidth: lineWidth
-//   } );
-//   let inc = 15;
-
-//   let latlon = new THREE.Group();
-//   // Latitude
-//   for (let i = -90; i < 90; i+=inc) {
-//     var lat = new THREE.Line(circleGeometry, lineMaterial);
-//     lat.renderOrder = globeRenderOrder;
-//     lat.scale.setScalar(Math.cos(i*Math.PI/180));
-//     lat.translateY(Math.sin(i*Math.PI/180));
-//     lat.rotateX(Math.PI/2);
-//     latlon.add(lat);
-//   }
-
-//   // Longitude
-//   for (let i = 0; i < 180; i+=inc) {
-//     var lon = new THREE.Line( circleGeometry, lineMaterial );
-//     lon.renderOrder = globeRenderOrder;
-//     lon.scale.setScalar(1);
-//     lon.rotateY(i*Math.PI/180);
-//     // latlon.add(lon);
-//   }
-//   return latlon;
-// }
 
 //----------------------------------------
 // getLonLine
@@ -353,14 +309,28 @@ function getPuckPathRotating(t, color) {
     arr[i] = p.cartesian;
   });
   let circleGeometry = new THREE.BufferGeometry().setFromPoints(pointsRot);
+
   let lineMaterial = new THREE.LineDashedMaterial( {
     color: color,
     linewidth: lineWidth,
     dashSize: 5,
     gapSize: 10,
   } );
+  let materialOccluded = new THREE.LineDashedMaterial( {
+    color: color,
+    linewidth: lineWidth,
+    dashSize: 5,
+    gapSize: 10,
+  } );
+  let hsl = new Object();
+  materialOccluded.color.getHSL(hsl);
+  materialOccluded.color.offsetHSL(0,0,(1-hsl.l)*.8);
+
   var path = new THREE.Line( circleGeometry, lineMaterial );
   path.renderOrder = pathRenderOrder;
+  path.simType = 'path';
+  path.materialFront = lineMaterial;
+  path.materialOccluded = materialOccluded;
   return path;
 }
 
@@ -372,14 +342,28 @@ function getPuckPathFixed(t, color) {
     arr[i] = p.cartesian;
   });
   let circleGeometry = new THREE.BufferGeometry().setFromPoints(pointsFixed);
+
   let lineMaterial = new THREE.LineDashedMaterial( {
     color: color,
     linewidth: lineWidth,
     dashSize: 5,
     gapSize: 10,
   } );
+  let materialOccluded = new THREE.LineDashedMaterial( {
+    color: color,
+    linewidth: lineWidth,
+    dashSize: 5,
+    gapSize: 10,
+  } );
+  let hsl = new Object();
+  materialOccluded.color.getHSL(hsl);
+  materialOccluded.color.offsetHSL(0,0,(1-hsl.l)*.8);
+
   var path = new THREE.Line( circleGeometry, lineMaterial );
   path.renderOrder = pathRenderOrder;
+  path.materialFront = lineMaterial;
+  path.materialOccluded = materialOccluded;
+  path.simType = 'path';
   return path;
 }
 
@@ -394,22 +378,6 @@ function getTransparentPlane() {
     }));
   return plane;
 }
-
-// //----------------------------------------
-// // getGreatCircle
-// //----------------------------------------
-// function getGreatCircle() {
-//   var greatCircleGeometry = new THREE.BufferGeometry();
-//   greatCircleGeometry.addAttribute(
-//     'position', new THREE.Float32BufferAttribute(greatCircle.vertices, 3));
-//   let greatCircleMaterial = new THREE.LineBasicMaterial( {
-//     color: 0xaaaa00,
-//     linewidth: lineWidth
-//   } );
-//   var gcLine = new THREE.Line(greatCircleGeometry, greatCircleMaterial);
-//   gcLine.renderOrder = greatCircleRenderOrder;
-//   return gcLine;
-// }
 
 //----------------------------------------
 // getGreatCircle
@@ -426,62 +394,6 @@ function getGreatCircle() {
   return ellipse;
 }
 
-// //----------------------------------------
-// // getArrowsGroup
-// //----------------------------------------
-// function getArrowsGroup() {
-//   let arrows = [];
-//   let len = arrowLen;
-//   // lond is longitude in degrees
-//   for (let lond = -90; lond <= 0; lond += 15) {
-//   // for (let lond = -75; lond <= -75; lond += 15) {
-//     let lon = radians(lond);
-//     let lat = greatCircle.getlat(lon);
-//     let veast = greatCircle.veast(lat, lon, len);
-//     let vnorth = greatCircle.vnorth(lat, lon, len);
-//     let dlatdlon = greatCircle.dlatdlon(lat, lon);
-//     let angle = degrees(Math.atan(dlatdlon));
-//     // east
-//     if (Math.abs(angle) > 1) {
-//       arrows.push({ lat:degrees(lat), lon:degrees(lon), angle:0,
-//                     renderOrder:eastRenderOrder,
-//                     length:veast, color:blue, onTop:false });
-//     }
-//     // north
-//     arrows.push({ lat:degrees(lat), lon:degrees(lon), angle:90,
-//                   renderOrder:northRenderOrder,
-//                   length:vnorth, color:blue, onTop:false });
-//     // arrow
-//     arrows.push({ lat:degrees(lat), lon:degrees(lon),
-//                   angle:angle, renderOrder:vecRenderOrder,
-//                   length:len, color:red, onTop:true });
-//   }
-
-//   let arrowsGroup = new THREE.Group();
-//   arrows.forEach(arrow => {
-//     if (arrow.length > headLen) {
-//       let p = latLon2xyz(radians(arrow.lat), radians(arrow.lon));
-//       // Move the origin out just a bit to minimize z fighting
-//       // p = p.multiplyScalar(1.01);
-
-//       let n = new THREE.Vector3().copy(p).normalize();
-//       let east = new THREE.Vector3(0,1,0).cross(n);
-//       let north = new THREE.Vector3(1,0,0).cross(east);
-
-//       let dir = east;
-//       let origin = p;
-//       let length = arrow.length;
-//       let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-//                                         arrow.color, 20, headLen, 0.6*headLen);
-//       arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
-//       arrowHelper.children[0].renderOrder = arrow.renderOrder;
-//       arrowHelper.children[1].renderOrder = arrow.renderOrder;
-//       arrowsGroup.add(arrowHelper);
-//     }
-//   });
-//   return arrowsGroup;
-// }
-
 //------------------------------------------------------------
 // Utility functions
 //------------------------------------------------------------
@@ -494,6 +406,12 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
 
   renderer.setSize( window.innerWidth, window.innerHeight );
+}
+
+function occludeMaterial(m) {
+  let hsl = new Object();
+  m.color.getHSL(hsl);
+  m.color.offsetHSL(0,0,(1-hsl.l)*.8);
 }
 
 function updateRotGroup() {
@@ -521,11 +439,15 @@ function updateRotGroup() {
       // puck
       let geometry = new THREE.SphereBufferGeometry(.02, 32, 32);
       let material = new THREE.MeshBasicMaterial({color: vcolor});
+      let materialOccluded = new THREE.MeshBasicMaterial({color: vcolor});
+      occludeMaterial(materialOccluded);
       let sphere = new THREE.Mesh(geometry, material);
       // const p = sim.pRotating(t);
       const p = sim.p(t);
       sphere.translateOnAxis(p, 1);
       sphere.renderOrder = vecRenderOrder;
+      sphere.materialFront = material;
+      sphere.materialOccluded = materialOccluded;
       rotGroup.add(sphere);
 
       const v = sim.v(t).normalize();
@@ -562,6 +484,12 @@ function updateRotGroup() {
         // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
         arrowHelper.children[0].renderOrder = vecRenderOrder;
         arrowHelper.children[1].renderOrder = vecRenderOrder;
+        arrowHelper.traverseVisible(o => {o.simType = 'vector';});
+        arrowHelper.traverseVisible(o => {
+          if (o.material) {
+            occludeMaterial(o.material);
+          }
+        });
         arrowsGroup.add(arrowHelper);
       } {
         // east
@@ -573,6 +501,12 @@ function updateRotGroup() {
         // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
         arrowHelper.children[0].renderOrder = eastRenderOrder;
         arrowHelper.children[1].renderOrder = eastRenderOrder;
+        arrowHelper.traverseVisible(o => {o.simType = 'vector';});
+        arrowHelper.traverseVisible(o => {
+          if (o.material) {
+            occludeMaterial(o.material);
+          }
+        });
         arrowsGroup.add(arrowHelper);
       } {
         // north
@@ -585,6 +519,12 @@ function updateRotGroup() {
           // arrowHelper.rotateOnWorldAxis(n, radians(arrow.angle));
           arrowHelper.children[0].renderOrder = northRenderOrder;
           arrowHelper.children[1].renderOrder = northRenderOrder;
+          arrowHelper.traverseVisible(o => {o.simType = 'vector';});
+          arrowHelper.traverseVisible(o => {
+            if (o.material) {
+              occludeMaterial(o.material);
+            }
+          });
           arrowsGroup.add(arrowHelper);
         }
       }
@@ -599,7 +539,7 @@ function updateRotGroup() {
       fixedPathGroup.add(path);
     }
   }
-  rotGroup.add(arrowsGroup);
+  // rotGroup.add(arrowsGroup);
 }
 
 //----------------------------------------

@@ -393,7 +393,29 @@ THREE.Projector = function () {
     _object.object = object;
 
     _vector3.setFromMatrixPosition( object.matrixWorld );
+    let temp = _vector3.clone().applyMatrix4(_viewMatrix);
     _vector3.applyMatrix4( _viewProjectionMatrix );
+
+    // jme
+    const simType = object.simType;
+    const occluded = (simType &&
+        Math.sqrt(sq(temp.x)+sq(temp.y)) < 1 &&
+        temp.z < -zPosition);
+
+    if (simType) {// == 'star') {
+      object.material =
+        occluded ? object.materialOccluded : object.materialFront;
+    }
+    // if (occluded && (simType == 'vector' || simType == 'path')) {
+    //   object = object.clone();
+    //   object.simType = simType;
+    //   _object.object = object;
+
+    //   let hsl = new Object();
+    //   object.material.color.getHSL(hsl);
+    //   object.material.color.offsetHSL(0,0,(1-hsl.l)*.8);
+    // }
+
     _object.z = _vector3.z;
     _object.renderOrder = object.renderOrder;
 
