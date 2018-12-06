@@ -41,11 +41,10 @@ const greatCircleRenderOrder = 1;
 const globeRenderOrder = 0;
 
 // Number of degrees we rotate the fixed frame for the view
-// const fixedViewRotation = 75;
-const startFixedViewRotation = radians(45);
-// let fixedViewRotation1 = radians(startFixedViewRotation);
+const fixedViewRotation0 = radians(45);
 // Number of seconds the simulation has gone
-let time = 2*60*60;
+const time0 = 0;//2*60*60;
+let time = time0;
 // Number of seconds we've spent in geostationary orbit
 let geoStationaryTime = 0;
 
@@ -54,8 +53,9 @@ let sim = new CoriolisSim(radians(launchLongitude));
 
 const ROTATIONAL_VIEW = 0;
 const FIXED_VIEW = 1;
-let view = ROTATIONAL_VIEW;
-// let view = FIXED_VIEW;
+// const view0 = ROTATIONAL_VIEW;
+const view0 = FIXED_VIEW;
+let view = view0;
 
 if (view == FIXED_VIEW) {
   document.getElementById('frame').innerHTML = 'fixed'
@@ -82,11 +82,11 @@ function incTime(inc) {
 }
 
 function viewRotationEarthMap() {
-  return earthRotation(-geoStationaryTime) + earthRotation(time) + startFixedViewRotation;
+  return earthRotation(-geoStationaryTime) + earthRotation(time) + fixedViewRotation0;
 }
 
 function viewRotationEarth() {
-  return earthRotation(time);// + startFixedViewRotation;
+  return earthRotation(time);
 }
 
 function viewRotationSky() {
@@ -94,7 +94,7 @@ function viewRotationSky() {
 }
 
 function viewRotationScene() {
-  return earthRotation(-geoStationaryTime) + startFixedViewRotation;
+  return earthRotation(-geoStationaryTime) + fixedViewRotation0;
 }
 
 runTests();
@@ -183,7 +183,7 @@ function init() {
   // scene.add(getGreatCircle());
   // scene.add(getArrowsGroup());
 
-  updateRotGroup();
+  updateEarthGroup();
   scene.add(earthGroup);
   scene.add(fixedPathGroup);
 
@@ -235,6 +235,12 @@ function keydown(event) {
       view = FIXED_VIEW;
       document.getElementById('frame').innerHTML = 'fixed'
     }
+    changed = true;
+  } else if (key == 'r') {
+    // reset
+    time = time0;
+    geoStationaryTime = 0;
+    view = view0;
     changed = true;
   } else if (key == ' ') {
     animation = !animation;
@@ -337,94 +343,13 @@ function getPuckPath(points, color) {
 //----------------------------------------
 function getPuckPathRotating(t, color) {
   return getPuckPath(sim.pathRot(0, t), color);
-  // let pointsRot = sim.pathRot(0, t);
-  // pointsRot.forEach((p, i, arr) => {
-  //   arr[i] = p.cartesian;
-  // });
-  // let circleGeometry = new THREE.BufferGeometry().setFromPoints(pointsRot);
-  // let lineMaterial = new THREE.LineBasicMaterial( {
-  //   color: color,
-  //   linewidth: lineWidth,
-  // } );
-  // let materialOccluded = new THREE.LineBasicMaterial( {
-  //   color: color,
-  //   linewidth: lineWidth,
-  // } );
-  // let hsl = new Object();
-  // materialOccluded.color.getHSL(hsl);
-  // materialOccluded.color.offsetHSL(0,0,(1-hsl.l)*.8);
-
-  // var path = new THREE.Line( circleGeometry, lineMaterial );
-  // path.renderOrder = pathRenderOrder;
-  // path.simType = 'path';
-  // path.materialFront = lineMaterial;
-  // path.materialOccluded = materialOccluded;
-  // return path;
 }
-
-// //----------------------------------------
-// // getPuckPathFixed
-// //----------------------------------------
-// function getPuckPathFixedLineStrip(t, color) {
-//   let pointsFixed = sim.pathFixed(0, t);
-//   pointsFixed.forEach((p, i, arr) => {
-//     arr[i] = p.cartesian;
-//   });
-//   let circleGeometry = new THREE.BufferGeometry().setFromPoints(pointsFixed);
-//   let lineMaterial = new THREE.LineBasicMaterial( {
-//     color: color,
-//     linewidth: lineWidth,
-//   } );
-//   let materialOccluded = new THREE.LineBasicMaterial( {
-//     color: color,
-//     linewidth: lineWidth,
-//   } );
-//   let hsl = new Object();
-//   materialOccluded.color.getHSL(hsl);
-//   materialOccluded.color.offsetHSL(0,0,(1-hsl.l)*.8);
-
-//   var path = new THREE.Line( circleGeometry, lineMaterial );
-//   path.renderOrder = pathRenderOrder;
-//   path.materialFront = lineMaterial;
-//   path.materialOccluded = materialOccluded;
-//   path.simType = 'path';
-//   return path;
-// }
 
 //----------------------------------------
 // getPuckPathFixed
 //----------------------------------------
 function getPuckPathFixed(t, color) {
   return getPuckPath(sim.pathFixed(0, t), color);
-  // let pointsFixed = sim.pathFixed(0, t);
-  // let arr = [];
-  // pointsFixed.forEach((p, i, arr) => {
-  //   arr[i] = p.cartesian;
-  // });
-  // let lineMaterial = new THREE.LineBasicMaterial( {
-  //   color: color,
-  //   linewidth: lineWidth,
-  // } );
-  // let materialOccluded = new THREE.LineBasicMaterial( {
-  //   color: color,
-  //   linewidth: lineWidth,
-  // } );
-  // let hsl = new Object();
-  // materialOccluded.color.getHSL(hsl);
-  // materialOccluded.color.offsetHSL(0,0,(1-hsl.l)*.8);
-
-  // let pathGroup = new THREE.Group();
-  // for (let i = 0; i < pointsFixed.length-1; ++i) {
-  //   let geometry = new THREE.BufferGeometry().setFromPoints(
-  //     pointsFixed.slice(i, i+2));
-  //   var path = new THREE.Line(geometry, lineMaterial);
-  //   path.renderOrder = pathRenderOrder;
-  //   path.materialFront = lineMaterial;
-  //   path.materialOccluded = materialOccluded;
-  //   path.simType = 'fpath';
-  //   pathGroup.add(path);
-  // }
-  // return pathGroup;
 }
 
 //----------------------------------------
@@ -488,7 +413,7 @@ function prepArrowHelper(arrowHelper, renderOrder) {
   });
 }
 
-function updateRotGroup() {
+function updateEarthGroup() {
   let arrowsGroup = new THREE.Group();
   earthGroup.children = [];
   fixedPathGroup.children = [];
@@ -560,10 +485,12 @@ function updateRotGroup() {
       }
     }
     // puck's path
-    if (view == ROTATIONAL_VIEW) {
+    // if (view == ROTATIONAL_VIEW) {
+    {
       let path = getPuckPathRotating(t, rotatingPathColor);
       earthGroup.add(path);
-    } else {
+    // } else {
+    } {
       let path = getPuckPathFixed(t, fixedPathColor);
       fixedPathGroup.add(path);
     }
@@ -581,7 +508,7 @@ function render() {
     plane.rotation.z = camera.rotation.z;
   }
 
-  updateRotGroup();
+  updateEarthGroup();
 
   earthGroup.rotation.y = viewRotationEarth();
   starGroup.rotation.y = viewRotationSky();
