@@ -22,6 +22,7 @@ let radiusInWindow;
 let plane;//, arrows;
 let arrowLen = 0.22;
 const headLen = 0.045;
+let starSize = 0.007;
 
 let map = new Map();
 
@@ -187,7 +188,8 @@ function init() {
   scene.add(earthGroup);
   scene.add(fixedPathGroup);
 
-  scene.add(getBackgroundStars());
+  updateBackgroundStars();
+  scene.add(starGroup);
 
   window.addEventListener('resize', onWindowResize, false);
   controls.addEventListener('change', render);
@@ -236,6 +238,16 @@ function keydown(event) {
       document.getElementById('frame').innerHTML = 'fixed'
     }
     changed = true;
+  } else if (key == 's') {
+    starSize /= 1.1;
+    console.log('starSize', starSize);
+    updateBackgroundStars();
+    changed = true;
+  } else if (key == 'S') {
+    starSize *= 1.1;
+    console.log('starSize', starSize);
+    updateBackgroundStars();
+    changed = true;
   } else if (key == 'r') {
     // reset
     time = time0;
@@ -252,22 +264,36 @@ function keydown(event) {
   }
 }
 
-function getBackgroundStars() {
+function updateBackgroundStars() {
   starGroup.children = [];
 
   //-----------------------
   // Background stars
-  const w = 0.007;
+  const w = starSize;
   for (let i = 0; i < 1000; ++i) {
     let geometry = new THREE.BoxBufferGeometry(w,w,w);
     let material = new THREE.MeshBasicMaterial({color: black});
     let materialOccluded = new THREE.MeshBasicMaterial({color: black});
     materialOccluded.color.setHSL(0,0,0.8);
     let sphere = new THREE.Mesh(geometry, material);
-    const a = 2*Math.PI*Math.random();
+
+    // // Sample on a cylinder
+    // const a = 2*Math.PI*Math.random();
+    // const r = 3;
+    // const p = new THREE.Vector3(r*Math.cos(a), 3*Math.random()-1.5, r*Math.sin(a));
+    // sphere.translateOnAxis(p, 1);
+
+    // Sample on a sphere -- See mathworld.wolfram.com/SpherePointPicking.html
+    const u = Math.random();
+    const v = Math.random();
     const r = 3;
-    const p = new THREE.Vector3(r*Math.cos(a), 3*Math.random()-1.5, r*Math.sin(a));
+    // theta is azimuthal and phi is polar
+    const theta = 2*Math.PI*u;
+    const phi = Math.acos(2*v-1) - Math.PI/2;
+    const R = r*Math.cos(phi);
+    const p = new THREE.Vector3(R*Math.cos(theta), r*Math.sin(phi), R*Math.sin(theta));
     sphere.translateOnAxis(p, 1);
+
     sphere.visible = true;
     sphere.simType = 'star';
     sphere.materialFront = material;

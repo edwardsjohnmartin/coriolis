@@ -53,14 +53,6 @@ CoriolisSim.prototype.phi_ = function(t) {
   const s = Math.sin(a);
   const c = Math.cos(a);
   let p = this.p0.lon + Math.atan2((V/this.speed)*s, c);
-
-  // // HACK - hard-coded hack
-  // if (t/T_ > 0.5) {
-  //   const overage = Math.atan2((V/this.speed)*s, c) - Math.PI;
-  //   p -= overage;
-  // }
-  // console.log(Math.atan2((V/this.speed)*Math.sin(Math.PI), Math.cos(Math.PI)));
-
   return p;
 }
 
@@ -113,9 +105,6 @@ CoriolisSim.prototype.vFixed = function(t) {
 CoriolisSim.prototype.vRotational = function(t) {
   let rad = this.v0.theta * Math.cos((t/T_)*2*Math.PI);
   let vLatLon = velFromRadians(rad, this.speed);
-  console.log(degrees(this.v0.theta));
-  console.log(degrees(rad));
-  console.log(vLatLon.east, V);
   vLatLon = new Velocity(vLatLon.north, vLatLon.east - V);
   return vLatLon.cartesian(this.p(t));
 }
