@@ -405,8 +405,14 @@ THREE.Projector = function () {
     let temp = _vector3.clone().applyMatrix4(_viewMatrix);
     _vector3.applyMatrix4( _viewProjectionMatrix );
 
+
     // jme
     const simType = object.simType;
+    if (simType == 'path') {
+      temp = object.geometry.boundingSphere.center.clone()
+        .applyMatrix4(object.matrixWorld)
+        .applyMatrix4(_viewMatrix);
+    }
     const occluded = (simType &&
         Math.sqrt(sq(temp.x)+sq(temp.y)) < 1 &&
         temp.z < -zPosition);
@@ -417,6 +423,14 @@ THREE.Projector = function () {
     //   _object.object = object;
     // }
     
+    if (simType == 'fpath') {
+      // console.log(temp);
+      // console.log(object.id);
+      // console.log(object.matrixWorld);
+    }
+    // if (simType == 'ffpath') {
+    //   console.log('aaa');
+    // }
     if (simType) {// == 'star') {
       object.material =
         occluded ? object.materialOccluded : object.materialFront;

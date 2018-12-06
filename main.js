@@ -298,13 +298,12 @@ function getLonLine(lonRadians, color) {
 }
 
 //----------------------------------------
+// getPuckPath
 //----------------------------------------
-function getPuckPathRotating(t, color) {
-  let pointsRot = sim.pathRot(0, t);
-  pointsRot.forEach((p, i, arr) => {
+function getPuckPath(points, color) {
+  points.forEach((p, i, arr) => {
     arr[i] = p.cartesian;
   });
-  let circleGeometry = new THREE.BufferGeometry().setFromPoints(pointsRot);
   let lineMaterial = new THREE.LineBasicMaterial( {
     color: color,
     linewidth: lineWidth,
@@ -317,41 +316,115 @@ function getPuckPathRotating(t, color) {
   materialOccluded.color.getHSL(hsl);
   materialOccluded.color.offsetHSL(0,0,(1-hsl.l)*.8);
 
-  var path = new THREE.Line( circleGeometry, lineMaterial );
-  path.renderOrder = pathRenderOrder;
-  path.simType = 'path';
-  path.materialFront = lineMaterial;
-  path.materialOccluded = materialOccluded;
-  return path;
+  // Make separate geometries for each line to ease lightening
+  // segments on the backside of the globe. See code in
+  // Projector.js.
+  let pathGroup = new THREE.Group();
+  for (let i = 0; i < points.length-1; ++i) {
+    let geometry = new THREE.BufferGeometry().setFromPoints(
+      points.slice(i, i+2));
+    var path = new THREE.Line(geometry, lineMaterial);
+    path.renderOrder = pathRenderOrder;
+    path.materialFront = lineMaterial;
+    path.materialOccluded = materialOccluded;
+    path.simType = 'path';
+    pathGroup.add(path);
+  }
+  return pathGroup;
 }
+
+//----------------------------------------
+//----------------------------------------
+function getPuckPathRotating(t, color) {
+  return getPuckPath(sim.pathRot(0, t), color);
+  // let pointsRot = sim.pathRot(0, t);
+  // pointsRot.forEach((p, i, arr) => {
+  //   arr[i] = p.cartesian;
+  // });
+  // let circleGeometry = new THREE.BufferGeometry().setFromPoints(pointsRot);
+  // let lineMaterial = new THREE.LineBasicMaterial( {
+  //   color: color,
+  //   linewidth: lineWidth,
+  // } );
+  // let materialOccluded = new THREE.LineBasicMaterial( {
+  //   color: color,
+  //   linewidth: lineWidth,
+  // } );
+  // let hsl = new Object();
+  // materialOccluded.color.getHSL(hsl);
+  // materialOccluded.color.offsetHSL(0,0,(1-hsl.l)*.8);
+
+  // var path = new THREE.Line( circleGeometry, lineMaterial );
+  // path.renderOrder = pathRenderOrder;
+  // path.simType = 'path';
+  // path.materialFront = lineMaterial;
+  // path.materialOccluded = materialOccluded;
+  // return path;
+}
+
+// //----------------------------------------
+// // getPuckPathFixed
+// //----------------------------------------
+// function getPuckPathFixedLineStrip(t, color) {
+//   let pointsFixed = sim.pathFixed(0, t);
+//   pointsFixed.forEach((p, i, arr) => {
+//     arr[i] = p.cartesian;
+//   });
+//   let circleGeometry = new THREE.BufferGeometry().setFromPoints(pointsFixed);
+//   let lineMaterial = new THREE.LineBasicMaterial( {
+//     color: color,
+//     linewidth: lineWidth,
+//   } );
+//   let materialOccluded = new THREE.LineBasicMaterial( {
+//     color: color,
+//     linewidth: lineWidth,
+//   } );
+//   let hsl = new Object();
+//   materialOccluded.color.getHSL(hsl);
+//   materialOccluded.color.offsetHSL(0,0,(1-hsl.l)*.8);
+
+//   var path = new THREE.Line( circleGeometry, lineMaterial );
+//   path.renderOrder = pathRenderOrder;
+//   path.materialFront = lineMaterial;
+//   path.materialOccluded = materialOccluded;
+//   path.simType = 'path';
+//   return path;
+// }
 
 //----------------------------------------
 // getPuckPathFixed
 //----------------------------------------
 function getPuckPathFixed(t, color) {
-  let pointsFixed = sim.pathFixed(0, t);
-  pointsFixed.forEach((p, i, arr) => {
-    arr[i] = p.cartesian;
-  });
-  let circleGeometry = new THREE.BufferGeometry().setFromPoints(pointsFixed);
-  let lineMaterial = new THREE.LineBasicMaterial( {
-    color: color,
-    linewidth: lineWidth,
-  } );
-  let materialOccluded = new THREE.LineBasicMaterial( {
-    color: color,
-    linewidth: lineWidth,
-  } );
-  let hsl = new Object();
-  materialOccluded.color.getHSL(hsl);
-  materialOccluded.color.offsetHSL(0,0,(1-hsl.l)*.8);
+  return getPuckPath(sim.pathFixed(0, t), color);
+  // let pointsFixed = sim.pathFixed(0, t);
+  // let arr = [];
+  // pointsFixed.forEach((p, i, arr) => {
+  //   arr[i] = p.cartesian;
+  // });
+  // let lineMaterial = new THREE.LineBasicMaterial( {
+  //   color: color,
+  //   linewidth: lineWidth,
+  // } );
+  // let materialOccluded = new THREE.LineBasicMaterial( {
+  //   color: color,
+  //   linewidth: lineWidth,
+  // } );
+  // let hsl = new Object();
+  // materialOccluded.color.getHSL(hsl);
+  // materialOccluded.color.offsetHSL(0,0,(1-hsl.l)*.8);
 
-  var path = new THREE.Line( circleGeometry, lineMaterial );
-  path.renderOrder = pathRenderOrder;
-  path.materialFront = lineMaterial;
-  path.materialOccluded = materialOccluded;
-  path.simType = 'path';
-  return path;
+  // let pathGroup = new THREE.Group();
+  // for (let i = 0; i < pointsFixed.length-1; ++i) {
+  //   let geometry = new THREE.BufferGeometry().setFromPoints(
+  //     pointsFixed.slice(i, i+2));
+  //   var path = new THREE.Line(geometry, lineMaterial);
+  //   path.renderOrder = pathRenderOrder;
+  //   path.materialFront = lineMaterial;
+  //   path.materialOccluded = materialOccluded;
+  //   path.simType = 'fpath';
+  //   pathGroup.add(path);
+  // }
+  // return pathGroup;
 }
 
 //----------------------------------------
