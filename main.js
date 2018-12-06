@@ -14,7 +14,8 @@ let animInc = animSpeed*5;
 if (localStorage.animInc) {
   animInc = Number(localStorage.animInc);
 }
-document.getElementById('speed').value = animInc.toFixed(1);
+// document.getElementById('speed').value = animInc.toFixed(1);
+document.getElementById('speed').innerHTML = animInc.toFixed(1);
 
 const radius = 1;
 let radiusInWindow;
@@ -23,6 +24,7 @@ let plane;//, arrows;
 let arrowLen = 0.22;
 const headLen = 0.045;
 let starSize = 0.007;
+let visiblePath = 0;
 
 let map = new Map();
 
@@ -65,7 +67,9 @@ if (view == FIXED_VIEW) {
 }
 
 document.getElementById('time').value = (time/(60*60)).toFixed(2);
-document.getElementById('rotation').value =
+// document.getElementById('rotation').value =
+//   degrees(earthRotation(time)).toFixed(2);
+document.getElementById('rotation').innerHTML =
   degrees(earthRotation(time)).toFixed(2);
 
 const zPosition = 10;
@@ -74,7 +78,9 @@ const zZero = -1.1;
 function incTime(inc) {
   time += inc;
   document.getElementById('time').value = (time/(60*60)).toFixed(2);
-  document.getElementById('rotation').value =
+  // document.getElementById('rotation').value =
+  //   degrees(earthRotation(time)).toFixed(2);
+  document.getElementById('rotation').innerHTML =
     degrees(earthRotation(time)).toFixed(2);
 
   if (view == ROTATIONAL_VIEW) {
@@ -116,6 +122,10 @@ function timeChanged() {
   document.getElementById('rotation').value =
     degrees(earthRotation(time)).toFixed(2);
   updateAndRender();
+}
+
+function rotationChanged() {
+  console.log("Not supported at this time");
 }
 
 //------------------------------------------------------------
@@ -209,13 +219,15 @@ function keydown(event) {
     }
     animInc /= 1.1;
     localStorage.setItem("animInc", animInc);
-    document.getElementById('speed').value = animInc.toFixed(1);
+    // document.getElementById('speed').value = animInc.toFixed(1);
+    document.getElementById('speed').innerHTML = animInc.toFixed(1);
     changed = true;
   } else if (x == 38 || key == "k" || key == "K") {
     // Up arrow
     animInc *= 1.1;
     localStorage.setItem("animInc", animInc);
-    document.getElementById('speed').value = animInc.toFixed(1);
+    // document.getElementById('speed').value = animInc.toFixed(1);
+    document.getElementById('speed').innerHTML = animInc.toFixed(1);
     changed = true;
   } else if (x == 39) {
     // Right arrow
@@ -237,6 +249,9 @@ function keydown(event) {
       view = FIXED_VIEW;
       document.getElementById('frame').innerHTML = 'fixed'
     }
+    changed = true;
+  } else if (key == 'p') {
+    visiblePath = (visiblePath+1)%3;
     changed = true;
   } else if (key == 's') {
     starSize /= 1.1;
@@ -519,11 +534,11 @@ function updateEarthGroup() {
     }
     // puck's path
     // if (view == ROTATIONAL_VIEW) {
-    {
+    if (visiblePath == 0 || visiblePath == 1) {
       let path = getPuckPathRotating(t, rotatingPathColor);
       earthGroup.add(path);
-    // } else {
-    } {
+    }
+    if (visiblePath == 0 || visiblePath == 2) {
       let path = getPuckPathFixed(t, fixedPathColor);
       fixedPathGroup.add(path);
     }
