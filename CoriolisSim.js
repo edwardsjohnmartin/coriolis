@@ -23,7 +23,8 @@ var CoriolisSim = function(lon0) {
   // The initial position
   this.p0 = new Position(0, lon0);
   // The initial velocity
-  this.v0 = new Velocity(V, Math.sqrt(5/4)*V, 0);
+  // this.v0 = new Velocity(V, Math.sqrt(5/4)*V, 0);
+  this.v0 = new Velocity(Math.sqrt(5/4)*V, V, 0);
   // Speed of the puck
   this.speed = Math.sqrt(sq(this.v0.east)+sq(this.v0.north));
   this.alpha = Math.atan2(Math.sqrt(5/4), 1);
@@ -100,9 +101,23 @@ CoriolisSim.prototype.p = function(t) {
 // v
 // Computes the time-dependent velocity vector of the puck.
 //------------------------------------------------------------
-CoriolisSim.prototype.v = function(t) {
+CoriolisSim.prototype.vFixed = function(t) {
   let rad = this.v0.theta * Math.cos((t/T_)*2*Math.PI);
   return velFromRadians(rad, this.speed).cartesian(this.p(t));
+}
+
+//------------------------------------------------------------
+// v
+// Computes the time-dependent velocity vector of the puck.
+//------------------------------------------------------------
+CoriolisSim.prototype.vRotational = function(t) {
+  let rad = this.v0.theta * Math.cos((t/T_)*2*Math.PI);
+  let vLatLon = velFromRadians(rad, this.speed);
+  console.log(degrees(this.v0.theta));
+  console.log(degrees(rad));
+  console.log(vLatLon.east, V);
+  vLatLon = new Velocity(vLatLon.north, vLatLon.east - V);
+  return vLatLon.cartesian(this.p(t));
 }
 
 // Step every 10 minutes

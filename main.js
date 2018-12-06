@@ -53,8 +53,8 @@ let sim = new CoriolisSim(radians(launchLongitude));
 
 const ROTATIONAL_VIEW = 0;
 const FIXED_VIEW = 1;
-// const view0 = ROTATIONAL_VIEW;
-const view0 = FIXED_VIEW;
+const view0 = ROTATIONAL_VIEW;
+// const view0 = FIXED_VIEW;
 let view = view0;
 
 if (view == FIXED_VIEW) {
@@ -446,7 +446,12 @@ function updateEarthGroup() {
     sphere.materialOccluded = materialOccluded;
     earthGroup.add(sphere);
 
-    const v = sim.v(t).normalize();
+    let v;
+    if (view == ROTATIONAL_VIEW) {
+      v = sim.vRotational(t).normalize();
+    } else {
+      v = sim.vFixed(t).normalize();
+    }
     let E = east(p.cartesian);
     let N = north(p.cartesian);
     E = E.multiplyScalar(v.clone().dot(E));
@@ -466,12 +471,14 @@ function updateEarthGroup() {
     } {
       // east
       let length = E.length() * f;
-      let dir = E.normalize();
-      let origin = p.cartesian;
-      let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                        necolor, 20, headLen, 0.6*headLen);
-      prepArrowHelper(arrowHelper, eastRenderOrder);
-      arrowsGroup.add(arrowHelper);
+      if (length > headLen) {
+        let dir = E.normalize();
+        let origin = p.cartesian;
+        let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+                                          necolor, 20, headLen, 0.6*headLen);
+        prepArrowHelper(arrowHelper, eastRenderOrder);
+        arrowsGroup.add(arrowHelper);
+      }
     } {
       // north
       let length = N.length() * f;
