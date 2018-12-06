@@ -12,6 +12,15 @@
     </div>
 
     <div class="instructions">
+      Time:&nbsp;<input type="text" id="time" size=5 onchange="timeChanged()" value="0"></input>&nbsp;hours
+      <br>
+      Earth's rotation:&nbsp;<input type="text" id="rotation" size=5 onchange="rotationChanged()" value="0"></input>&nbsp;degrees
+      <br>
+      Simulation speed:&nbsp;<input type="text" readonly id="speed" size=5 onchange="speedChanged()" value="0"></input> (up/down arrows to adjust)
+      <br>
+      Frame:&nbsp;<b id="frame">fixed</b>
+      <br>
+      <hr>
       Press spacebar to toggle animation
       <br>
       Press right/left arrows to go forward/backward in the animation

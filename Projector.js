@@ -150,6 +150,9 @@ THREE.Projector = function () {
 
   //
 
+  //------------------------------------------------------------
+  // RenderList
+  //------------------------------------------------------------
   var RenderList = function () {
 
     var normals = [];
@@ -352,6 +355,9 @@ THREE.Projector = function () {
 
   var renderList = new RenderList();
 
+  //------------------------------------------------------------
+  // projectObject
+  //------------------------------------------------------------
   function projectObject( object ) {
 
     if ( object.visible === false ) return;
@@ -386,6 +392,9 @@ THREE.Projector = function () {
 
   }
 
+  //------------------------------------------------------------
+  // addObject
+  //------------------------------------------------------------
   function addObject( object ) {
 
     _object = getNextObjectInPool();
@@ -411,6 +420,7 @@ THREE.Projector = function () {
     if (simType) {// == 'star') {
       object.material =
         occluded ? object.materialOccluded : object.materialFront;
+      // if (occluded) return;
     }
     // if (occluded && (simType == 'vector' || simType == 'path')) {
     //   object = object.clone();
@@ -429,6 +439,9 @@ THREE.Projector = function () {
 
   }
 
+  //------------------------------------------------------------
+  // projectScene
+  //------------------------------------------------------------
   this.projectScene = function ( scene, camera, sortObjects, sortElements ) {
 
     _faceCount = 0;

@@ -10,7 +10,8 @@ const T_ = 16*60*60;
 // returns the number of radians the earth has rotated after
 // time seconds
 function earthRotation(t) {
-  return (t/T_)*2*Math.PI;
+  // return (t/T_)*2*Math.PI;
+  return (t/T)*2*Math.PI;
 }
 
 //------------------------------------------------------------
@@ -135,8 +136,9 @@ CoriolisSim.prototype.pathFixed = function(t0, t1, divisions) {
   const inc = (t1-t0)/divisions;
   let points = [];
   for (let t = t0; t <= t1; t += inc) {
-    let pp = this.p(t);
-    pp = new Position(pp.lat, pp.lon + earthRotation(t));
+    const lat = this.theta_(t);
+    const lon = this.phi_(t);
+    pp = new Position(lat, lon);// + earthRotation(t));
     points.push(pp);
   }
   return points;

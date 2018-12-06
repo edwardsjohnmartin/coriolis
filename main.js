@@ -14,6 +14,7 @@ let animInc = animSpeed*5;
 if (localStorage.animInc) {
   animInc = Number(localStorage.animInc);
 }
+document.getElementById('speed').value = animInc.toFixed(1);
 
 const radius = 1;
 let radiusInWindow;
@@ -41,10 +42,10 @@ const globeRenderOrder = 0;
 
 // Number of degrees we rotate the fixed frame for the view
 // const fixedViewRotation = 75;
-const startFixedViewRotation = 0;
-let fixedViewRotation1 = radians(startFixedViewRotation);
+const startFixedViewRotation = radians(45);
+// let fixedViewRotation1 = radians(startFixedViewRotation);
 // Number of seconds the simulation has gone
-let time = 0;
+let time = 2*60*60;
 // Number of seconds we've spent in geostationary orbit
 let geoStationaryTime = 0;
 
@@ -56,22 +57,36 @@ const FIXED_VIEW = 1;
 let view = ROTATIONAL_VIEW;
 // let view = FIXED_VIEW;
 
+if (view == FIXED_VIEW) {
+  document.getElementById('frame').innerHTML = 'fixed'
+} else {
+  document.getElementById('frame').innerHTML = 'rotational'
+}
+
+document.getElementById('time').value = (time/(60*60)).toFixed(2);
+document.getElementById('rotation').value =
+  degrees(earthRotation(time)).toFixed(2);
+
 const zPosition = 10;
 const zZero = -1.1;
 
 function incTime(inc) {
   time += inc;
+  document.getElementById('time').value = (time/(60*60)).toFixed(2);
+  document.getElementById('rotation').value =
+    degrees(earthRotation(time)).toFixed(2);
+
   if (view == ROTATIONAL_VIEW) {
     geoStationaryTime += inc;
   }
 }
 
 function viewRotationEarthMap() {
-  return earthRotation(-geoStationaryTime) + earthRotation(time);
+  return earthRotation(-geoStationaryTime) + earthRotation(time) + startFixedViewRotation;
 }
 
 function viewRotationEarth() {
-  return earthRotation(time);
+  return earthRotation(time);// + startFixedViewRotation;
 }
 
 function viewRotationSky() {
@@ -79,13 +94,28 @@ function viewRotationSky() {
 }
 
 function viewRotationScene() {
-  return earthRotation(-geoStationaryTime);
+  return earthRotation(-geoStationaryTime) + startFixedViewRotation;
 }
 
 runTests();
 
 init();
 tick();
+
+//------------------------------------------------------------
+// events
+//------------------------------------------------------------
+function timeChanged() {
+  const newTime = Number(document.getElementById("time").value)*60*60;
+  const diff = newTime - time;
+  if (view == ROTATIONAL_VIEW) {
+    geoStationaryTime += diff;
+  }
+  time = newTime;
+  document.getElementById('rotation').value =
+    degrees(earthRotation(time)).toFixed(2);
+  updateAndRender();
+}
 
 //------------------------------------------------------------
 // Initialization/setup
@@ -177,11 +207,13 @@ function keydown(event) {
     }
     animInc /= 1.1;
     localStorage.setItem("animInc", animInc);
+    document.getElementById('speed').value = animInc.toFixed(1);
     changed = true;
   } else if (x == 38 || key == "k" || key == "K") {
     // Up arrow
     animInc *= 1.1;
     localStorage.setItem("animInc", animInc);
+    document.getElementById('speed').value = animInc.toFixed(1);
     changed = true;
   } else if (x == 39) {
     // Right arrow
@@ -198,11 +230,12 @@ function keydown(event) {
   } else if (key == 'f') {
     if (view == FIXED_VIEW) {
       view = ROTATIONAL_VIEW;
-      // fixedViewRotation += degrees(earthRotation(time));
+      document.getElementById('frame').innerHTML = 'rotational'
     } else {
       view = FIXED_VIEW;
-      // fixedViewRotation -= degrees(earthRotation(time));
+      document.getElementById('frame').innerHTML = 'fixed'
     }
+    changed = true;
   } else if (key == ' ') {
     animation = !animation;
     if (animation)
@@ -212,43 +245,6 @@ function keydown(event) {
     updateAndRender();
   }
 }
-
-//------------------------------------------------------------
-// Functions to create 3D objects
-//------------------------------------------------------------
-
-// function getBackgroundPlanet() {
-//   let group = new THREE.Group();
-
-//   //-----------------------
-//   // Background sphere
-//   let geometry = new THREE.SphereBufferGeometry(.08, 32, 32);
-//   let material = new THREE.MeshBasicMaterial({color: blue});
-//   let sphere = new THREE.Mesh(geometry, material);
-//   const p = new THREE.Vector3(-1.5, 1, -2);
-//   sphere.translateOnAxis(p, 1);
-//   group.add(sphere);
-
-//   const r = 0.2;
-//   var circle =
-//     new THREE.EllipseCurve(0, 0, r, r);
-//   var points = circle.getPoints(50);
-//   var circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
-//   let lineMaterial = new THREE.LineBasicMaterial( {
-//     color: 0xaa0000,
-//     linewidth: lineWidth
-//   } );
-//   let inc = 15;
-
-//   let latlon = new THREE.Group();
-//   // Longitude
-//   var ring = new THREE.Line( circleGeometry, lineMaterial );
-//   ring.translateOnAxis(p, 1);
-//   ring.rotateZ(Math.PI/8);
-//   ring.rotateX(Math.PI/2);
-//   group.add(ring);
-//   return group;
-// }
 
 function getBackgroundStars() {
   starGroup.children = [];
@@ -309,18 +305,13 @@ function getPuckPathRotating(t, color) {
     arr[i] = p.cartesian;
   });
   let circleGeometry = new THREE.BufferGeometry().setFromPoints(pointsRot);
-
-  let lineMaterial = new THREE.LineDashedMaterial( {
+  let lineMaterial = new THREE.LineBasicMaterial( {
     color: color,
     linewidth: lineWidth,
-    dashSize: 5,
-    gapSize: 10,
   } );
-  let materialOccluded = new THREE.LineDashedMaterial( {
+  let materialOccluded = new THREE.LineBasicMaterial( {
     color: color,
     linewidth: lineWidth,
-    dashSize: 5,
-    gapSize: 10,
   } );
   let hsl = new Object();
   materialOccluded.color.getHSL(hsl);
@@ -335,6 +326,7 @@ function getPuckPathRotating(t, color) {
 }
 
 //----------------------------------------
+// getPuckPathFixed
 //----------------------------------------
 function getPuckPathFixed(t, color) {
   let pointsFixed = sim.pathFixed(0, t, 30);
@@ -342,18 +334,13 @@ function getPuckPathFixed(t, color) {
     arr[i] = p.cartesian;
   });
   let circleGeometry = new THREE.BufferGeometry().setFromPoints(pointsFixed);
-
-  let lineMaterial = new THREE.LineDashedMaterial( {
+  let lineMaterial = new THREE.LineBasicMaterial( {
     color: color,
     linewidth: lineWidth,
-    dashSize: 5,
-    gapSize: 10,
   } );
-  let materialOccluded = new THREE.LineDashedMaterial( {
+  let materialOccluded = new THREE.LineBasicMaterial( {
     color: color,
     linewidth: lineWidth,
-    dashSize: 5,
-    gapSize: 10,
   } );
   let hsl = new Object();
   materialOccluded.color.getHSL(hsl);
@@ -500,10 +487,13 @@ function updateRotGroup() {
       }
     }
     // puck's path
-    let path = getPuckPathRotating(t, rotatingPathColor);
-    earthGroup.add(path);
-    path = getPuckPathFixed(t, fixedPathColor);
-    fixedPathGroup.add(path);
+    if (view == ROTATIONAL_VIEW) {
+      let path = getPuckPathRotating(t, rotatingPathColor);
+      earthGroup.add(path);
+    } else {
+      let path = getPuckPathFixed(t, fixedPathColor);
+      fixedPathGroup.add(path);
+    }
   }
   earthGroup.add(arrowsGroup);
 }
@@ -537,13 +527,13 @@ function updateAndRender() {
 //----------------------------------------
 // animate
 //----------------------------------------
-var prevTime = null;
+// var prevTime = null;
 function tick() {
   if (!animation) return;
-  if (time > T_/2) {
-    animation = false;
-    return;
-  }
+  // if (time > T_/2) {
+  //   animation = false;
+  //   return;
+  // }
 
   // var time = performance.now() * (animSpeed/1000);
   // if (prevTime) {
@@ -551,7 +541,6 @@ function tick() {
   // }
   // prevTime = time;
 
-  // time += animInc;
   incTime(animInc);
 
   updateAndRender();
