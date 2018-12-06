@@ -300,7 +300,7 @@ function getLonLine(lonRadians, color) {
 //----------------------------------------
 //----------------------------------------
 function getPuckPathRotating(t, color) {
-  let pointsRot = sim.pathRot(0, t, 30);
+  let pointsRot = sim.pathRot(0, t);
   pointsRot.forEach((p, i, arr) => {
     arr[i] = p.cartesian;
   });
@@ -329,7 +329,7 @@ function getPuckPathRotating(t, color) {
 // getPuckPathFixed
 //----------------------------------------
 function getPuckPathFixed(t, color) {
-  let pointsFixed = sim.pathFixed(0, t, 30);
+  let pointsFixed = sim.pathFixed(0, t);
   pointsFixed.forEach((p, i, arr) => {
     arr[i] = p.cartesian;
   });

@@ -105,6 +105,10 @@ CoriolisSim.prototype.v = function(t) {
   return velFromRadians(rad, this.speed).cartesian(this.p(t));
 }
 
+// Step every 10 minutes
+const pathInc = 10*60;
+
+
 //------------------------------------------------------------
 // path
 // Computes the puck's path from time t0 to time t1 in the
@@ -112,14 +116,18 @@ CoriolisSim.prototype.v = function(t) {
 // is the number of pieces to divide the curve into. Coordinates
 // returned in fixed-frame cartesian coordinates.
 //------------------------------------------------------------
-CoriolisSim.prototype.pathRot = function(t0, t1, divisions) {
+CoriolisSim.prototype.pathRot = function(t0, t1) {
   if (t0 == t1) return [];
 
-  const inc = (t1-t0)/divisions;
+  // const inc = (t1-t0)/divisions;
+  const inc = pathInc;
   let points = [];
-  for (let t = t0; t <= t1; t += inc) {
+  for (let t = t0; t < t1; t += inc) {
     points.push(this.p(t));
   }
+  // Catch the last point
+  points.push(this.p(t1));
+
   return points;
 }
 
@@ -130,17 +138,20 @@ CoriolisSim.prototype.pathRot = function(t0, t1, divisions) {
 // is the number of pieces to divide the curve into. Coordinates
 // returned in fixed-frame cartesian coordinates.
 //------------------------------------------------------------
-CoriolisSim.prototype.pathFixed = function(t0, t1, divisions) {
+CoriolisSim.prototype.pathFixed = function(t0, t1) {
   if (t0 == t1) return [];
 
-  const inc = (t1-t0)/divisions;
+  // const inc = (t1-t0)/divisions;
+  const inc = pathInc;
   let points = [];
-  for (let t = t0; t <= t1; t += inc) {
-    const lat = this.theta_(t);
-    const lon = this.phi_(t);
-    pp = new Position(lat, lon);// + earthRotation(t));
+  for (let t = t0; t < t1; t += inc) {
+    pp = new Position(this.theta_(t), this.phi_(t));
     points.push(pp);
   }
+  // Catch the last point
+  pp = new Position(this.theta_(t1), this.phi_(t1));
+  points.push(pp);
+
   return points;
 }
 
