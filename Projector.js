@@ -408,43 +408,24 @@ THREE.Projector = function () {
 
     // jme
     const simType = object.simType;
-    if (simType == 'path') {
+    if (simType == 'path' || simType == 'star') {
       temp = object.geometry.boundingSphere.center.clone()
         .applyMatrix4(object.matrixWorld)
         .applyMatrix4(_viewMatrix);
     }
-    const occluded = (simType &&
-        Math.sqrt(sq(temp.x)+sq(temp.y)) < 1 &&
+    const dist = (simType == 'star') ? 1.01 : 1;
+    let occluded = (simType &&
+        Math.sqrt(sq(temp.x)+sq(temp.y)) < dist &&
         temp.z < -zPosition);
 
-    // if (simType == 'path' && occluded) {
-    //   object = object.clone();
-    //   object.simType = simType;
-    //   _object.object = object;
-    // }
-    
-    if (simType == 'fpath') {
-      // console.log(temp);
-      // console.log(object.id);
-      // console.log(object.matrixWorld);
-    }
-    // if (simType == 'ffpath') {
-    //   console.log('aaa');
-    // }
-    if (simType) {// == 'star') {
+    if (simType) {
       object.material =
         occluded ? object.materialOccluded : object.materialFront;
-      // if (occluded) return;
+      // if (!object.material.visible) {
+      //   object.visible = false;
+      //   _object.visible = false;
+      // }
     }
-    // if (occluded && (simType == 'vector' || simType == 'path')) {
-    //   object = object.clone();
-    //   object.simType = simType;
-    //   _object.object = object;
-
-    //   let hsl = new Object();
-    //   object.material.color.getHSL(hsl);
-    //   object.material.color.offsetHSL(0,0,(1-hsl.l)*.8);
-    // }
 
     _object.z = _vector3.z;
     _object.renderOrder = object.renderOrder;

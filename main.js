@@ -25,6 +25,7 @@ let arrowLen = 0.22;
 const headLen = 0.045;
 let starSize = 0.007;
 let visiblePath = 0;
+let starStreaks = false;
 
 let map = new Map();
 
@@ -46,7 +47,7 @@ const globeRenderOrder = 0;
 // Number of degrees we rotate the fixed frame for the view
 const fixedViewRotation0 = radians(45);
 // Number of seconds the simulation has gone
-const time0 = 0;//2*60*60;
+const time0 = 0;//.2*60*60;
 let time = time0;
 // Number of seconds we've spent in geostationary orbit
 let geoStationaryTime = 0;
@@ -86,6 +87,10 @@ function incTime(inc) {
   if (view == ROTATIONAL_VIEW) {
     geoStationaryTime += inc;
   }
+
+  if (starStreaks) {
+    updateBackgroundStars();
+  }
 }
 
 function viewRotationEarthMap() {
@@ -96,8 +101,9 @@ function viewRotationEarth() {
   return earthRotation(time);
 }
 
+const skyRotationFactor = 0.7;
 function viewRotationSky() {
-  return -earthRotation(-geoStationaryTime)*0.7;
+  return -earthRotation(-geoStationaryTime)*skyRotationFactor;
 }
 
 function viewRotationScene() {
@@ -121,6 +127,7 @@ function timeChanged() {
   time = newTime;
   document.getElementById('rotation').value =
     degrees(earthRotation(time)).toFixed(2);
+  updateBackgroundStars();
   updateAndRender();
 }
 
@@ -263,6 +270,14 @@ function keydown(event) {
     console.log('starSize', starSize);
     updateBackgroundStars();
     changed = true;
+  } else if (key == 't') {
+    if (animation) {
+      starStreaks = false;
+    } else {
+      starStreaks = !starStreaks;
+    }
+    updateBackgroundStars();
+    changed = true;
   } else if (key == 'r') {
     // reset
     time = time0;
@@ -271,15 +286,17 @@ function keydown(event) {
     changed = true;
   } else if (key == ' ') {
     animation = !animation;
-    if (animation)
+    if (animation) {
+      starStreaks = false;
       tick();
+    }
   }
   if (changed) {
     updateAndRender();
   }
 }
 
-function updateBackgroundStars() {
+function updateBackgroundStarsBox() {
   starGroup.children = [];
 
   //-----------------------
@@ -291,12 +308,6 @@ function updateBackgroundStars() {
     let materialOccluded = new THREE.MeshBasicMaterial({color: black});
     materialOccluded.color.setHSL(0,0,0.8);
     let sphere = new THREE.Mesh(geometry, material);
-
-    // // Sample on a cylinder
-    // const a = 2*Math.PI*Math.random();
-    // const r = 3;
-    // const p = new THREE.Vector3(r*Math.cos(a), 3*Math.random()-1.5, r*Math.sin(a));
-    // sphere.translateOnAxis(p, 1);
 
     // Sample on a sphere -- See mathworld.wolfram.com/SpherePointPicking.html
     const u = Math.random();
@@ -319,29 +330,89 @@ function updateBackgroundStars() {
   return starGroup;
 }
 
-//----------------------------------------
-// getLonLine
-//----------------------------------------
-function getLonLine(lonRadians, color) {
-  var circle =
-    new THREE.EllipseCurve(0, 0, radius, radius, -Math.PI/2, Math.PI/2);
-  var points = circle.getPoints(50);
-  var circleGeometry = new THREE.BufferGeometry().setFromPoints(points);
+function updateBackgroundStars() {
+  // let viewMatrix = new THREE.Matrix();
+  // viewMatrix.copy(camera.matrixWorldInverse);
+  // _vector3.setFromMatrixPosition( object.matrixWorld );
+  // let temp = _vector3.clone().applyMatrix4(_viewMatrix);
+
+  starGroup.children = [];
 
   let lineMaterial = new THREE.LineBasicMaterial( {
-    color: color,
-    linewidth: lineWidth
+    color: black,
+    linewidth: starSize*300,
   } );
-  let inc = 15;
+  let materialOccluded = new THREE.LineBasicMaterial( {
+    color: new THREE.Color(0.9,0.9,0.9),
+    linewidth: starSize*300,
+    visible: false, // just don't show the stars when they're occluded.
+  } );
+  let streakMaterial = new THREE.LineBasicMaterial( {
+    color: black,
+    linewidth: starSize*100,
+  } );
+  let streakMaterialOccluded = new THREE.LineBasicMaterial( {
+    color: new THREE.Color(0.9,0.9,0.9),
+    linewidth: starSize*100,
+    visible: false, // just don't show the stars when they're occluded.
+  } );
 
-  let latlon = new THREE.Group();
-  // Longitude
-  var lon = new THREE.Line( circleGeometry, lineMaterial );
-  lon.renderOrder = globeRenderOrder;
-  lon.scale.setScalar(1);
-  lon.rotateY(lonRadians);
-  latlon.add(lon);
-  return latlon;
+  const k = viewRotationSky()*0.42;//*skyRotationFactor;
+  // const k = viewRotationEarth()*0.42*skyRotationFactor;
+
+  // Use a local random number generator so we can seed it and not
+  // be bothered by the fact that the constructor of THREE.Object3D generates
+  // random numbers.
+  let random = new Math.seedrandom(0);
+  for (let i = 0; i < 500; ++i) {
+    // Sample on a sphere -- See mathworld.wolfram.com/SpherePointPicking.html
+    // const u = Math.random();
+    // const v = Math.random();
+    const u = random();
+    const v = random();
+    const r = 3;
+    // theta is azimuthal and phi is polar
+    const theta = 2*Math.PI*u;
+    const phi = Math.acos(2*v-1) - Math.PI/2;
+    const R = r*Math.cos(phi);
+    const y = r*Math.sin(phi);
+    const p = new THREE.Vector3(
+      R*Math.cos(theta), y, R*Math.sin(theta));
+    const d = 0.001;
+    const p2 = new THREE.Vector3(
+      R*Math.cos(theta+d), y, R*Math.sin(theta+d));
+
+    const points = [p, p2];
+    let geometry = new THREE.BufferGeometry().setFromPoints(points);
+    let path = new THREE.Line(geometry, lineMaterial);
+    path.renderOrder = pathRenderOrder;
+    path.materialFront = lineMaterial;
+    path.materialOccluded = materialOccluded;
+    path.simType = 'star';
+    starGroup.add(path);
+
+    if (starStreaks && view == ROTATIONAL_VIEW && k > 0.00001) {
+      const start = theta - k;
+      const end = theta;
+      const inc = (end-start)/10;
+      for (let theta_ = start; theta_ <= end-inc+0.000001; theta_ += inc) {
+        const q0 = new THREE.Vector3(
+          R*Math.cos(theta_), y, R*Math.sin(theta_));
+        const q1 = new THREE.Vector3(
+          R*Math.cos(theta_+inc), y, R*Math.sin(theta_+inc));
+        const points = [q0, q1];
+        let geometry = new THREE.BufferGeometry().setFromPoints(points);
+        let path = new THREE.Line(geometry, streakMaterial);
+        path.renderOrder = pathRenderOrder;
+        path.materialFront = streakMaterial;
+        path.materialOccluded = streakMaterialOccluded;
+        path.simType = 'star';
+        starGroup.add(path);
+      }
+    }
+  }
+
+  return starGroup;
 }
 
 //----------------------------------------
@@ -550,6 +621,12 @@ function updateEarthGroup() {
 // render
 //----------------------------------------
 function render() {
+  scene.traverseVisible(o => {
+    if (o.materialFront) {
+      o.material = o.materialFront;
+    }
+  });
+
   if (plane) {
     plane.rotation.x = camera.rotation.x;
     plane.rotation.y = camera.rotation.y;
@@ -558,6 +635,9 @@ function render() {
 
   updateEarthGroup();
 
+  // console.log('a', viewRotationEarth());
+  // console.log('b', viewRotationSky());
+  // console.log('c', viewRotationScene());
   earthGroup.rotation.y = viewRotationEarth();
   starGroup.rotation.y = viewRotationSky();
   scene.rotation.y = viewRotationScene();
