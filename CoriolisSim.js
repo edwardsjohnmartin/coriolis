@@ -14,6 +14,8 @@ function earthRotation(t) {
   return (t/T)*2*Math.PI;
 }
 
+const SPEED_F = 0.0005;
+
 //------------------------------------------------------------
 // Constructor
 // lon0 is the longitude in radians at which the puck was
@@ -26,7 +28,8 @@ var CoriolisSim = function(lon0) {
   // this.v0 = new Velocity(V, Math.sqrt(5/4)*V, 0);
   this.v0 = new Velocity(Math.sqrt(5/4)*V, V, 0);
   // Speed of the puck
-  this.speed = Math.sqrt(sq(this.v0.east)+sq(this.v0.north));
+  this.speedRotational = this.v0.north;
+  this.speedFixed = Math.sqrt(sq(this.v0.east)+sq(this.v0.north));
   this.alpha = Math.atan2(Math.sqrt(5/4), 1);
 }
 
@@ -52,7 +55,7 @@ CoriolisSim.prototype.phi_ = function(t) {
   let a = 2*Math.PI*t/T_;
   const s = Math.sin(a);
   const c = Math.cos(a);
-  let p = this.p0.lon + Math.atan2((V/this.speed)*s, c);
+  let p = this.p0.lon + Math.atan2((V/this.speedFixed)*s, c);
   return p;
 }
 
@@ -95,7 +98,12 @@ CoriolisSim.prototype.p = function(t) {
 //------------------------------------------------------------
 CoriolisSim.prototype.vFixed = function(t) {
   let rad = this.v0.theta * Math.cos((t/T_)*2*Math.PI);
-  return velFromRadians(rad, this.speed).cartesian(this.p(t));
+  // return velFromRadians(rad, this.speedFixed).cartesian(this.p(t));
+  // return this.vNormalized(velFromRadians(rad, this.speedFixed).cartesian(this.p(t)));
+  let v = velFromRadians(rad, this.speedFixed).cartesian(this.p(t));
+  v = v.normalize();
+  v = v.multiplyScalar(SPEED_F*this.speedFixed);
+  return v;
 }
 
 //------------------------------------------------------------
@@ -104,9 +112,14 @@ CoriolisSim.prototype.vFixed = function(t) {
 //------------------------------------------------------------
 CoriolisSim.prototype.vRotational = function(t) {
   let rad = this.v0.theta * Math.cos((t/T_)*2*Math.PI);
-  let vLatLon = velFromRadians(rad, this.speed);
+  let vLatLon = velFromRadians(rad, this.speedFixed);
   vLatLon = new Velocity(vLatLon.north, vLatLon.east - V);
-  return vLatLon.cartesian(this.p(t));
+  // return vLatLon.cartesian(this.p(t));
+  // return this.vNormalized(vLatLon.cartesian(this.p(t)));
+  let v = vLatLon.cartesian(this.p(t));
+  v = v.normalize();
+  v = v.multiplyScalar(SPEED_F*this.speedRotational);
+  return v;
 }
 
 // Step every 10 minutes

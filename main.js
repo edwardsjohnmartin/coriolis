@@ -391,8 +391,8 @@ function updateBackgroundStars() {
     path.simType = 'star';
     starGroup.add(path);
 
-    if (starStreaks && view == ROTATIONAL_VIEW && k > 0.00001) {
-      const start = theta - k;
+    if (starStreaks && view == ROTATIONAL_VIEW && k > -0.00001) {
+      const start = theta - k - .02;
       const end = theta;
       const inc = (end-start)/10;
       for (let theta_ = start; theta_ <= end-inc+0.000001; theta_ += inc) {
@@ -560,19 +560,18 @@ function updateEarthGroup() {
 
     let v;
     if (view == ROTATIONAL_VIEW) {
-      v = sim.vRotational(t).normalize();
+      v = sim.vRotational(t);
     } else {
-      v = sim.vFixed(t).normalize();
+      v = sim.vFixed(t);
     }
     let E = east(p.cartesian);
     let N = north(p.cartesian);
     E = E.multiplyScalar(v.clone().dot(E));
     N = N.multiplyScalar(v.clone().dot(N));
-    const f = 0.25;
-    
+
     {
       // v
-      let length = v.length() * f;
+      let length = v.length();
       let dir = v.normalize();
       let origin = p.cartesian;
 
@@ -582,7 +581,7 @@ function updateEarthGroup() {
       arrowsGroup.add(arrowHelper);
     } {
       // east
-      let length = E.length() * f;
+      let length = E.length();
       if (length > headLen) {
         let dir = E.normalize();
         let origin = p.cartesian;
@@ -593,7 +592,7 @@ function updateEarthGroup() {
       }
     } {
       // north
-      let length = N.length() * f;
+      let length = N.length();
       if (length > headLen) {
         let dir = N.normalize();
         let origin = p.cartesian;

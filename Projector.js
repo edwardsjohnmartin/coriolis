@@ -418,6 +418,10 @@ THREE.Projector = function () {
         Math.sqrt(sq(temp.x)+sq(temp.y)) < dist &&
         temp.z < -zPosition);
 
+    if (occluded && simType == 'star') {
+      return;
+    }
+
     if (simType) {
       object.material =
         occluded ? object.materialOccluded : object.materialFront;
