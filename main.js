@@ -190,6 +190,8 @@ function init() {
     w = graphicParent.clientHeight;
   }
   renderer.setSize(w, w);
+  // renderer.domElement.setAttribute('shape-rendering', 'optimizeSpeed');
+  // console.log(renderer.domElement);
   graphicParent.appendChild(renderer.domElement);
 
   radiusInWindow = radius/(width/2)*(w/2);
@@ -347,10 +349,21 @@ function updateBackgroundStars() {
     linewidth: starSize*300,
     visible: false, // just don't show the stars when they're occluded.
   } );
-  let streakMaterial = new THREE.LineBasicMaterial( {
-    color: black,
-    linewidth: starSize*100,
-  } );
+  // let streakMaterial = new THREE.LineBasicMaterial( {
+  //   color: new THREE.Color(0.6,0.6,0.6),
+  //   // color: black,
+  //   linewidth: starSize*100,
+  // } );
+  let streakMaterials = [];
+  let streakSegs = 20;
+  for (let i = streakSegs; i > 0; --i) {
+    let m = new THREE.LineBasicMaterial( {
+      color: new THREE.Color(i/streakSegs, i/streakSegs, i/streakSegs),
+      // linewidth: starSize*100,
+      linewidth: starSize*200,
+    } );
+    streakMaterials.push(m);
+  }
   let streakMaterialOccluded = new THREE.LineBasicMaterial( {
     color: new THREE.Color(0.9,0.9,0.9),
     linewidth: starSize*100,
@@ -391,22 +404,45 @@ function updateBackgroundStars() {
     path.simType = 'star';
     starGroup.add(path);
 
-    if (starStreaks && view == ROTATIONAL_VIEW && k > -0.00001) {
-      const start = theta - k - .02;
+    // if (starStreaks && view == ROTATIONAL_VIEW && k > -0.00001) {
+    //   // const start = theta - k - .02;
+    //   const start = theta - .08;
+    //   const end = theta;
+    //   const inc = (end-start)/10;
+    //   for (let theta_ = start; theta_ <= end-inc+0.000001; theta_ += inc) {
+    //     const q0 = new THREE.Vector3(
+    //       R*Math.cos(theta_), y, R*Math.sin(theta_));
+    //     const q1 = new THREE.Vector3(
+    //       R*Math.cos(theta_+inc), y, R*Math.sin(theta_+inc));
+    //     const points = [q0, q1];
+    //     let geometry = new THREE.BufferGeometry().setFromPoints(points);
+    //     let path = new THREE.Line(geometry, streakMaterials[0]);
+    //     path.renderOrder = pathRenderOrder;
+    //     path.materialFront = streakMaterials[0];
+    //     path.materialOccluded = streakMaterialOccluded;
+    //     path.simType = 'star';
+    //     starGroup.add(path);
+    //   }
+    // }
+    if (starStreaks && view == ROTATIONAL_VIEW) {
+      const length = 0.16;
+      const start = theta - length;
       const end = theta;
-      const inc = (end-start)/10;
-      for (let theta_ = start; theta_ <= end-inc+0.000001; theta_ += inc) {
+      const inc = (end-start)/streakSegs;
+      for (let i = 0; i < streakSegs; ++i) {
+        const theta_ = start + i*inc;
         const q0 = new THREE.Vector3(
           R*Math.cos(theta_), y, R*Math.sin(theta_));
         const q1 = new THREE.Vector3(
           R*Math.cos(theta_+inc), y, R*Math.sin(theta_+inc));
         const points = [q0, q1];
         let geometry = new THREE.BufferGeometry().setFromPoints(points);
-        let path = new THREE.Line(geometry, streakMaterial);
+        let path = new THREE.Line(geometry, streakMaterials[i]);
         path.renderOrder = pathRenderOrder;
-        path.materialFront = streakMaterial;
+        path.materialFront = streakMaterials[i];
         path.materialOccluded = streakMaterialOccluded;
         path.simType = 'star';
+        path.materialFront.linecap = 'butt';
         starGroup.add(path);
       }
     }
