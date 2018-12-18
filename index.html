@@ -8,21 +8,48 @@
   </head>
   <body>
 
-    <div id="graphic">
-    </div>
+    <table>
+      <tr>
+        <td class="info">
+          <div class="instructions">
+            Time:&nbsp;<input type="text" id="time" size=5 onchange="timeChanged()" value="0"></input>&nbsp;hours
+            <br>
+            Earth's rotation:&nbsp;<b id="rotation"></b>&nbsp;degrees
+            <br>
+            Simulation speed:&nbsp;<b id="speed"></b>
+            <br>
+            Frame:&nbsp;<b id="frame">fixed</b>
+            <!-- debug -->
+            <br>
+            theta_dot: <b id="theta_dot"></b>
+            <br>
+            phi_dot: <b id="phi_dot"></b>
+            <br>
+            L0: <b id="L0"></b>
+            <br>
+            T0: <b id="T0"></b>
+            <!--br>
+            phi: <b id="phi"></b>
+            <br>
+            phi': <b id="phi_"></b>
+            <br>
+            phi'-phi: <b id="phi2"></b-->
+          </div>
+        </td>
 
+        <td class="vis">
+          <div id="graphic"></div>
+        </td>
+      </tr>
+    </table>
+    
+    <hr>
+
+    <!-- Keystrokes -->
     <div class="instructions">
-      Time:&nbsp;<input type="text" id="time" size=5 onchange="timeChanged()" value="0"></input>&nbsp;hours
-      <br>
-      <!--Earth's rotation:&nbsp;<input type="text" class="readonly" id="rotation" size=5 onchange="rotationChanged()" readonly value="0"></input>&nbsp;degrees-->
-      Earth's rotation:&nbsp;<b id="rotation"></b>&nbsp;degrees
-      <br>
-      <!--Simulation speed:&nbsp;<input type="text" readonly id="speed" size=5 onchange="speedChanged()" value="0"></input> (up/down arrows to adjust)-->
-      Simulation speed:&nbsp;<b id="speed"></b> (up/down arrows to adjust)
-      <br>
-      Frame:&nbsp;<b id="frame">fixed</b>
-      <hr>
       Press spacebar to toggle animation.
+      <br>
+      Press up/down arrows to adjust simulation speed.
       <br>
       Press right/left arrows to go forward/backward in the animation.
       <br>
@@ -55,8 +82,13 @@
     <script src="OrbitControls.js"></script>
     <script src="MyArrowHelper.js"></script>
     <script src="math.js"></script>
-    <script src="CoriolisSim.js"></script>
+    <!-- This code uses analytic equations for puck position and velocity. -->
+    <!--script src="CoriolisSim.js"></script-->
+    <!-- This code uses integration for puck position and velocity. -->
+    <script src="coriolis.js"></script>
     <script src="map.js"></script>
+    <script src="earth.js"></script>
+    <script src="debug.js"></script>
     <script src="test.js"></script>
     <script src="main.js?4"></script>
 

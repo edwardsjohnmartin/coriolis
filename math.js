@@ -49,10 +49,11 @@ function degrees(rad) {
 
 // Lat and lon are given in radians.
 function latLon2xyz(lat, lon) {
-  let r = Math.cos(lat);
-  let x = -r*Math.sin(-lon);
+  // This more closely aligns with the paper, although we're using a different
+  // coordinate system.
+  let z = Math.cos(lon)*Math.cos(lat);
+  let x = Math.sin(lon)*Math.cos(lat);
   let y = Math.sin(lat);
-  let z = r*Math.cos(-lon);
   return new THREE.Vector3(x,y,z);
 }
 

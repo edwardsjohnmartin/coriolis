@@ -53,7 +53,8 @@ let time = time0;
 let geoStationaryTime = 0;
 
 const launchLongitude = -75;
-let sim = new CoriolisSim(radians(launchLongitude));
+// let sim = new CoriolisSim(radians(launchLongitude));
+let sim = new Coriolis(radians(launchLongitude));
 
 const ROTATIONAL_VIEW = 0;
 const FIXED_VIEW = 1;
@@ -568,8 +569,16 @@ function updateEarthGroup() {
 
   const hours = time / (60*60);
   const t = time;
-  const phi = sim.phi(t);
-  const phi_ = sim.phi_(t);
+  // const phi = sim.phi(t);
+  // const phi_ = sim.phi_(t);
+  // debug.phi = phi;
+  // debug.phi_ = phi_;
+
+  debug.theta_dot = sim.theta_dot(t);
+  debug.phi_dot = sim.phi_dot(t);
+  debug.L0 = sim.L0;
+  debug.T0 = sim.T0;
+
   // const colorL = sq(0.9-hours/12);
   const colorL = 0.4;
   const vcolor = new THREE.Color().setHSL(0, 1, colorL);

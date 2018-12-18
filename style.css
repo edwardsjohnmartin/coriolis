@@ -24,6 +24,16 @@ a:hover {
     color: #0080ff;
 }
 
+td.info {
+    vertical-align: bottom;
+    width: 30%;
+}
+
+td.vis {
+    vertical-align: bottom;
+    width: 60%;
+}
+
 .instructions {
     padding: 10px;
 }

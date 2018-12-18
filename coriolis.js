@@ -11,7 +11,7 @@
 // lon0 is the longitude in radians at which the puck was
 // struck.
 //------------------------------------------------------------
-var CoriolisSim = function(lon0) {
+var Coriolis = function(lon0) {
   // The initial position
   this.p0 = new Position(0, lon0);
   // The initial velocity
@@ -22,6 +22,39 @@ var CoriolisSim = function(lon0) {
   this.speedFixed = Math.sqrt(sq(this.v0.east)+sq(this.v0.north));
   this.alpha = Math.atan2(Math.sqrt(5/4), 1);
   this.speedFactor = 0.0005;
+
+  //--------------------
+  // New stuff
+  //--------------------
+  this.theta0 = this.p0.lat;
+  this.phi0 = this.p0.lon;
+  this.vtheta0 = this.v0.north;
+  this.vphi0 = this.v0.east;
+  this.theta_dot0 = this.vtheta0 / R;
+  this.phi_dot0 = this.vphi0 / (R * Math.cos(this.theta0));
+
+  this.L0 = (OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0));
+  this.T0 = sq(OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0)) +
+    sq(this.theta_dot0);
+  this.T = sq(this.phi_dot0) * sq(Math.cos(this.theta0)) +
+    sq(this.theta_dot0);
+
+  this._theta = 0;
+  this._phi = radians(-75);
+}
+
+Coriolis.prototype.theta_dot = function() {
+  return Math.sqrt(this.T0 - sq(this.L0)/Math.cos(this._theta));
+}
+
+Coriolis.prototype.phi_dot = function() {
+  return this.L0 / sq(Math.cos(this._theta)) - OMEGA;
+}
+
+Coriolis.prototype.step = function() {
+  // Euler integration
+  this._theta += this.theta_dot;
+  this._phi += this.phi_dot;
 }
 
 //------------------------------------------------------------
@@ -32,7 +65,7 @@ var CoriolisSim = function(lon0) {
 // puck was fired. Return value is the azimuthal position in
 // radians.
 //------------------------------------------------------------
-CoriolisSim.prototype.phi = function(t) {
+Coriolis.prototype.phi = function(t) {
   return this.p0.lon + 2 * Math.PI * t / T;
 }
 
@@ -42,7 +75,7 @@ CoriolisSim.prototype.phi = function(t) {
 // at time t in the fixed frame. At t=0, phi == phi_. Return
 // value is the azimuthal angle in radians.
 //------------------------------------------------------------
-CoriolisSim.prototype.phi_ = function(t) {
+Coriolis.prototype.phi_ = function(t) {
   let a = 2*Math.PI*t/T_;
   const s = Math.sin(a);
   const c = Math.cos(a);
@@ -56,7 +89,7 @@ CoriolisSim.prototype.phi_ = function(t) {
 // at time t in the fixed frame. At t=0, theta_ == 0. Return
 // value is the pitch angle in radians.
 //------------------------------------------------------------
-CoriolisSim.prototype.theta_ = function(t) {
+Coriolis.prototype.theta_ = function(t) {
   return this.p0.lat +
     Math.asin(Math.sin(this.alpha) * Math.sin(2*Math.PI*t/T_));
 }
@@ -69,7 +102,7 @@ CoriolisSim.prototype.theta_ = function(t) {
 // travel from the starting point. At t=0, phi_ == 0. Return
 // value is the azimuthal angle in radians.
 //------------------------------------------------------------
-CoriolisSim.prototype.phi_rotating = function(t) {
+Coriolis.prototype.phi_rotating = function(t) {
   return this.p0.lon + (this.phi_(t) - this.phi(t));
 }
 
@@ -77,7 +110,7 @@ CoriolisSim.prototype.phi_rotating = function(t) {
 // p
 // Computes the time-dependent position of the puck.
 //------------------------------------------------------------
-CoriolisSim.prototype.p = function(t) {
+Coriolis.prototype.p = function(t) {
   const lat = this.theta_(t);
   const lon = this.phi_rotating(t);
   return new Position(lat, lon);
@@ -87,7 +120,7 @@ CoriolisSim.prototype.p = function(t) {
 // v
 // Computes the time-dependent velocity vector of the puck.
 //------------------------------------------------------------
-CoriolisSim.prototype.vFixed = function(t) {
+Coriolis.prototype.vFixed = function(t) {
   let rad = this.v0.theta * Math.cos((t/T_)*2*Math.PI);
   // return velFromRadians(rad, this.speedFixed).cartesian(this.p(t));
   // return this.vNormalized(velFromRadians(rad, this.speedFixed).cartesian(this.p(t)));
@@ -101,7 +134,7 @@ CoriolisSim.prototype.vFixed = function(t) {
 // v
 // Computes the time-dependent velocity vector of the puck.
 //------------------------------------------------------------
-CoriolisSim.prototype.vRotational = function(t) {
+Coriolis.prototype.vRotational = function(t) {
   let rad = this.v0.theta * Math.cos((t/T_)*2*Math.PI);
   let vLatLon = velFromRadians(rad, this.speedFixed);
   vLatLon = new Velocity(vLatLon.north, vLatLon.east - V);
@@ -114,7 +147,7 @@ CoriolisSim.prototype.vRotational = function(t) {
 }
 
 // Step every 10 minutes
-const pathInc = 10*60;
+const cPathInc = 10*60;
 
 
 //------------------------------------------------------------
@@ -124,11 +157,11 @@ const pathInc = 10*60;
 // is the number of pieces to divide the curve into. Coordinates
 // returned in fixed-frame cartesian coordinates.
 //------------------------------------------------------------
-CoriolisSim.prototype.pathRot = function(t0, t1) {
+Coriolis.prototype.pathRot = function(t0, t1) {
   if (t0 == t1) return [];
 
   // const inc = (t1-t0)/divisions;
-  const inc = pathInc;
+  const inc = cPathInc;
   let points = [];
   for (let t = t0; t < t1; t += inc) {
     points.push(this.p(t));
@@ -146,11 +179,11 @@ CoriolisSim.prototype.pathRot = function(t0, t1) {
 // is the number of pieces to divide the curve into. Coordinates
 // returned in fixed-frame cartesian coordinates.
 //------------------------------------------------------------
-CoriolisSim.prototype.pathFixed = function(t0, t1) {
+Coriolis.prototype.pathFixed = function(t0, t1) {
   if (t0 == t1) return [];
 
   // const inc = (t1-t0)/divisions;
-  const inc = pathInc;
+  const inc = cPathInc;
   let points = [];
   for (let t = t0; t < t1; t += inc) {
     pp = new Position(this.theta_(t), this.phi_(t));
