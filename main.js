@@ -58,14 +58,18 @@ let sim = new Coriolis(radians(launchLongitude));
 
 const ROTATIONAL_VIEW = 0;
 const FIXED_VIEW = 1;
-const view0 = ROTATIONAL_VIEW;
+const DEBUG_VIEW = 2;
+// const view0 = ROTATIONAL_VIEW;
 // const view0 = FIXED_VIEW;
+const view0 = DEBUG_VIEW;
 let view = view0;
 
 if (view == FIXED_VIEW) {
   document.getElementById('frame').innerHTML = 'fixed'
-} else {
+} else if (view == ROTATIONAL_VIEW) {
   document.getElementById('frame').innerHTML = 'rotational'
+} else if (view == DEBUG_VIEW) {
+  document.getElementById('frame').innerHTML = 'debug'
 }
 
 document.getElementById('time').value = (time/(60*60)).toFixed(2);
@@ -94,17 +98,30 @@ function incTime(inc) {
   }
 }
 
+function rotDelta() {
+  let delta = 0;
+  if (view == DEBUG_VIEW) {
+    delta = -sim.p(time).lon - earthRotation(time) -
+      earthRotation(-geoStationaryTime) - fixedViewRotation0;
+  }
+  return delta;
+}
+
 function viewRotationEarthMap() {
-  return earthRotation(-geoStationaryTime) + earthRotation(time) + fixedViewRotation0;
+  const d = rotDelta();
+  return earthRotation(-geoStationaryTime) +
+    earthRotation(time) + fixedViewRotation0 + d;
 }
 
 function viewRotationEarth() {
-  return earthRotation(time);
+  const d = rotDelta();
+  return earthRotation(time) + d;
 }
 
 const skyRotationFactor = 0.7;
 function viewRotationSky() {
-  return -earthRotation(-geoStationaryTime)*skyRotationFactor;
+  const d = rotDelta();
+  return -earthRotation(-geoStationaryTime)*skyRotationFactor - d;
 }
 
 function viewRotationScene() {
@@ -255,7 +272,10 @@ function keydown(event) {
     if (view == FIXED_VIEW) {
       view = ROTATIONAL_VIEW;
       document.getElementById('frame').innerHTML = 'rotational'
-    } else {
+    } else if (view == ROTATIONAL_VIEW) {
+      view = DEBUG_VIEW;
+      document.getElementById('frame').innerHTML = 'debug'
+    } else if (view == DEBUG_VIEW) {
       view = FIXED_VIEW;
       document.getElementById('frame').innerHTML = 'fixed'
     }
@@ -595,7 +615,7 @@ function updateEarthGroup() {
     let materialOccluded = new THREE.MeshBasicMaterial({color: vcolor});
     occludeMaterial(materialOccluded);
     let sphere = new THREE.Mesh(geometry, material);
-    // const p = sim.pRotating(t);
+    // sim.step();
     const p = sim.p(t);
     sphere.translateOnAxis(p, 1);
     sphere.renderOrder = vecRenderOrder;
@@ -684,6 +704,7 @@ function render() {
   // console.log('c', viewRotationScene());
   earthGroup.rotation.y = viewRotationEarth();
   starGroup.rotation.y = viewRotationSky();
+  fixedPathGroup.rotation.y = rotDelta();
   scene.rotation.y = viewRotationScene();
 
   renderer.clear();

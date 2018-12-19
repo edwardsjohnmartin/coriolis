@@ -1,4 +1,7 @@
 var debug = {
+  set temp(v) {
+    document.getElementById('temp').innerHTML = v.toFixed(1);
+  },
   set theta_dot(v) {
     document.getElementById('theta_dot').innerHTML = (v*10000).toFixed(1);
   },

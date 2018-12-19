@@ -53,8 +53,8 @@ Coriolis.prototype.phi_dot = function() {
 
 Coriolis.prototype.step = function() {
   // Euler integration
-  this._theta += this.theta_dot;
-  this._phi += this.phi_dot;
+  this._theta += this.theta_dot()*100;
+  this._phi += this.phi_dot()*100;
 }
 
 //------------------------------------------------------------
@@ -114,6 +114,10 @@ Coriolis.prototype.p = function(t) {
   const lat = this.theta_(t);
   const lon = this.phi_rotating(t);
   return new Position(lat, lon);
+}
+
+Coriolis.prototype.new_p = function(t) {
+  return new Position(this._theta, this._phi);
 }
 
 //------------------------------------------------------------
