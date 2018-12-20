@@ -615,7 +615,10 @@ function updateEarthGroup() {
     let materialOccluded = new THREE.MeshBasicMaterial({color: vcolor});
     occludeMaterial(materialOccluded);
     let sphere = new THREE.Mesh(geometry, material);
-    // sim.step();
+    sim.step();
+    if (sim._theta != sim._theta) {
+      animation = false;
+    }
     const p = sim.p(t);
     sphere.translateOnAxis(p, 1);
     sphere.renderOrder = vecRenderOrder;

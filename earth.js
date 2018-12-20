@@ -8,7 +8,7 @@ const V = 2 * Math.PI * (R / T); // meters per second
 const T_ = 16*60*60;
 
 // Earth's angular velocity in rad/s
-const OMEGA = 0.0000727;
+const OMEGA = Math.PI / (12*60*60); // 0.0000727;
 
 // returns the number of radians the earth has rotated after
 // time seconds

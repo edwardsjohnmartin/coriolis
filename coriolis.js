@@ -29,9 +29,13 @@ var Coriolis = function(lon0) {
   this.theta0 = this.p0.lat;
   this.phi0 = this.p0.lon;
   this.vtheta0 = this.v0.north;
-  this.vphi0 = this.v0.east;
+  // this.vphi0 = this.v0.east;
+  this.vphi0 = this.v0.east - V;
   this.theta_dot0 = this.vtheta0 / R;
+  // this.phi_dot0 = this.vphi0 / (R * Math.cos(this.theta0));
   this.phi_dot0 = this.vphi0 / (R * Math.cos(this.theta0));
+  // console.log(this.phi_dot0);
+  // console.log(this.theta_dot0);
 
   this.L0 = (OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0));
   this.T0 = sq(OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0)) +
@@ -41,10 +45,35 @@ var Coriolis = function(lon0) {
 
   this._theta = 0;
   this._phi = radians(-75);
+  this._thetaMax = Math.acos(Math.sqrt(sq(this.L0)/this.T0));
+
+  this.theta_dot_negate = false;
+
+  console.log('V', V);
+  console.log('vtheta0', this.vtheta0);
+  console.log('theta_dot0', this.theta_dot0);
+  console.log('phi_dot0', this.phi_dot0);
+  console.log('theta0', this.theta0);
+  console.log('L0', this.L0);
+  console.log('T0', this.T0);
+  console.log('thetaMax', this._thetaMax, degrees(this._thetaMax));
 }
 
 Coriolis.prototype.theta_dot = function() {
-  return Math.sqrt(this.T0 - sq(this.L0)/Math.cos(this._theta));
+  // debug.temp = this.T0 - sq(this.L0)/Math.cos(this._theta);
+  // debug.temp = degrees(this._theta) + " " + Math.cos(this._theta);
+  // debug.temp = degrees(this._theta) + " " + this._theta;
+  // debug.temp = degrees(this._theta) + " " + degrees(this.theta0);
+  // debug.temp = this.L0/Math.cos(this._theta);
+  // debug.temp = this.L0;
+  if (this.T0 - sq(this.L0/Math.cos(this._theta)) < 0) {
+    throw("overshot the theta maximum: " + this._theta);
+  }
+  // T0 ends up smaller than the rest
+  if (this.theta_dot_negate) {
+    return -1 * Math.sqrt(this.T0 - sq(this.L0/Math.cos(this._theta)));
+  }
+  return Math.sqrt(this.T0 - sq(this.L0/Math.cos(this._theta)));
 }
 
 Coriolis.prototype.phi_dot = function() {
@@ -53,8 +82,17 @@ Coriolis.prototype.phi_dot = function() {
 
 Coriolis.prototype.step = function() {
   // Euler integration
-  this._theta += this.theta_dot()*100;
-  this._phi += this.phi_dot()*100;
+  const oldTheta = this._theta;
+  this._theta += this.theta_dot()*50;
+  debug.temp = degrees(this._theta) + " " + this._theta + ' ' + this._thetaMax;
+  if (Math.abs(this._theta) > Math.abs(this._thetaMax)) {
+    // console.log("Exceeded");
+    const d1 = this._theta - this._thetaMax;
+    this._theta = this._thetaMax - d1;
+    this.theta_dot_negate = !this.theta_dot_negate;
+    this._thetaMax *= -1;
+  }
+  this._phi += this.phi_dot()*50;
 }
 
 //------------------------------------------------------------
@@ -110,13 +148,13 @@ Coriolis.prototype.phi_rotating = function(t) {
 // p
 // Computes the time-dependent position of the puck.
 //------------------------------------------------------------
-Coriolis.prototype.p = function(t) {
+Coriolis.prototype.old_p = function(t) {
   const lat = this.theta_(t);
   const lon = this.phi_rotating(t);
   return new Position(lat, lon);
 }
 
-Coriolis.prototype.new_p = function(t) {
+Coriolis.prototype.p = function(t) {
   return new Position(this._theta, this._phi);
 }
 
