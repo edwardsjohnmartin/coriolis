@@ -84,11 +84,11 @@ Coriolis.prototype.step = function() {
   // Euler integration
   const oldTheta = this._theta;
   this._theta += this.theta_dot()*50;
-  debug.temp = degrees(this._theta) + " " + this._theta + ' ' + this._thetaMax;
   if (Math.abs(this._theta) > Math.abs(this._thetaMax)) {
-    // console.log("Exceeded");
-    const d1 = this._theta - this._thetaMax;
-    this._theta = this._thetaMax - d1;
+    // We're overshooting the max theta value. So take the amount we're
+    // overshooting by (d) and set the new theta value to be max-d.
+    const d = this._theta - this._thetaMax;
+    this._theta = this._thetaMax - d;
     this.theta_dot_negate = !this.theta_dot_negate;
     this._thetaMax *= -1;
   }
