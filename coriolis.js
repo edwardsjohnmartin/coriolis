@@ -60,20 +60,15 @@ var Coriolis = function(lon0) {
 }
 
 Coriolis.prototype.theta_dot = function() {
-  // debug.temp = this.T0 - sq(this.L0)/Math.cos(this._theta);
-  // debug.temp = degrees(this._theta) + " " + Math.cos(this._theta);
-  // debug.temp = degrees(this._theta) + " " + this._theta;
-  // debug.temp = degrees(this._theta) + " " + degrees(this.theta0);
-  // debug.temp = this.L0/Math.cos(this._theta);
-  // debug.temp = this.L0;
-  if (this.T0 - sq(this.L0/Math.cos(this._theta)) < 0) {
-    throw("overshot the theta maximum: " + this._theta);
+  const radicand = this.T0 - sq(this.L0/Math.cos(this._theta));
+  if (radicand < 0) {
+    // Negative radicand!
+    throw("Overshot the theta maximum: " + this._theta);
   }
-  // T0 ends up smaller than the rest
   if (this.theta_dot_negate) {
-    return -1 * Math.sqrt(this.T0 - sq(this.L0/Math.cos(this._theta)));
+    return -1 * Math.sqrt(radicand);
   }
-  return Math.sqrt(this.T0 - sq(this.L0/Math.cos(this._theta)));
+  return Math.sqrt(radicand);
 }
 
 Coriolis.prototype.phi_dot = function() {
@@ -164,8 +159,6 @@ Coriolis.prototype.p = function(t) {
 //------------------------------------------------------------
 Coriolis.prototype.vFixed = function(t) {
   let rad = this.v0.theta * Math.cos((t/T_)*2*Math.PI);
-  // return velFromRadians(rad, this.speedFixed).cartesian(this.p(t));
-  // return this.vNormalized(velFromRadians(rad, this.speedFixed).cartesian(this.p(t)));
   let v = velFromRadians(rad, this.speedFixed).cartesian(this.p(t));
   v = v.normalize();
   v = v.multiplyScalar(this.speedFactor*this.speedFixed);
