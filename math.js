@@ -16,7 +16,7 @@ var Position = function(lat, lon) {
 
 //------------------------------------------------------------
 // Velocities are always given in north/east vector components
-// (scalars) in the earth's coordinate system
+// (scalars) in the earth's coordinate system in meters/sec.
 //------------------------------------------------------------
 var Velocity = function(north, east) {
   this.north = north;

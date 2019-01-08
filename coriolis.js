@@ -15,7 +15,7 @@ var Coriolis = function(lon0) {
   // The initial position
   this.p0 = new Position(0, lon0);
   // The initial velocity
-  // this.v0 = new Velocity(V, Math.sqrt(5/4)*V, 0);
+  // meters per second in each dimension
   this.v0 = new Velocity(Math.sqrt(5/4)*V, V, 0);
   // Speed of the puck
   this.speedRotational = this.v0.north;
@@ -26,18 +26,22 @@ var Coriolis = function(lon0) {
   //--------------------
   // New stuff
   //--------------------
+  // radians
   this.theta0 = this.p0.lat;
+  // radians
   this.phi0 = this.p0.lon;
+  // meters/second
   this.vtheta0 = this.v0.north;
-  // this.vphi0 = this.v0.east;
+  // meters/second
   this.vphi0 = this.v0.east - V;
+  // seconds
   this.theta_dot0 = this.vtheta0 / R;
-  // this.phi_dot0 = this.vphi0 / (R * Math.cos(this.theta0));
+  // seconds
   this.phi_dot0 = this.vphi0 / (R * Math.cos(this.theta0));
-  // console.log(this.phi_dot0);
-  // console.log(this.theta_dot0);
 
+  // seconds
   this.L0 = (OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0));
+  // sec^2
   this.T0 = sq(OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0)) +
     sq(this.theta_dot0);
   this.T = sq(this.phi_dot0) * sq(Math.cos(this.theta0)) +
@@ -49,6 +53,8 @@ var Coriolis = function(lon0) {
 
   this.theta_dot_negate = false;
 
+  this.path = [];
+
   console.log('V', V);
   console.log('vtheta0', this.vtheta0);
   console.log('theta_dot0', this.theta_dot0);
@@ -59,7 +65,9 @@ var Coriolis = function(lon0) {
   console.log('thetaMax', this._thetaMax, degrees(this._thetaMax));
 }
 
+// Returns value in seconds
 Coriolis.prototype.theta_dot = function() {
+  // sec^2
   const radicand = this.T0 - sq(this.L0/Math.cos(this._theta));
   if (radicand < 0) {
     // Negative radicand!
@@ -75,10 +83,10 @@ Coriolis.prototype.phi_dot = function() {
   return this.L0 / sq(Math.cos(this._theta)) - OMEGA;
 }
 
-Coriolis.prototype.step = function() {
+Coriolis.prototype.step = function(timeInc) {
   // Euler integration
   const oldTheta = this._theta;
-  this._theta += this.theta_dot()*50;
+  this._theta += this.theta_dot()*timeInc;
   if (Math.abs(this._theta) > Math.abs(this._thetaMax)) {
     // We're overshooting the max theta value. So take the amount we're
     // overshooting by (d) and set the new theta value to be max-d.
@@ -87,7 +95,9 @@ Coriolis.prototype.step = function() {
     this.theta_dot_negate = !this.theta_dot_negate;
     this._thetaMax *= -1;
   }
-  this._phi += this.phi_dot()*50;
+  this._phi += this.phi_dot()*timeInc;
+
+  this.path.push(new Position(this._theta, this._phi));
 }
 
 //------------------------------------------------------------
@@ -195,14 +205,21 @@ const cPathInc = 10*60;
 Coriolis.prototype.pathRot = function(t0, t1) {
   if (t0 == t1) return [];
 
-  // const inc = (t1-t0)/divisions;
-  const inc = cPathInc;
+  // // const inc = (t1-t0)/divisions;
+  // const inc = cPathInc;
+  // let points = [];
+  // for (let t = t0; t < t1; t += inc) {
+  //   points.push(this.p(t));
+  // }
+  // // Catch the last point
+  // points.push(this.p(t1));
+
+  // return points;
+
   let points = [];
-  for (let t = t0; t < t1; t += inc) {
-    points.push(this.p(t));
-  }
-  // Catch the last point
-  points.push(this.p(t1));
+  this.path.forEach(p => {
+    points.push(p);
+  });
 
   return points;
 }

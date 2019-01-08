@@ -476,6 +476,7 @@ function updateBackgroundStars() {
 // getPuckPath
 //----------------------------------------
 function getPuckPath(points, color) {
+  // console.log('getPuckPath ', points);
   points.forEach((p, i, arr) => {
     arr[i] = p.cartesian;
   });
@@ -583,11 +584,20 @@ function prepArrowHelper(arrowHelper, renderOrder) {
 }
 
 function updateEarthGroup() {
+  if (!this.oldTime) {
+    this.oldTime = -1;
+  }
+
   let arrowsGroup = new THREE.Group();
   earthGroup.children = [];
   fixedPathGroup.children = [];
 
   const hours = time / (60*60);
+  let timeInc = 0;
+  if (this.oldTime >= 0) {
+    timeInc = time - this.oldTime;
+  }
+  this.oldTime = time;
   const t = time;
   // const phi = sim.phi(t);
   // const phi_ = sim.phi_(t);
@@ -615,7 +625,7 @@ function updateEarthGroup() {
     let materialOccluded = new THREE.MeshBasicMaterial({color: vcolor});
     occludeMaterial(materialOccluded);
     let sphere = new THREE.Mesh(geometry, material);
-    sim.step();
+    sim.step(timeInc);
     const p = sim.p(t);
     sphere.translateOnAxis(p, 1);
     sphere.renderOrder = vecRenderOrder;
@@ -671,6 +681,7 @@ function updateEarthGroup() {
     // if (view == ROTATIONAL_VIEW) {
     if (visiblePath == 0 || visiblePath == 1) {
       let path = getPuckPathRotating(t, rotatingPathColor);
+      // console.log(path);
       earthGroup.add(path);
     }
     if (visiblePath == 0 || visiblePath == 2) {
