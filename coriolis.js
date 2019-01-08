@@ -66,12 +66,12 @@ var Coriolis = function(lon0) {
 }
 
 // Returns value in seconds
-Coriolis.prototype.theta_dot = function() {
+Coriolis.prototype.theta_dot_impl = function(theta) {
   // sec^2
-  const radicand = this.T0 - sq(this.L0/Math.cos(this._theta));
+  const radicand = this.T0 - sq(this.L0/Math.cos(theta));
   if (radicand < 0) {
     // Negative radicand!
-    throw("Overshot the theta maximum: " + this._theta);
+    throw("Overshot the theta maximum: " + theta);
   }
   if (this.theta_dot_negate) {
     return -1 * Math.sqrt(radicand);
@@ -79,11 +79,31 @@ Coriolis.prototype.theta_dot = function() {
   return Math.sqrt(radicand);
 }
 
-Coriolis.prototype.phi_dot = function() {
-  return this.L0 / sq(Math.cos(this._theta)) - OMEGA;
+Coriolis.prototype.phi_dot_impl = function(theta) {
+  return this.L0 / sq(Math.cos(theta)) - OMEGA;
 }
 
-Coriolis.prototype.step = function(timeInc) {
+// Returns value in seconds
+Coriolis.prototype.theta_dot = function() {
+  return this.theta_dot_impl(this._theta);
+  // // sec^2
+  // const radicand = this.T0 - sq(this.L0/Math.cos(this._theta));
+  // if (radicand < 0) {
+  //   // Negative radicand!
+  //   throw("Overshot the theta maximum: " + this._theta);
+  // }
+  // if (this.theta_dot_negate) {
+  //   return -1 * Math.sqrt(radicand);
+  // }
+  // return Math.sqrt(radicand);
+}
+
+Coriolis.prototype.phi_dot = function() {
+  // return this.L0 / sq(Math.cos(this._theta)) - OMEGA;
+  return this.phi_dot_impl(this._theta);
+}
+
+Coriolis.prototype.stepEuler = function(timeInc) {
   // Euler integration
   const oldTheta = this._theta;
   this._theta += this.theta_dot()*timeInc;
@@ -96,6 +116,93 @@ Coriolis.prototype.step = function(timeInc) {
     this._thetaMax *= -1;
   }
   this._phi += this.phi_dot()*timeInc;
+
+  this.path.push(new Position(this._theta, this._phi));
+}
+
+// RK4
+Coriolis.prototype.stepRK4 = function(h) {
+  const k1 = [h * this.theta_dot_impl(this._theta),
+              h * this.phi_dot_impl(this._theta)];
+  const k2 = [h * this.theta_dot_impl(this._theta+k1[0]/2),
+              h * this.phi_dot_impl(this._theta+k1[1]/2)];
+  const k3 = [h * this.theta_dot_impl(this._theta+k2[0]/2),
+              h * this.phi_dot_impl(this._theta+k2[1]/2)];
+  const k4 = [h * this.theta_dot_impl(this._theta+k3[0]),
+              h * this.phi_dot_impl(this._theta+k3[1])];
+  
+  return [this._theta + (1/6)*(k1[0] + 2*k2[0] + 2*k3[0] + k4[0]),
+          this._phi + (1/6)*(k1[1] + 2*k2[1] + 2*k3[1] + k4[1])];
+
+  // const oldTheta = this._theta;
+  // this._theta += this.theta_dot()*h;
+  // if (Math.abs(this._theta) > Math.abs(this._thetaMax)) {
+  //   // We're overshooting the max theta value. So take the amount we're
+  //   // overshooting by (d) and set the new theta value to be max-d.
+  //   const d = this._theta - this._thetaMax;
+  //   this._theta = this._thetaMax - d;
+  //   this.theta_dot_negate = !this.theta_dot_negate;
+  //   this._thetaMax *= -1;
+  // }
+  // this._phi += this.phi_dot()*h;
+
+  // this.path.push(new Position(this._theta, this._phi));
+}
+
+// RK4
+Coriolis.prototype.step = function(h) {
+  let p = null;
+  try {
+    p = this.stepRK4(h);
+  } catch {
+    // We pushed past the theta max limit.
+  }
+  if (p == null || Math.abs(p[0]) > Math.abs(this._thetaMax)) {
+    // We're overshooting the max theta value. This is a hack. We fix
+    // theta to thetaMax and adjust phi as necessary.
+    p = [];
+    p[0] = this._thetaMax + (this.theta_dot_negate ? 0.00001 : -0.00001);
+    const h_ = (p[0]-this._theta+0.00002) / this.theta_dot();
+    p[1] = this._phi + this.phi_dot_impl(this._theta)*h_;
+
+    this.theta_dot_negate = !this.theta_dot_negate;
+    this._thetaMax *= -1;
+  }
+
+
+
+  // const k1 = [h * this.theta_dot_impl(this._theta),
+  //             h * this.phi_dot_impl(this._theta)];
+  // const k2 = [h * this.theta_dot_impl(this._theta+k1[0]/2),
+  //             h * this.phi_dot_impl(this._theta+k1[1]/2)];
+  // const k3 = [h * this.theta_dot_impl(this._theta+k2[0]/2),
+  //             h * this.phi_dot_impl(this._theta+k2[1]/2)];
+  // const k4 = [h * this.theta_dot_impl(this._theta+k3[0]),
+  //             h * this.phi_dot_impl(this._theta+k3[1])];
+  
+
+  // // const oldTheta = this._theta;
+  // // this._theta += this.theta_dot()*h;
+  // if (Math.abs(p[0]) > Math.abs(this._thetaMax)) {
+  //   // FIXME Super bad implementation
+  //   // We're overshooting the max theta value. So take the amount we're
+  //   // overshooting by (d) and set the new theta value to be max-d.
+  //   const d = p[0] - this._thetaMax;
+  //   console.log('changing p[0]', p[0], this._thetaMax - d);
+  //   p[0] = this._thetaMax - d;
+  //   this.theta_dot_negate = !this.theta_dot_negate;
+  //   this._thetaMax *= -1;
+  //   // // We're overshooting the max theta value. So take the amount we're
+  //   // // overshooting by (d) and set the new theta value to be max-d.
+  //   // const d = this._theta - this._thetaMax;
+  //   // this._theta = this._thetaMax - d;
+  //   // this.theta_dot_negate = !this.theta_dot_negate;
+  //   // this._thetaMax *= -1;
+  // }
+  // // this._phi += this.phi_dot()*h;
+
+  this._theta = p[0];//this._theta + (1/6)*(k1[0] + 2*k2[0] + 2*k3[0] + k4[0]);
+  this._phi = p[1];//this._phi + (1/6)*(k1[1] + 2*k2[1] + 2*k3[1] + k4[1]);
 
   this.path.push(new Position(this._theta, this._phi));
 }
