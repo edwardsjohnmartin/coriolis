@@ -10,6 +10,9 @@ const T_ = 16*60*60;
 // Earth's angular velocity in rad/s
 const OMEGA = Math.PI / (12*60*60); // 0.0000727;
 
+const EARTH_SPHERE = 0;
+const EARTH_ELLIPSOID = 1;
+
 // returns the number of radians the earth has rotated after
 // time seconds
 function earthRotation(t) {

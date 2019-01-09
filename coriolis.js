@@ -5,13 +5,12 @@
 //------------------------------------------------------------
 //------------------------------------------------------------
 
-
 //------------------------------------------------------------
 // Constructor
 // lon0 is the longitude in radians at which the puck was
-// struck.
+// struck. earthType is EARTH_SPHERE or EARTH_ELLIPSOID.
 //------------------------------------------------------------
-var Coriolis = function(lon0) {
+var Coriolis = function(lon0, earthType) {
   // The initial position
   this.p0 = new Position(0, lon0);
   // The initial velocity
@@ -39,17 +38,31 @@ var Coriolis = function(lon0) {
   // seconds
   this.phi_dot0 = this.vphi0 / (R * Math.cos(this.theta0));
 
+  this.earthType = earthType;
+
   // seconds
   this.L0 = (OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0));
-  // sec^2
-  this.T0 = sq(OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0)) +
-    sq(this.theta_dot0);
-  this.T = sq(this.phi_dot0) * sq(Math.cos(this.theta0)) +
-    sq(this.theta_dot0);
+  if (this.earthType == EARTH_SPHERE) {
+    // sec^2
+    this.T0 = sq(OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0)) +
+      sq(this.theta_dot0);
+    this._thetaMax = Math.acos(Math.sqrt(sq(this.L0)/this.T0));
+  } else if (earthType == EARTH_ELLIPSOID) {
+    // sec^2
+    this.T = sq(this.phi_dot0) * sq(Math.cos(this.theta0)) +
+      sq(this.theta_dot0);
+
+    const num1 = -Math.sqrt(this.T) + Math.sqrt(this.T+4*OMEGA*this.L0);
+    // num2 can give a negative number which makes acos undefined.
+    // const num2 = -Math.sqrt(this.T) - Math.sqrt(this.T+4*OMEGA*this.L0);
+    const den = 2 * OMEGA;
+    this._thetaMax = Math.acos(num1/den);
+  } else {
+    throw "Illegal earth type";
+  }
 
   this._theta = 0;
   this._phi = radians(-75);
-  this._thetaMax = Math.acos(Math.sqrt(sq(this.L0)/this.T0));
 
   this.theta_dot_negate = false;
 
@@ -68,7 +81,15 @@ var Coriolis = function(lon0) {
 // Returns value in seconds
 Coriolis.prototype.theta_dot_impl = function(theta) {
   // sec^2
-  const radicand = this.T0 - sq(this.L0/Math.cos(theta));
+  let radicand = null;
+  if (this.earthType == EARTH_SPHERE) {
+    // spherical
+    radicand = this.T0 - sq(this.L0/Math.cos(theta));
+  } else {
+    // ellipsoidal
+    const num = this.L0-OMEGA*sq(Math.cos(theta));
+    radicand = this.T - sq(num/Math.cos(theta));
+  }
   if (radicand < 0) {
     // Negative radicand!
     throw("Overshot the theta maximum: " + theta);
@@ -86,20 +107,10 @@ Coriolis.prototype.phi_dot_impl = function(theta) {
 // Returns value in seconds
 Coriolis.prototype.theta_dot = function() {
   return this.theta_dot_impl(this._theta);
-  // // sec^2
-  // const radicand = this.T0 - sq(this.L0/Math.cos(this._theta));
-  // if (radicand < 0) {
-  //   // Negative radicand!
-  //   throw("Overshot the theta maximum: " + this._theta);
-  // }
-  // if (this.theta_dot_negate) {
-  //   return -1 * Math.sqrt(radicand);
-  // }
-  // return Math.sqrt(radicand);
 }
 
+// Returns value in seconds
 Coriolis.prototype.phi_dot = function() {
-  // return this.L0 / sq(Math.cos(this._theta)) - OMEGA;
   return this.phi_dot_impl(this._theta);
 }
 
@@ -133,23 +144,8 @@ Coriolis.prototype.stepRK4 = function(h) {
   
   return [this._theta + (1/6)*(k1[0] + 2*k2[0] + 2*k3[0] + k4[0]),
           this._phi + (1/6)*(k1[1] + 2*k2[1] + 2*k3[1] + k4[1])];
-
-  // const oldTheta = this._theta;
-  // this._theta += this.theta_dot()*h;
-  // if (Math.abs(this._theta) > Math.abs(this._thetaMax)) {
-  //   // We're overshooting the max theta value. So take the amount we're
-  //   // overshooting by (d) and set the new theta value to be max-d.
-  //   const d = this._theta - this._thetaMax;
-  //   this._theta = this._thetaMax - d;
-  //   this.theta_dot_negate = !this.theta_dot_negate;
-  //   this._thetaMax *= -1;
-  // }
-  // this._phi += this.phi_dot()*h;
-
-  // this.path.push(new Position(this._theta, this._phi));
 }
 
-// RK4
 Coriolis.prototype.step = function(h) {
   let p = null;
   try {
@@ -161,48 +157,18 @@ Coriolis.prototype.step = function(h) {
     // We're overshooting the max theta value. This is a hack. We fix
     // theta to thetaMax and adjust phi as necessary.
     p = [];
-    p[0] = this._thetaMax + (this.theta_dot_negate ? 0.00001 : -0.00001);
-    const h_ = (p[0]-this._theta+0.00002) / this.theta_dot();
+    const EPSILON = 0.0000001;
+    p[0] = this._thetaMax + (this.theta_dot_negate ? EPSILON : -EPSILON);
+    const h_ = (Math.abs(p[0]-this._theta)+2*EPSILON) /
+      Math.abs(this.theta_dot());
     p[1] = this._phi + this.phi_dot_impl(this._theta)*h_;
 
     this.theta_dot_negate = !this.theta_dot_negate;
     this._thetaMax *= -1;
   }
 
-
-
-  // const k1 = [h * this.theta_dot_impl(this._theta),
-  //             h * this.phi_dot_impl(this._theta)];
-  // const k2 = [h * this.theta_dot_impl(this._theta+k1[0]/2),
-  //             h * this.phi_dot_impl(this._theta+k1[1]/2)];
-  // const k3 = [h * this.theta_dot_impl(this._theta+k2[0]/2),
-  //             h * this.phi_dot_impl(this._theta+k2[1]/2)];
-  // const k4 = [h * this.theta_dot_impl(this._theta+k3[0]),
-  //             h * this.phi_dot_impl(this._theta+k3[1])];
-  
-
-  // // const oldTheta = this._theta;
-  // // this._theta += this.theta_dot()*h;
-  // if (Math.abs(p[0]) > Math.abs(this._thetaMax)) {
-  //   // FIXME Super bad implementation
-  //   // We're overshooting the max theta value. So take the amount we're
-  //   // overshooting by (d) and set the new theta value to be max-d.
-  //   const d = p[0] - this._thetaMax;
-  //   console.log('changing p[0]', p[0], this._thetaMax - d);
-  //   p[0] = this._thetaMax - d;
-  //   this.theta_dot_negate = !this.theta_dot_negate;
-  //   this._thetaMax *= -1;
-  //   // // We're overshooting the max theta value. So take the amount we're
-  //   // // overshooting by (d) and set the new theta value to be max-d.
-  //   // const d = this._theta - this._thetaMax;
-  //   // this._theta = this._thetaMax - d;
-  //   // this.theta_dot_negate = !this.theta_dot_negate;
-  //   // this._thetaMax *= -1;
-  // }
-  // // this._phi += this.phi_dot()*h;
-
-  this._theta = p[0];//this._theta + (1/6)*(k1[0] + 2*k2[0] + 2*k3[0] + k4[0]);
-  this._phi = p[1];//this._phi + (1/6)*(k1[1] + 2*k2[1] + 2*k3[1] + k4[1]);
+  this._theta = p[0];
+  this._phi = p[1];
 
   this.path.push(new Position(this._theta, this._phi));
 }

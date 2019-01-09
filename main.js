@@ -54,7 +54,8 @@ let geoStationaryTime = 0;
 
 const launchLongitude = -75;
 // let sim = new CoriolisSim(radians(launchLongitude));
-let sim = new Coriolis(radians(launchLongitude));
+// let sim = new Coriolis(radians(launchLongitude), EARTH_SPHERE);
+let sim = new Coriolis(radians(launchLongitude), EARTH_ELLIPSOID);
 
 const ROTATIONAL_VIEW = 0;
 const FIXED_VIEW = 1;
