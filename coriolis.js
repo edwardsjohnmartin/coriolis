@@ -67,6 +67,7 @@ var Coriolis = function(lat0, lon0, v0, earthType) {
     const num2 = -Math.sqrt(this.T) - Math.sqrt(this.T+4*OMEGA*this.L0);
     const den = 2 * OMEGA;
     this._thetaMax = Math.acos(num1/den);
+    console.log('num2', num2);
     if (num2 < 0) {
       this._thetaMin = -this._thetaMax;
     } else {
@@ -76,8 +77,8 @@ var Coriolis = function(lat0, lon0, v0, earthType) {
     throw "Illegal earth type: " + earthType;
   }
 
-  this.theta0 = Math.min(this.theta0, this._thetaMax);
-  this.theta0 = Math.max(this.theta0, this._thetaMin);
+  this.theta0 = Math.min(this.theta0, this._thetaMax-EPSILON);
+  this.theta0 = Math.max(this.theta0, this._thetaMin+EPSILON);
 
   this._theta = this.theta0;
   // this._phi = radians(-75);
@@ -162,8 +163,8 @@ Coriolis.prototype.step = function(h) {
   if (p == null || p[0] > this._thetaMax || p[0] < this._thetaMin) {
     // We're overshooting the max theta value. This is a hack. We fix
     // theta to thetaMax and adjust phi as necessary.
+    // console.log("overshot");
     p = [];
-    const EPSILON = 0.0000001;
     const theta_dot = this.theta_dot();
     if (theta_dot > 0) {
       p[0] = this._thetaMax - EPSILON;

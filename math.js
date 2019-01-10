@@ -1,3 +1,5 @@
+const EPSILON = 0.0000001;
+
 //------------------------------------------------------------
 // Positions are always given in lat/lon in the earth's
 // coordinate system

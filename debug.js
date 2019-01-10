@@ -3,10 +3,10 @@ var debug = {
     document.getElementById('temp').innerHTML = v;
   },
   set theta_dot(v) {
-    document.getElementById('theta_dot').innerHTML = (v*10000).toFixed(1);
+    document.getElementById('theta_dot').innerHTML = (v*10000).toFixed(3);
   },
   set phi_dot(v) {
-    document.getElementById('phi_dot').innerHTML = (v*10000).toFixed(1);
+    document.getElementById('phi_dot').innerHTML = (v*10000).toFixed(3);
   },
   set L0(v) {
     document.getElementById('L0').innerHTML = (v*10000).toFixed(1);
