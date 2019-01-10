@@ -55,12 +55,21 @@ let geoStationaryTime = 0;
 const ROTATIONAL_VIEW = 0;
 const FIXED_VIEW = 1;
 const DEBUG_VIEW = 2;
-// const view0 = ROTATIONAL_VIEW;
+const view0 = ROTATIONAL_VIEW;
 // const view0 = FIXED_VIEW;
-const view0 = DEBUG_VIEW;
+// const view0 = DEBUG_VIEW;
 let view = view0;
 let earthType = EARTH_SPHERE;
 // let earthType = EARTH_ELLISPOID;
+
+if (localStorage.earthType) {
+  earthType = +localStorage.earthType;
+  document.getElementById('earthType').value = Number(localStorage.earthType);
+}
+if (localStorage.view) {
+  view = +localStorage.view;
+  document.getElementById('frame').value = Number(localStorage.view);
+}
 
 if (view == FIXED_VIEW) {
   document.getElementById('frame').innerHTML = 'fixed'
@@ -82,18 +91,20 @@ document.getElementById('time').value = (time/(60*60)).toFixed(2);
 document.getElementById('rotation').innerHTML =
   degrees(earthRotation(time)).toFixed(2);
 
-const launchLatitude = 0;
-const launchLongitude = -75;
-// launch velocity in the rotational frame
-const launchV = new Velocity(Math.sqrt(5/4)*V, 0, 0);
+if (localStorage.lat0) {
+  document.getElementById('lat0').value = Number(localStorage.lat0);
+}
+if (localStorage.lon0) {
+  document.getElementById('lon0').value = Number(localStorage.lon0);
+}
+if (localStorage.north0) {
+  document.getElementById('north0').value = Number(localStorage.north0);
+}
+if (localStorage.east0) {
+  document.getElementById('east0').value = Number(localStorage.east0);
+}
 
-// const launchLatitude = 15;
-// const launchLongitude = -75;
-// const launchV = new Velocity(0, 0, 0);
-
-// let sim = new CoriolisSim(radians(launchLongitude));
-let sim = new Coriolis(
-  radians(launchLatitude), radians(launchLongitude), launchV, earthType);
+resetSim(false);
 
 const zPosition = 10;
 const zZero = -1.1;
@@ -164,6 +175,23 @@ function timeChanged() {
     degrees(earthRotation(time)).toFixed(2);
   updateBackgroundStars();
   updateAndRender();
+}
+
+function lat0Changed() {
+  localStorage.lat0 = +document.getElementById('lat0').value;
+  resetSim();
+}
+function lon0Changed() {
+  localStorage.lon0 = +document.getElementById('lon0').value;
+  resetSim();
+}
+function north0Changed() {
+  localStorage.north0 = +document.getElementById('north0').value;
+  resetSim();
+}
+function east0Changed() {
+  localStorage.east0 = +document.getElementById('east0').value;
+  resetSim();
 }
 
 function rotationChanged() {
@@ -249,12 +277,42 @@ function init() {
   controls.addEventListener('change', render);
 }
 
-function resetSim() {
+function resetSim(dorender=true) {
+  // const launchLatitude = 0;
+  // const launchLongitude = -75;
+  // // launch velocity in the rotational frame
+  // const launchV = new Velocity(Math.sqrt(5/4)*V, 0, 0);
+
+  // const launchLatitude = 15;
+  // const launchLongitude = -75;
+  // const launchV = new Velocity(0, 0, 0);
+
+  // const launchLatitude = 15;
+  // const launchLongitude = -75;
+  // const launchV = new Velocity(0.1*V, 0, 0);
+
+  const launchLatitude = +document.getElementById('lat0').value;
+  const launchLongitude = +document.getElementById('lon0').value;
+  const launchNorth = +document.getElementById('north0').value;
+  const launchEast = +document.getElementById('east0').value;
+  const launchV = new Velocity(launchNorth*V, launchEast*V, 0);
+
+  // let sim = new CoriolisSim(radians(launchLongitude));
+  // let sim = new Coriolis(
+  //   radians(launchLatitude), radians(launchLongitude), launchV, earthType);
+
   time = time0;
   geoStationaryTime = 0;
   view = view0;
+  if (localStorage.view) {
+    view = +localStorage.view;
+    document.getElementById('frame').value = Number(localStorage.view);
+  }
+
   sim = new Coriolis(
     radians(launchLatitude), radians(launchLongitude), launchV, earthType);
+
+  if (dorender) render();
 }
 
 function keydown(event) {
@@ -294,6 +352,7 @@ function keydown(event) {
     incTime(-2*animInc);
     changed = true;
   } else if (key == 'f') {
+    console.log('view', view);
     if (view == FIXED_VIEW) {
       view = ROTATIONAL_VIEW;
       document.getElementById('frame').innerHTML = 'rotational'
@@ -304,6 +363,7 @@ function keydown(event) {
       view = FIXED_VIEW;
       document.getElementById('frame').innerHTML = 'fixed'
     }
+    localStorage.view = view;
     changed = true;
   } else if (key == 'e') {
     if (earthType == EARTH_SPHERE) {
@@ -313,6 +373,7 @@ function keydown(event) {
       earthType = EARTH_SPHERE;
       document.getElementById('earthType').innerHTML = 'sphere';
     }
+    localStorage.earthType = earthType;
     resetSim();
     changed = true;
   } else if (key == 'p') {

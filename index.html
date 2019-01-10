@@ -12,6 +12,10 @@
       <tr>
         <td class="info">
           <div class="instructions">
+            p0:&nbsp;<input type="text" id="lat0" size=5 onchange="lat0Changed()" value="0"></input>,<input type="text" id="lon0" size=5 onchange="lon0Changed()" value="-75"></input>&nbsp;(lat,lon)
+            <br>
+            v0:&nbsp;<input type="text" id="north0" size=5 onchange="north0Changed()" value="1.12"></input><code>*V</code>,&nbsp;<input type="text" id="east0" size=5 onchange="east0Changed()" value="0"></input><code>*V</code>&nbsp;(north,east)
+            <br>
             Time:&nbsp;<input type="text" id="time" size=5 onchange="timeChanged()" value="0"></input>&nbsp;hours
             <br>
             Earth's rotation:&nbsp;<b id="rotation"></b>&nbsp;degrees

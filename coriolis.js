@@ -76,6 +76,9 @@ var Coriolis = function(lat0, lon0, v0, earthType) {
     throw "Illegal earth type: " + earthType;
   }
 
+  this.theta0 = Math.min(this.theta0, this._thetaMax);
+  this.theta0 = Math.max(this.theta0, this._thetaMin);
+
   this._theta = this.theta0;
   // this._phi = radians(-75);
   this._phi = this.phi0;
@@ -83,6 +86,7 @@ var Coriolis = function(lat0, lon0, v0, earthType) {
   // this.theta_dot_negate = false;
 
   this.path = [];
+  this.lastPoint = null;
 
   console.log('V', V);
   console.log('vtheta0', this.vtheta0);
@@ -131,23 +135,6 @@ Coriolis.prototype.phi_dot = function() {
   return this.phi_dot_impl(this._theta);
 }
 
-// Coriolis.prototype.stepEuler = function(timeInc) {
-//   // Euler integration
-//   const oldTheta = this._theta;
-//   this._theta += this.theta_dot()*timeInc;
-//   if (Math.abs(this._theta) > Math.abs(this._thetaMax)) {
-//     // We're overshooting the max theta value. So take the amount we're
-//     // overshooting by (d) and set the new theta value to be max-d.
-//     const d = this._theta - this._thetaMax;
-//     this._theta = this._thetaMax - d;
-//     this.theta_dot_negate = !this.theta_dot_negate;
-//     this._thetaMax *= -1;
-//   }
-//   this._phi += this.phi_dot()*timeInc;
-
-//   this.path.push(new Position(this._theta, this._phi));
-// }
-
 // RK4
 Coriolis.prototype.stepRK4 = function(h) {
   const k1 = [h * this.theta_dot_impl(this._theta),
@@ -182,27 +169,20 @@ Coriolis.prototype.step = function(h) {
     } else {
       p[0] = this._thetaMin + EPSILON;
     }
-    // p[0] = this._thetaMax + (this.theta_dot_negate ? EPSILON : -EPSILON);
     const h_ = (Math.abs(p[0]-this._theta)+2*EPSILON) /
       Math.abs(this.theta_dot());
     p[1] = this._phi + this.phi_dot_impl(this._theta)*h_;
 
     this.theta_dot_negate = !this.theta_dot_negate;
-    // this._thetaMax *= -1;
   }
   this._theta = p[0];
   this._phi = p[1];
 
-
-  // if (this.path.length > 100) {
-  //   console.log('updating');
-  //   let newpath = [];
-  //   for (let i = 0; i < this.path.length; i += 2) {
-  //     newpath.push(this.path[i]);
-  //   }
-  //   this.path = newpath;
-  // }
-  this.path.push(new Position(this._theta, this._phi));
+  const newPoint = new Position(this._theta, this._phi);
+  if (this.lastPoint == null || this.lastPoint.dist(newPoint) > radians(1)) {
+    this.lastPoint = newPoint;
+    this.path.push(newPoint);
+  }
 }
 
 //------------------------------------------------------------

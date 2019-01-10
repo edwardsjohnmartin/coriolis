@@ -14,6 +14,10 @@ var Position = function(lat, lon) {
   this.east = vnorth_.clone().cross(this.cartesian);
 }
 
+Position.prototype.dist = function(p) {
+  return Math.sqrt(sq(this.lat-p.lat) + sq(this.lon-p.lon));
+}
+
 //------------------------------------------------------------
 // Velocities are always given in north/east vector components
 // (scalars) in the earth's coordinate system in meters/sec.
