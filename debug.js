@@ -2,6 +2,12 @@ var debug = {
   set temp(v) {
     document.getElementById('temp').innerHTML = v;
   },
+  set theta(v) {
+    document.getElementById('theta').innerHTML = degrees(v).toFixed(3);
+  },
+  set phi(v) {
+    document.getElementById('phi').innerHTML = degrees(v).toFixed(3);
+  },
   set theta_dot(v) {
     document.getElementById('theta_dot').innerHTML = (v*10000).toFixed(3);
   },

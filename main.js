@@ -698,6 +698,8 @@ function updateEarthGroup() {
   // debug.phi = phi;
   // debug.phi_ = phi_;
 
+  debug.theta = sim._theta;
+  debug.phi = sim._phi;
   debug.theta_dot = sim.theta_dot(t);
   debug.phi_dot = sim.phi_dot(t);
   debug.L0 = sim.L0;

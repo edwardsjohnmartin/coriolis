@@ -67,11 +67,15 @@ var Coriolis = function(lat0, lon0, v0, earthType) {
     const num2 = -Math.sqrt(this.T) - Math.sqrt(this.T+4*OMEGA*this.L0);
     const den = 2 * OMEGA;
     this._thetaMax = Math.acos(num1/den);
-    console.log('num2', num2);
-    if (num2 < 0) {
-      this._thetaMin = -this._thetaMax;
-    } else {
+    // console.log('num2', num2, num2/den);
+    const y = num2/den;
+    if (y >= -1 && y <= 1) {
       this._thetaMin = Math.acos(num2/den);
+      if (this._thetaMin > Math.PI/2) {
+        this._thetaMin = Math.PI - this._thetaMin;
+      }
+    } else {
+      this._thetaMin = -this._thetaMax;
     }
   } else {
     throw "Illegal earth type: " + earthType;
