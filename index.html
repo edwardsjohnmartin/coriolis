@@ -12,36 +12,40 @@
       <tr>
         <td class="info">
           <div class="instructions">
-            p0:&nbsp;<input type="text" id="lat0" size=5 onchange="lat0Changed()" value="0"></input>,<input type="text" id="lon0" size=5 onchange="lon0Changed()" value="-75"></input>&nbsp;(lat,lon)
-            <br>
-            v0:&nbsp;<input type="text" id="north0" size=5 onchange="north0Changed()" value="1.12"></input><code>*V</code>,&nbsp;<input type="text" id="east0" size=5 onchange="east0Changed()" value="0"></input><code>*V</code>&nbsp;(north,east)
-            <br>
-            Earth type (e):&nbsp;<b id="earthType">spherical</b>
-            <br>
-            Frame (f):&nbsp;<b id="frame">fixed</b>
-            <br>
-            Simulation speed (&uarr;&darr;):&nbsp;<b id="speed"></b>
-            <br>
-            Time  (&larr;&rarr;):&nbsp;<input type="text" id="time" size=5 onchange="timeChanged()" value="0"></input>&nbsp;hours
-            <br>
-            Earth's rotation:&nbsp;<b id="rotation"></b>&nbsp;degrees
+            <table>
+              <tr>
+                <td class="right">p0:</td><td>&nbsp;<input type="text" id="lat0" size=5 onchange="lat0Changed()" value="0"></input>,<input type="text" id="lon0" size=5 onchange="lon0Changed()" value="-75"></input>&nbsp;(lat,lon)</td>
+              <tr>
+                <td class="right">v0:</td><td>&nbsp;<input type="text" id="north0" size=5 onchange="north0Changed()" value="1.12"></input><code>*V</code>,&nbsp;<input type="text" id="east0" size=5 onchange="east0Changed()" value="0"></input><code>*V</code>&nbsp;(north,east)</td>
+              <tr>
+                <td class="right">Earth type (e):</td><td>&nbsp;<b id="earthType">spherical</b></td>
+              <tr>
+                <td class="right">Frame (f):</td><td>&nbsp;<b id="frame">fixed</b></td>
+              <tr>
+                <td class="right">Simulation speed (&uarr;&darr;):</td>
+                <td>&nbsp;<b id="speed"></b></td>
+              <tr>
+                <td class="right">Time  (&larr;&rarr;):</td>
+                <td><input type="text" id="time" size=5 onchange="timeChanged()" value="0"></input>&nbsp;hours</td>
+                <tr>
+                  <td class="right">Earth's rotation:</td>
+                  <td><b id="rotation"></b>&nbsp;degrees</td>
             <!-- debug -->
-            <br>
-            theta_dot: <b id="theta_dot"></b>
-            <br>
-            phi_dot: <b id="phi_dot"></b>
-            <br>
-            L0: <b id="L0"></b>
-            <br>
-            T0: <b id="T0"></b>
-            <br>
-            <b id="temp"></b>
-            <!--br>
-            phi: <b id="phi"></b>
-            <br>
-            phi': <b id="phi_"></b>
-            <br>
-            phi'-phi: <b id="phi2"></b-->
+                <tr>
+                  <td class="right">theta_dot:</td>
+                  <td><b id="theta_dot"></b></td>
+                <tr>
+                  <td class="right">phi_dot:</td>
+                  <td><b id="phi_dot"></b></td>
+                <tr>
+                  <td class="right">L0:</td>
+                  <td><b id="L0"></b></td>
+                <tr>
+                  <td class="right">T0:</td>
+                  <td><b id="T0"></b></td>
+                <tr>
+                  <td class="right"></td><td><b id="temp"></b></td>
+            </table>
           </div>
         </td>
 

@@ -47,3 +47,6 @@ td.vis {
     font-weight: bold;
 }
 
+td.right {
+  text-align: right;
+}
