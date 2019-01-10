@@ -52,11 +52,6 @@ let time = time0;
 // Number of seconds we've spent in geostationary orbit
 let geoStationaryTime = 0;
 
-const launchLongitude = -75;
-// let sim = new CoriolisSim(radians(launchLongitude));
-// let sim = new Coriolis(radians(launchLongitude), EARTH_SPHERE);
-let sim = new Coriolis(radians(launchLongitude), EARTH_ELLIPSOID);
-
 const ROTATIONAL_VIEW = 0;
 const FIXED_VIEW = 1;
 const DEBUG_VIEW = 2;
@@ -64,6 +59,8 @@ const DEBUG_VIEW = 2;
 // const view0 = FIXED_VIEW;
 const view0 = DEBUG_VIEW;
 let view = view0;
+let earthType = EARTH_SPHERE;
+// let earthType = EARTH_ELLISPOID;
 
 if (view == FIXED_VIEW) {
   document.getElementById('frame').innerHTML = 'fixed'
@@ -73,11 +70,30 @@ if (view == FIXED_VIEW) {
   document.getElementById('frame').innerHTML = 'debug'
 }
 
+if (earthType == EARTH_SPHERE) {
+  document.getElementById('earthType').innerHTML = 'sphere';
+} else if (earthType == EARTH_ELLIPSOID) {
+  document.getElementById('earthType').innerHTML = 'ellipsoid';
+}
+
 document.getElementById('time').value = (time/(60*60)).toFixed(2);
 // document.getElementById('rotation').value =
 //   degrees(earthRotation(time)).toFixed(2);
 document.getElementById('rotation').innerHTML =
   degrees(earthRotation(time)).toFixed(2);
+
+const launchLatitude = 0;
+const launchLongitude = -75;
+// launch velocity in the rotational frame
+const launchV = new Velocity(Math.sqrt(5/4)*V, 0, 0);
+
+// const launchLatitude = 15;
+// const launchLongitude = -75;
+// const launchV = new Velocity(0, 0, 0);
+
+// let sim = new CoriolisSim(radians(launchLongitude));
+let sim = new Coriolis(
+  radians(launchLatitude), radians(launchLongitude), launchV, earthType);
 
 const zPosition = 10;
 const zZero = -1.1;
@@ -233,6 +249,14 @@ function init() {
   controls.addEventListener('change', render);
 }
 
+function resetSim() {
+  time = time0;
+  geoStationaryTime = 0;
+  view = view0;
+  sim = new Coriolis(
+    radians(launchLatitude), radians(launchLongitude), launchV, earthType);
+}
+
 function keydown(event) {
   event.stopPropagation();
   var x = event.keyCode;
@@ -281,6 +305,16 @@ function keydown(event) {
       document.getElementById('frame').innerHTML = 'fixed'
     }
     changed = true;
+  } else if (key == 'e') {
+    if (earthType == EARTH_SPHERE) {
+      earthType = EARTH_ELLIPSOID;
+      document.getElementById('earthType').innerHTML = 'ellipsoid';
+    } else if (earthType == EARTH_ELLIPSOID) {
+      earthType = EARTH_SPHERE;
+      document.getElementById('earthType').innerHTML = 'sphere';
+    }
+    resetSim();
+    changed = true;
   } else if (key == 'p') {
     visiblePath = (visiblePath+1)%3;
     changed = true;
@@ -304,9 +338,7 @@ function keydown(event) {
     changed = true;
   } else if (key == 'r') {
     // reset
-    time = time0;
-    geoStationaryTime = 0;
-    view = view0;
+    resetSim();
     changed = true;
   } else if (key == ' ') {
     animation = !animation;

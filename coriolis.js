@@ -10,16 +10,25 @@
 // lon0 is the longitude in radians at which the puck was
 // struck. earthType is EARTH_SPHERE or EARTH_ELLIPSOID.
 //------------------------------------------------------------
-var Coriolis = function(lon0, earthType) {
+// start a 1/4 Omega * R
+// start at 40 degrees
+// should make little circles around that latitude and drift westward
+// there will be a theta min and theta max
+// try initial velocity of zero - will stay there in ellipsoidal and
+// move in spherical if released away from equator
+var Coriolis = function(lat0, lon0, v0, earthType) {
   // The initial position
-  this.p0 = new Position(0, lon0);
+  this.p0 = new Position(lat0, lon0);
   // The initial velocity
   // meters per second in each dimension
-  this.v0 = new Velocity(Math.sqrt(5/4)*V, V, 0);
+  // v0 is in the fixed frame
+  // this.v0 = new Velocity(Math.sqrt(5/4)*V, V, 0);
+  this.v0 = new Velocity(v0.north, v0.east+V, 0);
   // Speed of the puck
   this.speedRotational = this.v0.north;
   this.speedFixed = Math.sqrt(sq(this.v0.east)+sq(this.v0.north));
-  this.alpha = Math.atan2(Math.sqrt(5/4), 1);
+  // this.alpha = Math.atan2(Math.sqrt(5/4), 1);
+  this.alpha = Math.atan2(this.v0.north/V, this.v0.east/V);
   this.speedFactor = 0.0005;
 
   //--------------------
@@ -47,6 +56,7 @@ var Coriolis = function(lon0, earthType) {
     this.T0 = sq(OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0)) +
       sq(this.theta_dot0);
     this._thetaMax = Math.acos(Math.sqrt(sq(this.L0)/this.T0));
+    this._thetaMin = Math.acos(Math.sqrt(sq(this.L0)/this.T0));
   } else if (earthType == EARTH_ELLIPSOID) {
     // sec^2
     this.T = sq(this.phi_dot0) * sq(Math.cos(this.theta0)) +
@@ -54,15 +64,21 @@ var Coriolis = function(lon0, earthType) {
 
     const num1 = -Math.sqrt(this.T) + Math.sqrt(this.T+4*OMEGA*this.L0);
     // num2 can give a negative number which makes acos undefined.
-    // const num2 = -Math.sqrt(this.T) - Math.sqrt(this.T+4*OMEGA*this.L0);
+    const num2 = -Math.sqrt(this.T) - Math.sqrt(this.T+4*OMEGA*this.L0);
     const den = 2 * OMEGA;
     this._thetaMax = Math.acos(num1/den);
+    if (num2 < 0) {
+      this._thetaMin = -this._thetaMax;
+    } else {
+      this._thetaMin = Math.acos(num2/den);
+    }
   } else {
-    throw "Illegal earth type";
+    throw "Illegal earth type: " + earthType;
   }
 
-  this._theta = 0;
-  this._phi = radians(-75);
+  this._theta = this.theta0;
+  // this._phi = radians(-75);
+  this._phi = this.phi0;
 
   this.theta_dot_negate = false;
 
@@ -75,7 +91,8 @@ var Coriolis = function(lon0, earthType) {
   console.log('theta0', this.theta0);
   console.log('L0', this.L0);
   console.log('T0', this.T0);
-  console.log('thetaMax', this._thetaMax, degrees(this._thetaMax));
+  console.log('thetaMax', degrees(this._thetaMax));
+  console.log('thetaMin', degrees(this._thetaMin));
 }
 
 // Returns value in seconds
@@ -114,22 +131,22 @@ Coriolis.prototype.phi_dot = function() {
   return this.phi_dot_impl(this._theta);
 }
 
-Coriolis.prototype.stepEuler = function(timeInc) {
-  // Euler integration
-  const oldTheta = this._theta;
-  this._theta += this.theta_dot()*timeInc;
-  if (Math.abs(this._theta) > Math.abs(this._thetaMax)) {
-    // We're overshooting the max theta value. So take the amount we're
-    // overshooting by (d) and set the new theta value to be max-d.
-    const d = this._theta - this._thetaMax;
-    this._theta = this._thetaMax - d;
-    this.theta_dot_negate = !this.theta_dot_negate;
-    this._thetaMax *= -1;
-  }
-  this._phi += this.phi_dot()*timeInc;
+// Coriolis.prototype.stepEuler = function(timeInc) {
+//   // Euler integration
+//   const oldTheta = this._theta;
+//   this._theta += this.theta_dot()*timeInc;
+//   if (Math.abs(this._theta) > Math.abs(this._thetaMax)) {
+//     // We're overshooting the max theta value. So take the amount we're
+//     // overshooting by (d) and set the new theta value to be max-d.
+//     const d = this._theta - this._thetaMax;
+//     this._theta = this._thetaMax - d;
+//     this.theta_dot_negate = !this.theta_dot_negate;
+//     this._thetaMax *= -1;
+//   }
+//   this._phi += this.phi_dot()*timeInc;
 
-  this.path.push(new Position(this._theta, this._phi));
-}
+//   this.path.push(new Position(this._theta, this._phi));
+// }
 
 // RK4
 Coriolis.prototype.stepRK4 = function(h) {
@@ -166,10 +183,18 @@ Coriolis.prototype.step = function(h) {
     this.theta_dot_negate = !this.theta_dot_negate;
     this._thetaMax *= -1;
   }
-
   this._theta = p[0];
   this._phi = p[1];
 
+
+  // if (this.path.length > 100) {
+  //   console.log('updating');
+  //   let newpath = [];
+  //   for (let i = 0; i < this.path.length; i += 2) {
+  //     newpath.push(this.path[i]);
+  //   }
+  //   this.path = newpath;
+  // }
   this.path.push(new Position(this._theta, this._phi));
 }
 
