@@ -56,7 +56,7 @@ var Coriolis = function(lat0, lon0, v0, earthType) {
     this.T0 = sq(OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0)) +
       sq(this.theta_dot0);
     this._thetaMax = Math.acos(Math.sqrt(sq(this.L0)/this.T0));
-    this._thetaMin = Math.acos(Math.sqrt(sq(this.L0)/this.T0));
+    this._thetaMin = -this._thetaMax;
   } else if (earthType == EARTH_ELLIPSOID) {
     // sec^2
     this.T = sq(this.phi_dot0) * sq(Math.cos(this.theta0)) +
@@ -80,7 +80,7 @@ var Coriolis = function(lat0, lon0, v0, earthType) {
   // this._phi = radians(-75);
   this._phi = this.phi0;
 
-  this.theta_dot_negate = false;
+  // this.theta_dot_negate = false;
 
   this.path = [];
 
@@ -170,18 +170,25 @@ Coriolis.prototype.step = function(h) {
   } catch {
     // We pushed past the theta max limit.
   }
-  if (p == null || Math.abs(p[0]) > Math.abs(this._thetaMax)) {
+  // if (p == null || Math.abs(p[0]) > Math.abs(this._thetaMax)) {
+  if (p == null || p[0] > this._thetaMax || p[0] < this._thetaMin) {
     // We're overshooting the max theta value. This is a hack. We fix
     // theta to thetaMax and adjust phi as necessary.
     p = [];
     const EPSILON = 0.0000001;
-    p[0] = this._thetaMax + (this.theta_dot_negate ? EPSILON : -EPSILON);
+    const theta_dot = this.theta_dot();
+    if (theta_dot > 0) {
+      p[0] = this._thetaMax - EPSILON;
+    } else {
+      p[0] = this._thetaMin + EPSILON;
+    }
+    // p[0] = this._thetaMax + (this.theta_dot_negate ? EPSILON : -EPSILON);
     const h_ = (Math.abs(p[0]-this._theta)+2*EPSILON) /
       Math.abs(this.theta_dot());
     p[1] = this._phi + this.phi_dot_impl(this._theta)*h_;
 
     this.theta_dot_negate = !this.theta_dot_negate;
-    this._thetaMax *= -1;
+    // this._thetaMax *= -1;
   }
   this._theta = p[0];
   this._phi = p[1];
