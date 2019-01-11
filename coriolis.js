@@ -97,8 +97,9 @@ var Coriolis = function(lat0, lon0, v0, earthType) {
   // this.theta_dot_negate = false;
 
   this.rotPath = [];
-  this.fixedPath = [];
-  this.lastPoint = null;
+  this.inertialPath = [];
+  this.lastRotPoint = null;
+  this.lastInertialPoint = null;
 
   console.log('V', V);
   console.log('vtheta0', this.vtheta0);
@@ -190,11 +191,18 @@ Coriolis.prototype.step = function(h) {
   this._theta = p[0];
   this._phi = p[1];
 
-  const newPoint = new Position(this._theta, this._phi);
-  if (this.lastPoint == null || this.lastPoint.dist(newPoint) > radians(1)) {
-    this.lastPoint = newPoint;
-    this.rotPath.push(newPoint);
-    this.fixedPath.push(new Position(this._theta, this._phi+earthRotation(time)));
+  const newRotPoint = new Position(this._theta, this._phi);
+  if (this.lastRotPoint == null ||
+      this.lastRotPoint.dist(newRotPoint) > radians(1)) {
+    this.lastRotPoint = newRotPoint;
+    this.rotPath.push(newRotPoint);
+  }
+  const newInertialPoint =
+    new Position(this._theta, this._phi+earthRotation(time));
+  if (this.lastInertialPoint == null ||
+      this.lastInertialPoint.dist(newInertialPoint) > radians(1)) {
+    this.lastInertialPoint = newInertialPoint;
+    this.inertialPath.push(newInertialPoint);
   }
 }
 
@@ -345,7 +353,7 @@ Coriolis.prototype.pathFixed = function(t0, t1) {
   // points.push(pp);
 
   let points = [];
-  this.fixedPath.forEach(p => {
+  this.inertialPath.forEach(p => {
     points.push(p);
   });
   points.push(new Position(this._theta, this._phi+earthRotation(time)));
