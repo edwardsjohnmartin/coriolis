@@ -49,6 +49,7 @@ const fixedViewRotation0 = radians(45);
 // Number of seconds the simulation has gone
 const time0 = 0;//.2*60*60;
 let time = time0;
+let oldTime = -1;
 // Number of seconds we've spent in geostationary orbit
 let geoStationaryTime = 0;
 
@@ -278,19 +279,6 @@ function init() {
 }
 
 function resetSim(dorender=true) {
-  // const launchLatitude = 0;
-  // const launchLongitude = -75;
-  // // launch velocity in the rotational frame
-  // const launchV = new Velocity(Math.sqrt(5/4)*V, 0, 0);
-
-  // const launchLatitude = 15;
-  // const launchLongitude = -75;
-  // const launchV = new Velocity(0, 0, 0);
-
-  // const launchLatitude = 15;
-  // const launchLongitude = -75;
-  // const launchV = new Velocity(0.1*V, 0, 0);
-
   const launchLatitude = +document.getElementById('lat0').value;
   const launchLongitude = +document.getElementById('lon0').value;
   const launchNorth = +document.getElementById('north0').value;
@@ -302,6 +290,7 @@ function resetSim(dorender=true) {
   //   radians(launchLatitude), radians(launchLongitude), launchV, earthType);
 
   time = time0;
+  oldTime = -1;
   geoStationaryTime = 0;
   view = view0;
   if (localStorage.view) {
@@ -678,20 +667,17 @@ function prepArrowHelper(arrowHelper, renderOrder) {
 }
 
 function updateEarthGroup() {
-  if (!this.oldTime) {
-    this.oldTime = -1;
-  }
-
   let arrowsGroup = new THREE.Group();
   earthGroup.children = [];
   fixedPathGroup.children = [];
 
   const hours = time / (60*60);
   let timeInc = 0;
-  if (this.oldTime >= 0) {
-    timeInc = time - this.oldTime;
+  // console.log("oldTime", oldTime);
+  if (oldTime > 0) {
+    timeInc = time - oldTime;
   }
-  this.oldTime = time;
+  oldTime = time;
   const t = time;
   // const phi = sim.phi(t);
   // const phi_ = sim.phi_(t);
@@ -722,6 +708,7 @@ function updateEarthGroup() {
     occludeMaterial(materialOccluded);
     let sphere = new THREE.Mesh(geometry, material);
     sim.step(timeInc);
+    // console.log("t", t);
     const p = sim.p(t);
     sphere.translateOnAxis(p, 1);
     sphere.renderOrder = vecRenderOrder;

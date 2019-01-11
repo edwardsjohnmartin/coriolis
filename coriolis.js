@@ -81,8 +81,14 @@ var Coriolis = function(lat0, lon0, v0, earthType) {
     throw "Illegal earth type: " + earthType;
   }
 
-  this.theta0 = Math.min(this.theta0, this._thetaMax-EPSILON);
-  this.theta0 = Math.max(this.theta0, this._thetaMin+EPSILON);
+  if (Math.abs(this._thetaMax - this._thetaMin) < EPSILON) {
+    this._thetaMin = this._thetaMax;
+    this.theta0 = Math.min(this.theta0, this._thetaMax);
+    this.theta0 = Math.max(this.theta0, this._thetaMin);
+  } else {
+    this.theta0 = Math.min(this.theta0, this._thetaMax-EPSILON);
+    this.theta0 = Math.max(this.theta0, this._thetaMin+EPSILON);
+  }
 
   this._theta = this.theta0;
   // this._phi = radians(-75);
