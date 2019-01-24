@@ -7,6 +7,10 @@ let fixedPathGroup = new THREE.Group();
 let starGroup = new THREE.Group();
 let renderer;
 let controls;
+// turning transparency off improves the FPS only a little -- from ~25
+// to ~30.
+let transparency = true;
+const maxPathSegments = 300;
 
 // Between 1 and 10-ish
 let animSpeed = 5;
@@ -579,15 +583,29 @@ function getPuckPath(points, color) {
   // segments on the backside of the globe. See code in
   // Projector.js.
   let pathGroup = new THREE.Group();
-  for (let i = 0; i < points.length-1; ++i) {
-    let geometry = new THREE.BufferGeometry().setFromPoints(
-      points.slice(i, i+2));
-    var path = new THREE.Line(geometry, lineMaterial);
-    path.renderOrder = pathRenderOrder;
-    path.materialFront = lineMaterial;
-    path.materialOccluded = materialOccluded;
-    path.simType = 'path';
-    pathGroup.add(path);
+
+  if (transparency) {
+    for (let i = 0; i < points.length-1; ++i) {
+      let geometry = new THREE.BufferGeometry().setFromPoints(
+        points.slice(i, i+2));
+      var path = new THREE.Line(geometry, lineMaterial);
+      path.renderOrder = pathRenderOrder;
+      path.materialFront = lineMaterial;
+      path.materialOccluded = materialOccluded;
+      path.simType = 'path';
+      pathGroup.add(path);
+    }
+  } else {
+    // for (let i = 0; i < points.length-1; ++i) {
+      let geometry = new THREE.BufferGeometry().setFromPoints(
+        points.slice(0, points.length));
+      var path = new THREE.Line(geometry, lineMaterial);
+      path.renderOrder = pathRenderOrder;
+      path.materialFront = lineMaterial;
+      path.materialOccluded = materialOccluded;
+      path.simType = 'path';
+      pathGroup.add(path);
+    // }
   }
   return pathGroup;
 }
@@ -815,6 +833,8 @@ function updateAndRender() {
 // animate
 //----------------------------------------
 // var prevTime = null;
+const times = [];
+let fps;
 function tick() {
   if (!animation) return;
   // if (time > T_/2) {
@@ -827,6 +847,15 @@ function tick() {
   //   earthRotation += (time-prevTime)*2;
   // }
   // prevTime = time;
+
+  // update fps
+  const now = performance.now();
+  while (times.length > 0 && times[0] <= now - 1000) {
+    times.shift();
+  }
+  times.push(now);
+  fps = times.length;
+  debug.fps = fps;
 
   incTime(animInc);
 

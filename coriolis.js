@@ -163,6 +163,7 @@ Coriolis.prototype.stepRK4 = function(h) {
           this._phi + (1/6)*(k1[1] + 2*k2[1] + 2*k3[1] + k4[1])];
 }
 
+let pathInc = 1; // In degrees
 Coriolis.prototype.step = function(h) {
   let p = null;
   try {
@@ -193,16 +194,31 @@ Coriolis.prototype.step = function(h) {
 
   const newRotPoint = new Position(this._theta, this._phi);
   if (this.lastRotPoint == null ||
-      this.lastRotPoint.dist(newRotPoint) > radians(1)) {
+      this.lastRotPoint.dist(newRotPoint) > radians(pathInc)) {
     this.lastRotPoint = newRotPoint;
     this.rotPath.push(newRotPoint);
   }
+
   const newInertialPoint =
     new Position(this._theta, this._phi+earthRotation(time));
   if (this.lastInertialPoint == null ||
-      this.lastInertialPoint.dist(newInertialPoint) > radians(1)) {
+      this.lastInertialPoint.dist(newInertialPoint) > radians(pathInc)) {
     this.lastInertialPoint = newInertialPoint;
     this.inertialPath.push(newInertialPoint);
+  }
+
+  // console.log('path length =', this.rotPath.length);
+  if (this.rotPath.length > maxPathSegments) {
+    console.log('updating path - new pathInc =', pathInc*2);
+    let newrp = [];
+    let newip = [];
+    for (let i = 0; i < this.rotPath.length; i += 2) {
+      newrp.push(this.rotPath[i]);
+      newip.push(this.inertialPath[i]);
+    }
+    this.rotPath = newrp;
+    this.inertialPath = newip;
+    pathInc *= 2;
   }
 }
 

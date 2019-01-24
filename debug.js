@@ -20,6 +20,9 @@ var debug = {
   set T0(v) {
     document.getElementById('T0').innerHTML = (v*10000).toFixed(1);
   },
+  set fps(v) {
+    document.getElementById('fps').innerHTML = v.toFixed(0);
+  },
   // set phi(v) {
   //   this._phi = v;
   //   document.getElementById('phi').innerHTML = v.toFixed(1);
