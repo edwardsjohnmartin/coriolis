@@ -870,8 +870,20 @@ function tick() {
 function snap() {
   console.log('Taking SVG snapshot');
   XMLS = new XMLSerializer();
-  svgfile = XMLS.serializeToString(renderer.domElement);
+  svgtext = XMLS.serializeToString(renderer.domElement);
 
+  // console.log(svgtext);
   let textarea = document.getElementById("snapshot-output");
-  textarea.innerHTML = svgfile;
+  // textarea.innerHTML = svgtext;
+  textarea.value = svgtext;
+
+  textarea.select();
+  document.execCommand('copy');
+
+  // const el = document.createElement('textarea');
+  // el.value = svgtext;
+  // document.body.appendChild(el);
+  // el.select();
+  // document.execCommand('copy');
+  // document.body.removeChild(el);
 }
