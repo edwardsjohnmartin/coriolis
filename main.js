@@ -30,6 +30,7 @@ const headLen = 0.045;
 let starSize = 0.007;
 let visiblePath = 0;
 let starStreaks = false;
+let arrowsVisible = 1;
 
 let map = new Map();
 
@@ -390,6 +391,9 @@ function keydown(event) {
     }
     updateBackgroundStars();
     changed = true;
+  } else if (key == 'a') {
+    arrowsVisible = (arrowsVisible+1)%3;
+    changed = true;
   } else if (key == 'r') {
     // reset
     resetSim();
@@ -720,19 +724,24 @@ function updateEarthGroup() {
 
   {
     // puck
-    let geometry = new THREE.SphereBufferGeometry(.02, 32, 32);
+    let pradius = 0.02;
+    // let bradius = 0.06;
+    let sgeometry = new THREE.SphereBufferGeometry(pradius, 32, 32);
+    // let sgeometry = new THREE.BoxBufferGeometry(bradius, bradius, bradius);
     let material = new THREE.MeshBasicMaterial({color: vcolor});
     let materialOccluded = new THREE.MeshBasicMaterial({color: vcolor});
     occludeMaterial(materialOccluded);
-    let sphere = new THREE.Mesh(geometry, material);
+    let sphere = new THREE.Mesh(sgeometry, material);
     sim.step(timeInc);
-    // console.log("t", t);
     const p = sim.p(t);
-    sphere.translateOnAxis(p, 1);
+    // console.log(p.cartesian);
+    sphere.translateOnAxis(p.cartesian, 1);
     sphere.renderOrder = vecRenderOrder;
     sphere.materialFront = material;
     sphere.materialOccluded = materialOccluded;
-    earthGroup.add(sphere);
+    if (arrowsVisible % 2 == 0) {
+      earthGroup.add(sphere);
+    }
 
     let v;
     if (view == ROTATIONAL_VIEW) {
@@ -744,38 +753,41 @@ function updateEarthGroup() {
     let N = north(p.cartesian);
     E = E.multiplyScalar(v.clone().dot(E));
     N = N.multiplyScalar(v.clone().dot(N));
+    // debug.temp = v.x + " " + v.y;
 
-    {
-      // v
-      let length = v.length();
-      let dir = v.normalize();
-      let origin = p.cartesian;
+    if (arrowsVisible < 2) {
+      {
+        // v
+        let length = v.length();
+        let dir = v.normalize();
+        let origin = p.cartesian;
 
-      let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                        vcolor, 20, headLen, 0.6*headLen);
-      prepArrowHelper(arrowHelper, vecRenderOrder);
-      arrowsGroup.add(arrowHelper);
-    } {
-      // east
-      let length = E.length();
-      if (length > headLen) {
-        let dir = E.normalize();
-        let origin = p.cartesian;
         let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                          necolor, 20, headLen, 0.6*headLen);
-        prepArrowHelper(arrowHelper, eastRenderOrder);
+                                          vcolor, 20, headLen, 0.6*headLen);
+        prepArrowHelper(arrowHelper, vecRenderOrder);
         arrowsGroup.add(arrowHelper);
-      }
-    } {
-      // north
-      let length = N.length();
-      if (length > headLen) {
-        let dir = N.normalize();
-        let origin = p.cartesian;
-        let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                          necolor, 20, headLen, 0.6*headLen);
-        prepArrowHelper(arrowHelper, northRenderOrder);
-        arrowsGroup.add(arrowHelper);
+      } {
+        // east
+        let length = E.length();
+        if (length > headLen) {
+          let dir = E.normalize();
+          let origin = p.cartesian;
+          let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+                                            necolor, 20, headLen, 0.6*headLen);
+          prepArrowHelper(arrowHelper, eastRenderOrder);
+          arrowsGroup.add(arrowHelper);
+        }
+      } {
+        // north
+        let length = N.length();
+        if (length > headLen) {
+          let dir = N.normalize();
+          let origin = p.cartesian;
+          let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+                                            necolor, 20, headLen, 0.6*headLen);
+          prepArrowHelper(arrowHelper, northRenderOrder);
+          arrowsGroup.add(arrowHelper);
+        }
       }
     }
     // puck's path
@@ -784,6 +796,35 @@ function updateEarthGroup() {
       let path = getPuckPathRotating(t, rotatingPathColor);
       // console.log(path);
       earthGroup.add(path);
+
+      if (arrowsVisible % 2 == 0) {
+        let xpath = sim.pathRot(0, t);
+        // console.log(path.length);
+        let xl = xpath.length;
+        if (xl > 1) {
+          let x0 = xpath[xl-2].cartesian;
+          let x1 = xpath[xl-1].cartesian;
+          let xi = 3;
+          while (x0.equals(x1) && xi < xl) {
+            x0 = xpath[xl-xi].cartesian;
+            xi += 1;
+          }
+          let xv = x1.clone().sub(x0);
+          let xlength = 0.18;
+          let xdir = xv.normalize();
+          console.log(x0);
+          console.log(x1);
+          if (xdir.x == 0) {
+            console.log(xdir);
+            console.log("***");
+          }
+          let xorigin = x1;
+          let xarrowHelper = new ArrowHelper(xdir, xorigin, xlength, lineWidth,
+                                             vcolor, 20, headLen, 0.6*headLen);
+          prepArrowHelper(xarrowHelper, vecRenderOrder);
+          arrowsGroup.add(xarrowHelper);
+        }
+      }
     }
     if (visiblePath == 0 || visiblePath == 2) {
       let path = getPuckPathFixed(t, fixedPathColor);
