@@ -16,3 +16,6 @@ function init() {
 
 }
 
+function eccentricityChanged() {
+  console.log("changed");
+}
