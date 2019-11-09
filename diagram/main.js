@@ -14,8 +14,31 @@ function init() {
   text.setAttribute('fill', 'red');
   svg.appendChild(text);
 
+  let marker= document.createElement('http://www.w3.org/2000/svg',
+      'marker');
+  marker.setAttribute('id', 'triangle');
+  marker.setAttribute('viewBox', '0 0 10 10');
+  marker.setAttribute('refX', '0');
+  marker.setAttribute('refY', '5');
+  marker.setAttribute('markerUnits', 'strokeWidth');
+  marker.setAttribute('markerWidth', '10');
+  marker.setAttribute('markerHeight', '8');
+  marker.setAttribute('orient', 'auto');
+
+  let path = document.createElementNS('http://www.w3.org/2000/svg',
+      'path');
+  marker.appendChild(path);
+  path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+  svg.appendChild(marker);
+
+  let arrow= document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  arrow.setAttribute('d', 'M 100 200 L 200 0');
+  arrow.style.stroke = 'black';
+  arrow.style.strokeWidth = '5px';
+  arrow.setAttributeNS('marker-end', 'url(#triangle)');
 }
 
 function eccentricityChanged() {
+  let str = document.getElementById("text").value;
   console.log("changed");
 }
