@@ -2,19 +2,13 @@ function init() {
   let svg = document.getElementById('diagram');
 
   let ellipse = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  ellipse.setAttribute('d', 'M 600 200 a 75,150 90 1,0 1,0');
+  ellipse.setAttribute('d', 'M 400 200 a 75,150 90 1,0 1,0 z');
+  ellipse.style.fill = 'white';
   ellipse.style.stroke = 'black';
   ellipse.style.strokeWidth = '5px';
   svg.appendChild(ellipse);
 
-  let text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  text.innerHTML = 'Cade';
-  text.setAttribute('x', 600);
-  text.setAttribute('y', 250);
-  text.setAttribute('fill', 'red');
-  svg.appendChild(text);
-
-  let marker= document.createElement('http://www.w3.org/2000/svg',
+  let marker= document.createElementNS('http://www.w3.org/2000/svg',
       'marker');
   marker.setAttribute('id', 'triangle');
   marker.setAttribute('viewBox', '0 0 10 10');
@@ -27,18 +21,32 @@ function init() {
 
   let path = document.createElementNS('http://www.w3.org/2000/svg',
       'path');
-  marker.appendChild(path);
-  path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
-  svg.appendChild(marker);
+  path.setAttribute('d', 'M 300 195 L 310 200 L 300 205 z');
+  path.style.stroke = 'black';
+  path.style.strokeWidth = '10px';
+  svg.appendChild(path);
 
   let arrow= document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  arrow.setAttribute('d', 'M 100 200 L 200 0');
+  arrow.setAttribute('d', 'M 100 200 L 300 200');
   arrow.style.stroke = 'black';
   arrow.style.strokeWidth = '5px';
-  arrow.setAttributeNS('marker-end', 'url(#triangle)');
+  svg.appendChild(arrow);
+  arrow.setAttributeNS('marker-end', 'triangle', 'void');
 }
 
 function eccentricityChanged() {
-  let str = document.getElementById("text").value;
-  console.log("changed");
+  let svg = document.getElementById('diagram');
+
+  let text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  text.setAttribute('x', 585);
+  text.setAttribute('y', 275);
+  text.setAttribute('fill', 'red');
+  svg.appendChild(text);
+
+  let txt = document.getElementById("eccentricity").value;
+  parseFloat('text', txt);
+  text.innerHTML = txt;
+
+
+
 }
