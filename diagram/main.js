@@ -54,11 +54,17 @@ function eccentricityChanged(){
 function makeEllipse() {
   let svg = document.getElementById('diagram');
 
+  let temp = document.getElementById('mydiagram');
+  if (temp) {
+    temp.remove();
+  }
+
   let ellipse = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   ellipse.setAttribute('d', 'M 400 200 a 75,150 90 1,0 1,0 z');
   ellipse.style.fill = 'white';
   ellipse.style.stroke = 'black';
   ellipse.style.strokeWidth = '5px';
+  ellipse.setAttribute('id', 'mydiagram');
   svg.appendChild(ellipse);
 
 }
