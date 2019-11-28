@@ -7,16 +7,25 @@ function eccentricityChanged(){
     temp.remove();
   }
 
-  let text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  text.setAttribute('x', 600);
-  text.setAttribute('y', 275);
-  text.setAttribute('fill', 'red');
-  text.setAttribute('id','mytext');
-  svg.appendChild(text);
+  let s = 0.5;
+  let omega = 1;
+  let A = 0.2084558583;
+  let B = 0.7915441417;
 
-  let txt = document.getElementById("eccentricity").value;
-  parseFloat('text', txt);
-  text.innerHTML = txt;
+  let e = document.getElementById('eccentricity').value;
+
+  let formFactor = A * e + B;
+
+  let eccent = Math.sqrt(Math.pow(e, 2)/(1-Math.pow(e,2)));
+
+  let p = (1 + 1/(Math.pow(eccent, 2)))*(1-(1/eccent)*Math.atan(eccent))-(1/3);
+
+  let q = (1/eccent)*(1+3/(Math.pow(eccent, 2)))*Math.atan(eccent)-3/(Math.pow(eccent, 2));
+
+  let omegaStable = Math.sqrt((15/4)*q*(1-(3/5)*formFactor));
+  alert(omegaStable);
+
+
 
   makeEllipse();
 
