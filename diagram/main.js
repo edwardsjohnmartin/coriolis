@@ -13,19 +13,15 @@ function eccentricityChanged(){
   let B = 0.7915441417;
 
   let e = document.getElementById('eccentricity').value;
-
   let formFactor = A * e + B;
-
   let eccent = Math.sqrt(Math.pow(e, 2)/(1-Math.pow(e,2)));
-
   let p = (1 + 1/(Math.pow(eccent, 2)))*(1-(1/eccent)*Math.atan(eccent))-(1/3);
-
   let q = (1/eccent)*(1+3/(Math.pow(eccent, 2)))*Math.atan(eccent)-3/(Math.pow(eccent, 2));
-
   let omegaStable = Math.sqrt((15/4)*q*(1-(3/5)*formFactor));
-  alert(omegaStable);
-
-
+  let apperantGravA = Math.pow(1-Math.pow(e,2), -1/6)*(1-(1+p/q)*Math.pow(omegaStable, 2));
+  let apperantGravB = Math.pow(1-Math.pow(e,2),1/3)*(1+2*p/q*Math.pow(omegaStable,2));
+  let a = Math.pow((1-Math.pow(e,2)),-1/6);
+  let b = Math.pow((1-Math.pow(e,2)),1/3);
 
   makeEllipse();
 
