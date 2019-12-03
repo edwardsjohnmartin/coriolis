@@ -20,14 +20,14 @@ function eccentricityChanged(){
   let omegaStable = Math.sqrt((15/4)*q*(1-(3/5)*formFactor));
   let apperantGravA = Math.pow(1-Math.pow(e,2), -1/6)*(1-(1+p/q)*Math.pow(omegaStable, 2));
   let apperantGravB = Math.pow(1-Math.pow(e,2),1/3)*(1+2*p/q*Math.pow(omegaStable,2));
-  let a = Math.pow((1-Math.pow(e,2)),-1/6);
-  let b = Math.pow((1-Math.pow(e,2)),1/3);
+  let eqRad = Math.pow((1-Math.pow(e,2)),-1/6)*175;
+  let polRad = Math.pow((1-Math.pow(e,2)),1/3)*175;
 
-  makeEllipse();
+  makeEllipse(eqRad,polRad);
 
 }
 
-function makeEllipse() {
+function makeEllipse(eqRad,polRad) {
   let svg = document.getElementById('diagram');
 
   let temp = document.getElementById('mydiagram');
@@ -36,7 +36,7 @@ function makeEllipse() {
   }
 
   let ellipse = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  ellipse.setAttribute('d', 'M 400 200 a 100,200 90 1,0 1,0 z');
+  ellipse.setAttribute('d', `M 600 100 a ${polRad},${eqRad} 90 1,0 1,0 z`);
   ellipse.style.fill = 'white';
   ellipse.style.stroke = 'black';
   ellipse.style.strokeWidth = '5px';
