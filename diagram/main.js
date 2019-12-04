@@ -20,8 +20,15 @@ function eccentricityChanged(){
   let omegaStable = Math.sqrt((15/4)*q*(1-(3/5)*formFactor));
   let apperantGravA = Math.pow(1-Math.pow(e,2), -1/6)*(1-(1+p/q)*Math.pow(omegaStable, 2));
   let apperantGravB = Math.pow(1-Math.pow(e,2),1/3)*(1+2*p/q*Math.pow(omegaStable,2));
-  let eqRad = Math.pow((1-Math.pow(e,2)),-1/6)*175;
-  let polRad = Math.pow((1-Math.pow(e,2)),1/3)*175;
+  let a = Math.pow((1-Math.pow(e,2)),-1/6);
+  let b = Math.pow((1-Math.pow(e,2)),1/3);
+  let eqRad = a*150;
+  let polRad = b*150;
+
+  let lattitude = Math.PI/6;
+  let rho = (a*Math.cos(lattitude))/Math.sqrt(1-Math.pow(e*Math.sin(lattitude),2));
+  let z = (a*(1-Math.pow(e,2))*Math.sin(lattitude))/Math.sqrt(1-Math.pow(e*Math.sin(lattitude),2));
+
 
   makeEllipse(eqRad,polRad);
 
@@ -36,7 +43,7 @@ function makeEllipse(eqRad,polRad) {
   }
 
   let ellipse = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  ellipse.setAttribute('d', `M 600 100 a ${polRad},${eqRad} 90 1,0 1,0 z`);
+  ellipse.setAttribute('d', `M 400 100 a ${polRad},${eqRad} 90 1,0 1,0 z`);
   ellipse.style.fill = 'white';
   ellipse.style.stroke = 'black';
   ellipse.style.strokeWidth = '5px';
@@ -44,7 +51,7 @@ function makeEllipse(eqRad,polRad) {
   svg.appendChild(ellipse);
 }
 
-function init() {
+function gravityVector() {
   let svg = document.getElementById('diagram');
 
   let marker= document.createElementNS('http://www.w3.org/2000/svg',
@@ -71,6 +78,8 @@ function init() {
   arrow.style.strokeWidth = '2px';
   svg.appendChild(arrow);
   arrow.setAttributeNS('marker-end', 'triangle', 'void');
+}
 
+function init() {
 }
 
