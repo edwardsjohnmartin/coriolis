@@ -28,7 +28,10 @@ function eccentricityChanged(){
   let lattitude = Math.PI/6;
   let rho = (a*Math.cos(lattitude))/Math.sqrt(1-Math.pow(e*Math.sin(lattitude),2));
   let z = (a*(1-Math.pow(e,2))*Math.sin(lattitude))/Math.sqrt(1-Math.pow(e*Math.sin(lattitude),2));
-
+  let lattGrav = (a* apperantGravA*Math.pow(Math.cos(lattitude),2)+b*apperantGravB*Math.pow(Math.sin(lattitude),2))/Math.sqrt(Math.pow(a*Math.cos(lattitude),2)+Math.pow(b*Math.sin(lattitude),2))
+  let gravRho =-lattGrav*Math.cos(lattitude)-Math.pow(omegaStable,2)*rho;
+  let gravZ = -lattGrav*Math.sin(lattitude);
+  let accelCent = Math.pow(omega,2)*rho;
 
   makeEllipse(eqRad,polRad);
 
