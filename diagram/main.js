@@ -25,18 +25,24 @@ function eccentricityChanged(){
   let eqRad = a*150;
   let polRad = b*150;
 
-  let latitude = [Math.PI/6, Math.PI/4, Math.PI/3];
+  let latitude = [Math.PI/6, Math.PI/3];
   let latitudeLength = latitude.length;
+  var i;
 
-  for (var i = 0; i < latitudeLength; i++) {
+  for (i of latitude) {
     let rho = (eqRad*Math.cos(i))/Math.sqrt(1-Math.pow(e*Math.sin(i),2)) + 400;
-    let z = (eqRad*(1-Math.pow(e,2))*Math.sin(i))/Math.sqrt(1-Math.pow(e*Math.sin(i),2)) + 100;
+    let z = -(eqRad*(1-Math.pow(e,2))*Math.sin(i))/Math.sqrt(1-Math.pow(e*Math.sin(i),2)) + 100 + polRad;
     let lattGrav = (eqRad* apperantGravA*Math.pow(Math.cos(i),2)+polRad*apperantGravB*Math.pow(
         Math.sin(i),2))/Math.sqrt(Math.pow(eqRad*Math.cos(i),2)+Math.pow(polRad*Math.sin(i),2));
     let gravRho =-lattGrav*Math.cos(i)-Math.pow(omegaStable,2)*rho;
     let gravZ = -lattGrav*Math.sin(i);
     let accelCent = Math.pow(omega,2)*rho;
-    gravityVector(rho, z, gravRho, gravZ, s);
+    let rho2 = rho + gravRho;
+    let z2 = z +  gravZ;
+    let rho3 = rho2 + accelCent;
+    gravityVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad);
+    accelCentVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad);
+    apperantGravVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad);
   }
 
   makeEllipse(eqRad,polRad);
@@ -50,7 +56,6 @@ function makeEllipse(eqRad,polRad) {
   if (temp) {
     temp.remove();
   }
-
   let ellipse = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   ellipse.setAttribute('d', `M 400 100 a ${polRad},${eqRad} 90 1,0 1,0 z`);
   ellipse.style.fill = 'transparent';
@@ -60,13 +65,13 @@ function makeEllipse(eqRad,polRad) {
   svg.appendChild(ellipse);
 }
 
-function gravityVector(rho, z, gravRho, gravZ, s) {
+function gravityVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
   let svg = document.getElementById('diagram');
+  let Radius = polRad + 100
 
   let temp = document.getElementById('marker');
   if (temp) {
     temp.remove();
-
   }
 
   let marker= document.createElementNS('http://www.w3.org/2000/svg',
@@ -87,12 +92,88 @@ function gravityVector(rho, z, gravRho, gravZ, s) {
   svg.appendChild(path);
 
   let arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  arrow.setAttribute('d', `M ${rho} ${z} L 200 200`);
+  arrow.setAttribute('d', `M ${rho},${z} L ${rho2},${z2}`);
   arrow.style.stroke = 'black';
   arrow.style.strokeWidth = '2px';
   svg.appendChild(arrow);
   arrow.setAttributeNS('marker-end', 'triangle', 'void');
 }
+
+
+
+
+
+
+
+function accelCentVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
+  let svg = document.getElementById('diagram');
+  let Radius = polRad + 100
+
+  let temp = document.getElementById('marker');
+  if (temp) {
+    temp.remove();
+  }
+
+  let marker= document.createElementNS('http://www.w3.org/2000/svg',
+      'marker');
+  marker.setAttribute('id', 'triangle');
+  marker.setAttribute('viewBox', '0 0 10 10');
+  marker.setAttribute('refX', '0');
+  marker.setAttribute('refY', '5');
+  marker.setAttribute('markerUnits', 'strokeWidth');
+  marker.setAttribute('markerWidth', '10');
+  marker.setAttribute('markerHeight', '8');
+  marker.setAttribute('orient', 'auto');
+
+  let path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', 'M 200 195 L 210 200 L 200 205 z');
+  path.style.stroke = 'black';
+  path.style.strokeWidth = '5px';
+  svg.appendChild(path);
+
+  let arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  arrow.setAttribute('d', `M ${rho2},${z2} L ${rho3},${z2}`);
+  arrow.style.stroke = 'red';
+  arrow.style.strokeWidth = '2px';
+  svg.appendChild(arrow);
+  arrow.setAttributeNS('marker-end', 'triangle', 'void');
+}
+
+function apperantGravVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
+  let svg = document.getElementById('diagram');
+  let Radius = polRad + 100
+
+  let temp = document.getElementById('marker');
+  if (temp) {
+    temp.remove();
+  }
+
+  let marker= document.createElementNS('http://www.w3.org/2000/svg',
+      'marker');
+  marker.setAttribute('id', 'triangle');
+  marker.setAttribute('viewBox', '0 0 10 10');
+  marker.setAttribute('refX', '0');
+  marker.setAttribute('refY', '5');
+  marker.setAttribute('markerUnits', 'strokeWidth');
+  marker.setAttribute('markerWidth', '10');
+  marker.setAttribute('markerHeight', '8');
+  marker.setAttribute('orient', 'auto');
+
+  let path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', 'M 200 195 L 210 200 L 200 205 z');
+  path.style.stroke = 'black';
+  path.style.strokeWidth = '5px';
+  svg.appendChild(path);
+
+  let arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  arrow.setAttribute('d', `M ${rho},${z} L ${rho3},${z2}`);
+  arrow.style.stroke = 'blue';
+  arrow.style.strokeWidth = '2px';
+  svg.appendChild(arrow);
+  arrow.setAttributeNS('marker-end', 'triangle', 'void');
+}
+
+
 
 function init() {
 
