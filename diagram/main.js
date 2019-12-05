@@ -25,13 +25,19 @@ function eccentricityChanged(){
   let eqRad = a*150;
   let polRad = b*150;
 
-  let lattitude = Math.PI/6;
-  let rho = (a*Math.cos(lattitude))/Math.sqrt(1-Math.pow(e*Math.sin(lattitude),2));
-  let z = (a*(1-Math.pow(e,2))*Math.sin(lattitude))/Math.sqrt(1-Math.pow(e*Math.sin(lattitude),2));
-  let lattGrav = (a* apperantGravA*Math.pow(Math.cos(lattitude),2)+b*apperantGravB*Math.pow(Math.sin(lattitude),2))/Math.sqrt(Math.pow(a*Math.cos(lattitude),2)+Math.pow(b*Math.sin(lattitude),2))
-  let gravRho =-lattGrav*Math.cos(lattitude)-Math.pow(omegaStable,2)*rho;
-  let gravZ = -lattGrav*Math.sin(lattitude);
-  let accelCent = Math.pow(omega,2)*rho;
+  let latitude = [Math.PI/6, Math.PI/4, Math.PI/3];
+  let latitudeLength = latitude.length;
+
+  for (var i = 0; i < latitudeLength; i++) {
+    let rho = (eqRad*Math.cos(i))/Math.sqrt(1-Math.pow(e*Math.sin(i),2)) + 400;
+    let z = (eqRad*(1-Math.pow(e,2))*Math.sin(i))/Math.sqrt(1-Math.pow(e*Math.sin(i),2)) + 100;
+    let lattGrav = (eqRad* apperantGravA*Math.pow(Math.cos(i),2)+polRad*apperantGravB*Math.pow(
+        Math.sin(i),2))/Math.sqrt(Math.pow(eqRad*Math.cos(i),2)+Math.pow(polRad*Math.sin(i),2));
+    let gravRho =-lattGrav*Math.cos(i)-Math.pow(omegaStable,2)*rho;
+    let gravZ = -lattGrav*Math.sin(i);
+    let accelCent = Math.pow(omega,2)*rho;
+    gravityVector(rho, z, gravRho, gravZ, s);
+  }
 
   makeEllipse(eqRad,polRad);
 
@@ -47,15 +53,21 @@ function makeEllipse(eqRad,polRad) {
 
   let ellipse = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   ellipse.setAttribute('d', `M 400 100 a ${polRad},${eqRad} 90 1,0 1,0 z`);
-  ellipse.style.fill = 'white';
+  ellipse.style.fill = 'transparent';
   ellipse.style.stroke = 'black';
   ellipse.style.strokeWidth = '5px';
   ellipse.setAttribute('id', 'mydiagram');
   svg.appendChild(ellipse);
 }
 
-function gravityVector() {
+function gravityVector(rho, z, gravRho, gravZ, s) {
   let svg = document.getElementById('diagram');
+
+  let temp = document.getElementById('marker');
+  if (temp) {
+    temp.remove();
+
+  }
 
   let marker= document.createElementNS('http://www.w3.org/2000/svg',
       'marker');
@@ -68,15 +80,14 @@ function gravityVector() {
   marker.setAttribute('markerHeight', '8');
   marker.setAttribute('orient', 'auto');
 
-  let path = document.createElementNS('http://www.w3.org/2000/svg',
-      'path');
+  let path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   path.setAttribute('d', 'M 200 195 L 210 200 L 200 205 z');
   path.style.stroke = 'black';
   path.style.strokeWidth = '5px';
   svg.appendChild(path);
 
-  let arrow= document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  arrow.setAttribute('d', 'M 150 200 L 200 200');
+  let arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  arrow.setAttribute('d', `M ${rho} ${z} L 200 200`);
   arrow.style.stroke = 'black';
   arrow.style.strokeWidth = '2px';
   svg.appendChild(arrow);
@@ -84,5 +95,7 @@ function gravityVector() {
 }
 
 function init() {
+
 }
+
 
