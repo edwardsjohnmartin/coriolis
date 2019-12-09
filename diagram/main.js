@@ -38,13 +38,7 @@ function eccentricityChanged(){
     let gravRho =-lattGrav*Math.cos(i)-Math.pow(omegaStable,2)*rho;
     let gravZ = -lattGrav*Math.sin(i);
     let accelCent = Math.pow(omega,2)*rho;
-    let rho2 = rho + s*gravRho;
-    let z2 = z +  s*gravZ;
-    let rho3 = rho2 + s*accelCent;
-    console.log(rho2, z2, rho3);
-    gravityVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, b);
-    accelCentVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, b);
-    apperantGravVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, b);
+    calculateValues(rho, z, lattGrav, gravRho, gravZ, accelCent, polRad,s);
   }
 
   makeEllipse(eqRad,polRad);
@@ -67,106 +61,19 @@ function makeEllipse(eqRad,polRad) {
   svg.appendChild(ellipse);
 }
 
-function gravityVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
-  let svg = document.getElementById('diagram');
+function calculateValues(rho, z, lattGrav, gravRho, gravZ, accelCent, polRad,s) {
+  let rho1 = rho + 400;
+  let z1 = z + 100 + polRad;
 
-  let temp = document.getElementById('marker');
-  if (temp) {
-    temp.remove();
-  }
+  let rho2 = rho1 + s*gravRho;
+  let z2 = z1+ s*gravZ
 
-  let startRho = rho + 400;
+  let rho3 = rho2 + s*accelCent;
+  console.log(rho1, rho2, rho3, z1,z2);
 
-
-  let marker= document.createElementNS('http://www.w3.org/2000/svg',
-      'marker');
-  marker.setAttribute('id', 'triangle');
-  marker.setAttribute('viewBox', '0 0 10 10');
-  marker.setAttribute('refX', '0');
-  marker.setAttribute('refY', '5');
-  marker.setAttribute('markerUnits', 'strokeWidth');
-  marker.setAttribute('markerWidth', '10');
-  marker.setAttribute('markerHeight', '8');
-  marker.setAttribute('orient', 'auto');
-
-  //let path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  //path.setAttribute('d', `M ${rho2} ${z2} L 210 200 L 200 205 z`);
-  //path.style.stroke = 'green';
-  //path.style.strokeWidth = '5px';
-  //svg.appendChild(path);
-
-  let arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  arrow.setAttribute('d', `M ${rho},${z} L ${rho2} ${z2}`);
-  arrow.style.stroke = 'black';
-  arrow.style.strokeWidth = '2px';
-  svg.appendChild(arrow);
-  arrow.setAttributeNS('marker-end', 'triangle', 'void');
-}
-
-function accelCentVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
-  let svg = document.getElementById('diagram');
-
-  let temp = document.getElementById('marker');
-  if (temp) {
-    temp.remove();
-  }
-
-  let marker= document.createElementNS('http://www.w3.org/2000/svg',
-      'marker');
-  marker.setAttribute('id', 'triangle');
-  marker.setAttribute('viewBox', '0 0 10 10');
-  marker.setAttribute('refX', '0');
-  marker.setAttribute('refY', '5');
-  marker.setAttribute('markerUnits', 'strokeWidth');
-  marker.setAttribute('markerWidth', '10');
-  marker.setAttribute('markerHeight', '8');
-  marker.setAttribute('orient', 'auto');
-
-  let path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', `M ${rho3} ${z2} L 210 200 L 200 205 z`);
-  path.style.stroke = 'black';
-  path.style.strokeWidth = '5px';
-  svg.appendChild(path);
-
-  let arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  arrow.setAttribute('d', `M ${rho2},${z2} L ${rho3} ${z2}`);
-  arrow.style.stroke = 'red';
-  arrow.style.strokeWidth = '2px';
-  svg.appendChild(arrow);
-  arrow.setAttributeNS('marker-end', 'triangle', 'void');
-}
-
-function apperantGravVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
-  let svg = document.getElementById('diagram');
-
-  let temp = document.getElementById('marker');
-  if (temp) {
-    temp.remove();
-  }
-
-  let marker= document.createElementNS('http://www.w3.org/2000/svg',
-      'marker');
-  marker.setAttribute('id', 'triangle');
-  marker.setAttribute('viewBox', '0 0 10 10');
-  marker.setAttribute('refX', '0');
-  marker.setAttribute('refY', '5');
-  marker.setAttribute('markerUnits', 'strokeWidth');
-  marker.setAttribute('markerWidth', '10');
-  marker.setAttribute('markerHeight', '8');
-  marker.setAttribute('orient', 'auto');
-
-  let path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', `M ${rho3} ${z2} L 210 200 L 200 205 z`);
-  path.style.stroke = 'black';
-  path.style.strokeWidth = '5px';
-  svg.appendChild(path);
-
-  let arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  arrow.setAttribute('d', `M ${rho},${z} L ${rho3} ${z2}`);
-  arrow.style.stroke = 'blue';
-  arrow.style.strokeWidth = '2px';
-  svg.appendChild(arrow);
-  arrow.setAttributeNS('marker-end', 'triangle', 'void');
+  gravityVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
+  accelCentVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
+  apperantGravVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
 }
 
 
