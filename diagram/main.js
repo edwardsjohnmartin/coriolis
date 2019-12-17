@@ -7,7 +7,7 @@ function eccentricityChanged(){
     temp.remove();
   }
 
-  let s = 0.5;
+  let s = 100;
   let omega = 0.5;
   let A = 0.2084558583;
   let B = 0.7915441417;
@@ -26,13 +26,13 @@ function eccentricityChanged(){
   let eqRad = a*scaleFactor;
   let polRad = b*scaleFactor;
 
-  let latitude = [Math.PI/6];
+  let latitude = [Math.PI/6, Math.PI/4, Math.PI/3];
   let latitudeLength = latitude.length;
   var i;
 
   for (i of latitude) {
     let rho = (a*Math.cos(i))/Math.sqrt(1-Math.pow(e*Math.sin(i),2));
-    let z = (a*(1-Math.pow(e,2))*Math.sin(i))/Math.sqrt(1-Math.pow(e*Math.sin(i),2));
+    let z = -(a*(1-Math.pow(e,2))*Math.sin(i))/Math.sqrt(1-Math.pow(e*Math.sin(i),2));
     let lattGrav = (a* apperantGravA*Math.pow(Math.cos(i),2)+b*apperantGravB*Math.pow(
         Math.sin(i),2))/Math.sqrt(Math.pow(a*Math.cos(i),2)+Math.pow(b*Math.sin(i),2));
     let gravRho =-lattGrav*Math.cos(i)-Math.pow(omegaStable,2)*rho;
@@ -62,11 +62,11 @@ function makeEllipse(eqRad,polRad) {
 }
 
 function calculateValues(rho, z, lattGrav, gravRho, gravZ, accelCent, polRad,s) {
-  let rho1 = rho + 400;
-  let z1 = z + 100 + polRad;
+  let rho1 = rho*150 + 400;
+  let z1 = z*150 + 100 + polRad;
 
   let rho2 = rho1 + s*gravRho;
-  let z2 = z1+ s*gravZ
+  let z2 = z1- s*gravZ
 
   let rho3 = rho2 + s*accelCent;
   console.log(rho1, rho2, rho3, z1,z2);

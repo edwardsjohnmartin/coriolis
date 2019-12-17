@@ -20,6 +20,7 @@ function gravityVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
 
     let arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     arrow.setAttribute('d', `M ${rho1},${z1} L ${rho2} ${z2}`);
+    arrow.setAttribute('id', 'gravPath')
     arrow.style.stroke = 'black';
     arrow.style.strokeWidth = '2px';
     svg.appendChild(arrow);
@@ -48,6 +49,7 @@ function accelCentVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
 
     let arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     arrow.setAttribute('d', `M ${rho2},${z2} L ${rho3} ${z2}`);
+    arrow.setAttribute('id', 'accelCentPath');
     arrow.style.stroke = 'red';
     arrow.style.strokeWidth = '2px';
     svg.appendChild(arrow);
