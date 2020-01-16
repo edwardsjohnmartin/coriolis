@@ -75,7 +75,7 @@ function makeEllipse(eqRad, polRad) {
   ellipse.setAttribute("d", `M 400 100 a ${polRad},${eqRad} 90 1,0 1,0 z`);
   ellipse.style.fill = "transparent";
   ellipse.style.stroke = "black";
-  ellipse.style.strokeWidth = "5px";
+  ellipse.style.strokeWidth = "3px";
   ellipse.setAttribute("id", "mydiagram");
   svg.appendChild(ellipse);
 }
