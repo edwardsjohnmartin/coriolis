@@ -15,11 +15,11 @@ function eccentricityChanged() {
   svg.appendChild(container);
 
   let s = 100;
-  let omega = 0.5;
   let A = 0.2084558583;
   let B = 0.7915441417;
 
   let e = document.getElementById("eccentricity").value;
+  let omega = document.getElementById("rotationRate").value;
   let formFactor = A * e + B;
   let eccent = Math.sqrt(Math.pow(e, 2) / (1 - Math.pow(e, 2)));
   let p =

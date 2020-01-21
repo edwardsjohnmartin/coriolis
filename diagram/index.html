@@ -38,16 +38,17 @@
         }
     </style>
 </head>
-Eccentricity: <input id="eccentricity" onchange="eccentricityChanged()"></input>
+Eccentricity: <input id="eccentricity"/>
 <p>Enter a value between 0 and 1 for the Eccentricity</p>
 
-Rotation Rate: <input id="rotationRate" onchange="rotationRateChanged()"></input>
+Rotation Rate: <input id="rotationRate"/>
 <p>Enter a value to change the Rotational Rate</p>
+<button onclick="eccentricityChanged()">Click Me</button>
 <br>
 <svg width="800" height="800" id="diagram">
 </svg>
 <g id="diagram-elements">
-    <path id =''>
+    <path id =''/>
 </g>
 <script src="Vectors.js"></script>
 <script src="main.js"></script>

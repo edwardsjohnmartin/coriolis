@@ -12,9 +12,9 @@ function gravityVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
     marker.setAttribute("orient", "auto");
 
    let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-   path.setAttribute("d", `M ${rho2} ${z2} l 5 0 l -5 10 l -5 -10 z`);
-   path.style.stroke = "green";
-   path.style.strokeWidth = "5px";
+   path.setAttribute("d", `M ${rho2} ${z2} l 5 -10 M ${rho2} ${z2} l -5 -10 `);
+   path.style.stroke = "maroon";
+   path.style.strokeWidth = "2px";
    container.appendChild(path);
 
     let arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -40,9 +40,9 @@ function accelCentVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
     marker.setAttribute("orient", "auto");
 
     let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", `M ${rho3} ${z2} l 5 0 l -5 10 l -5 -10 z`);
-    path.style.stroke = "black";
-    path.style.strokeWidth = "5px";
+    path.setAttribute("d", `M ${rho3} ${z2} l 5 -10 M ${rho3} ${z2} l -5 -10 `);
+    path.style.stroke = "darkorange";
+    path.style.strokeWidth = "2px";
     container.appendChild(path);
 
     let arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -68,9 +68,9 @@ function apperantGravVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
     marker.setAttribute("orient", "auto");
 
     let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", `M ${rho3} ${z2} l 5 0 l -5 10 l -5 -10 z`);
-    path.style.stroke = "black";
-    path.style.strokeWidth = "5px";
+    path.setAttribute("d", `M ${rho3} ${z2} l 5 -10 M ${rho3} ${z2} l -5 -10 `);
+    path.style.stroke = "dodgerblue";
+    path.style.strokeWidth = "2px";
     container.appendChild(path);
 
     let arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
