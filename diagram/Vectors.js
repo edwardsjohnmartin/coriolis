@@ -40,7 +40,7 @@ function accelCentVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
     marker.setAttribute("orient", "auto");
 
     let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", `M ${rho3} ${z2} l 5 -10 M ${rho3} ${z2} l -5 -10 `);
+    path.setAttribute("d", `M ${rho3} ${z2} l -10 5 M ${rho3} ${z2} l -10 -5`);
     path.style.stroke = "darkorange";
     path.style.strokeWidth = "2px";
     container.appendChild(path);
