@@ -11,11 +11,17 @@ function gravityVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
     marker.setAttribute("markerHeight", "8");
     marker.setAttribute("orient", "auto");
 
+    let g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute('transform', `translate(${rho2} ${z2}) rotate(90)`);
+    container.appendChild(g);
+
+
    let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-   path.setAttribute("d", `M ${rho2} ${z2} l 5 -10 M ${rho2} ${z2} l -5 -10 `);
+   //path.setAttribute("d", `M ${rho2} ${z2} l 5 -10 M ${rho2} ${z2} l -5 -10 `);
+    path.setAttribute("d", `M 0 0 l 5 -10 M 0 0 l -5 -10 `);
    path.style.stroke = "maroon";
    path.style.strokeWidth = "2px";
-   container.appendChild(path);
+   g.appendChild(path);
 
     let arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
     arrow.setAttribute("d", `M ${rho1},${z1} L ${rho2} ${z2}`);
