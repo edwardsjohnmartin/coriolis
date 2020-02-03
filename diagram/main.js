@@ -97,13 +97,8 @@ function calculateValues(
   let z2 = z1 - s * gravZ;
 
   let rho3 = rho2 + s * accelCent;
-  console.log(rho1, rho2, rho3, z1, z2);
 
   gravityVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
   accelCentVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
   apperantGravVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
 }
-
-
-
-

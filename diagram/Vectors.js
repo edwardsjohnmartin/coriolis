@@ -1,6 +1,9 @@
 function gravityVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
     let container = document.getElementById("container");
 
+    let gravTheta = (Math.PI/2)-Math.atan2(`${z2}`,`${rho2}`);
+    console.log(gravTheta);
+
     let marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
     marker.setAttribute("id", "triangle");
     marker.setAttribute("viewBox", "0 0 10 10");
@@ -12,13 +15,12 @@ function gravityVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
     marker.setAttribute("orient", "auto");
 
     let g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    g.setAttribute('transform', `translate(${rho2} ${z2}) rotate(90)`);
+    g.setAttribute('transform', `translate(${rho2} ${z2}) rotate(${gravTheta})`);
     container.appendChild(g);
 
 
    let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-   //path.setAttribute("d", `M ${rho2} ${z2} l 5 -10 M ${rho2} ${z2} l -5 -10 `);
-    path.setAttribute("d", `M 0 0 l 5 -10 M 0 0 l -5 -10 `);
+   path.setAttribute("d", `M 0 0 l 5 -10 M 0 0 l -5 -10 `);
    path.style.stroke = "maroon";
    path.style.strokeWidth = "2px";
    g.appendChild(path);
@@ -63,6 +65,8 @@ function accelCentVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
 function apperantGravVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
     let container = document.getElementById("container");
 
+    let appGravTheta = Math.atan2(`${z2}`, `${rho3}` )*180/Math.PI;
+
     let marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
     marker.setAttribute("id", "triangle");
     marker.setAttribute("viewBox", "0 0 10 10");
@@ -73,11 +77,15 @@ function apperantGravVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
     marker.setAttribute("markerHeight", "8");
     marker.setAttribute("orient", "auto");
 
+    let g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute('transform', `translate(${rho3} ${z2}) rotate(${appGravTheta})`);
+    container.appendChild(g);
+
     let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", `M ${rho3} ${z2} l 5 -10 M ${rho3} ${z2} l -5 -10 `);
+    path.setAttribute("d", `M 0 0 l 5 -10 M 0 0 l -5 -10 `);
     path.style.stroke = "dodgerblue";
     path.style.strokeWidth = "2px";
-    container.appendChild(path);
+    g.appendChild(path);
 
     let arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
     arrow.setAttribute("d", `M ${rho},${z} L ${rho3} ${z2}`);
