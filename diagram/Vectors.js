@@ -1,8 +1,7 @@
 function gravityVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
     let container = document.getElementById("container");
 
-    let gravTheta = (Math.PI/2)-Math.atan2(`${z2}`,`${rho2}`);
-    console.log(gravTheta);
+    let gravTheta = Math.atan2(z2-z1, rho2-rho1)*180/Math.PI - 90
 
     let marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
     marker.setAttribute("id", "triangle");
@@ -65,7 +64,7 @@ function accelCentVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
 function apperantGravVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
     let container = document.getElementById("container");
 
-    let appGravTheta = Math.atan2(`${z2}`, `${rho3}` )*180/Math.PI;
+    let appGravTheta = Math.atan2(z2-z, rho3-rho)*180/Math.PI - 90;
 
     let marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
     marker.setAttribute("id", "triangle");
