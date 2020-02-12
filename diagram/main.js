@@ -29,6 +29,7 @@ function eccentricityChanged() {
       (1 / eccent) * (1 + 3 / Math.pow(eccent, 2)) * Math.atan(eccent) -
       3 / Math.pow(eccent, 2);
   let omegaStable = Math.sqrt((15 / 4) * q * (1 - (3 / 5) * formFactor));
+  console.log(omegaStable);
   let apperantGravA =
       Math.pow(1 - Math.pow(e, 2), -1 / 6) *
       (1 - (1 + p / q) * Math.pow(omegaStable, 2));
@@ -41,7 +42,7 @@ function eccentricityChanged() {
   let eqRad = a * scaleFactor;
   let polRad = b * scaleFactor;
 
-  let latitude = [Math.PI/12, 5*Math.PI/18, 5*Math.PI/12];
+  let latitude = [5*Math.PI/18, 5*Math.PI/12];
   let latitudeLength = latitude.length;
   var i;
 
