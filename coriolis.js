@@ -29,6 +29,8 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   // v0 is in the fixed frame
   // this.v0 = new Velocity(Math.sqrt(5/4)*V, V, 0);
   this.v0 = new Velocity(v0.north, v0.east+V, 0);
+  console.log('v0', v0);
+
   // Speed of the puck
   this.speedRotational = this.v0.north;
   this.speedFixed = Math.sqrt(sq(this.v0.east)+sq(this.v0.north));
@@ -86,6 +88,11 @@ var Coriolis = function(lat0, lon0, v0, earth) {
     }
   } else {
     throw "Illegal earth type: " + earth.type;
+  }
+
+  if (this.earth.V == 0) {
+    this._thetaMax = this.theta0;
+    this._thetaMin = -this._thetaMax;
   }
 
   if (Math.abs(this._thetaMax - this._thetaMin) < EPSILON) {
@@ -173,12 +180,15 @@ Coriolis.prototype.stepRK4 = function(h) {
 
 let pathInc = 1; // In degrees
 Coriolis.prototype.step = function(h) {
+  // console.log('theta = ' + this._theta);
   let p = null;
   try {
     p = this.stepRK4(h);
-  } catch {
+  } catch(e) {
     // We pushed past the theta max limit.
+    console.log('error: ' + e);
   }
+  console.log('p = ' + p);
   // if (p == null || Math.abs(p[0]) > Math.abs(this._thetaMax)) {
   if (p == null || p[0] > this._thetaMax || p[0] < this._thetaMin) {
     // We're overshooting the max theta value. This is a hack. We fix

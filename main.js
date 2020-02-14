@@ -78,7 +78,7 @@ const view0 = ROTATIONAL_VIEW;
 let view = view0;
 let globalEarth = new Earth();
 // let earthType = EARTH_SPHERE;
-globalEarth.type = EARTH_SPHERE;
+// globalEarth.type = EARTH_SPHERE;
 // let earthType = EARTH_ELLISPOID;
 
 if (localStorage.earthType) {
@@ -296,12 +296,16 @@ function init() {
   controls.addEventListener('change', render);
 }
 
-function resetSim(dorender=true) {
+function resetSim(dorender=true, launchNorth=null, launchEast=null) {
   const launchLatitude = +document.getElementById('lat0').value;
   const launchLongitude = +document.getElementById('lon0').value;
-  const launchNorth = +document.getElementById('north0').value;
-  const launchEast = +document.getElementById('east0').value;
-  const launchV = new Velocity(launchNorth*globalEarth.V, launchEast*globalEarth.V, 0);
+  if (launchNorth == null) {
+    launchNorth = +document.getElementById('north0').value * globalEarth.V;
+  }
+  if (launchEast == null) {
+    launchEast = +document.getElementById('east0').value * globalEarth.V;
+  }
+  const launchV = new Velocity(launchNorth, launchEast, 0);
 
   // let sim = new CoriolisSim(radians(launchLongitude));
   // let sim = new Coriolis(
@@ -953,6 +957,7 @@ function demoChanged() {
   console.log(demo);
   instructions = document.getElementById('demoInstructions');
 
+  animate = true;
   if (demo == '') {
     updateArrowVisibility();
   } else if (demo == 'demo1') {
@@ -967,6 +972,10 @@ function demoChanged() {
 
     rotatingPathVisible = false;
     inertialPathVisible = false;
+
+    globalEarth = new Earth();
+    resetSim();
+    animate = true;
   } else if (demo == 'demo2') {
     instructions.innerHTML = 'Press the "f" key to toggle between the inertial and rotating reference frames.<br>Nothing changes between the frames! Because the earth is not rotating.<br>Rotational - you are rotating with the earth<br>Inertial - you are fixed with the stars';
     instructions.style.visibility = 'visible';
@@ -982,12 +991,34 @@ function demoChanged() {
 
     document.getElementById('north0').value = 0;
     document.getElementById('east0').value = 0;
-    V = 0;
-    resetSim(false);
+    globalEarth = new Earth(false);
+
+    resetSim();
+    animate = false;
+    animation = false;
+  } else if (demo == 'demo3') {
+    instructions.innerHTML = 'Press the "f" key to toggle between the inertial and rotating reference frames.<br>Nothing changes between the frames! Because the earth is not rotating.<br>Rotational - you are rotating with the earth<br>Inertial - you are fixed with the stars';
+    instructions.style.visibility = 'visible';
+
+    puckVisible = true;
+    northVisible = false;
+    eastVisible = false;
+    vVisible = false;
+    xVisible = false;
+
+    rotatingPathVisible = false;
+    inertialPathVisible = false;
+
+    globalEarth = new Earth(false);
+
+    resetSim(true, 20000, 44200);
+    animate = true;
   }
   updateAndRender();
-  animation = true;
-  tick();
+  if (animate) {
+    animation = true;
+    tick();
+  }
 }
 
 //----------------------------------------
