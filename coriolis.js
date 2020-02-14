@@ -16,7 +16,12 @@
 // there will be a theta min and theta max
 // try initial velocity of zero - will stay there in ellipsoidal and
 // move in spherical if released away from equator
-var Coriolis = function(lat0, lon0, v0, earthType) {
+var Coriolis = function(lat0, lon0, v0, earth) {
+  // console.log(earth);
+  let V = earth.V;
+  let R = earth.R;
+  this.earth = earth;
+
   // The initial position
   this.p0 = new Position(lat0, lon0);
   // The initial velocity
@@ -47,25 +52,27 @@ var Coriolis = function(lat0, lon0, v0, earthType) {
   // seconds
   this.phi_dot0 = this.vphi0 / (R * Math.cos(this.theta0));
 
-  this.earthType = earthType;
+  // this.earthType = earth.type;
 
   // seconds
-  this.L0 = (OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0));
-  if (this.earthType == EARTH_SPHERE) {
+  this.L0 = (this.earth.OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0));
+  if (this.earth.type == EARTH_SPHERE) {
     // sec^2
-    this.T0 = sq(OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0)) +
+    this.T0 = sq(this.earth.OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0)) +
       sq(this.theta_dot0);
     this._thetaMax = Math.acos(Math.sqrt(sq(this.L0)/this.T0));
     this._thetaMin = -this._thetaMax;
-  } else if (earthType == EARTH_ELLIPSOID) {
+  } else if (this.earth.type == EARTH_ELLIPSOID) {
     // sec^2
     this.T = sq(this.phi_dot0) * sq(Math.cos(this.theta0)) +
       sq(this.theta_dot0);
 
-    const num1 = -Math.sqrt(this.T) + Math.sqrt(this.T+4*OMEGA*this.L0);
+    const num1 = -Math.sqrt(this.T) + Math.sqrt(
+      this.T+4*this.earth.OMEGA*this.L0);
     // num2 can give a negative number which makes acos undefined.
-    const num2 = -Math.sqrt(this.T) - Math.sqrt(this.T+4*OMEGA*this.L0);
-    const den = 2 * OMEGA;
+    const num2 = -Math.sqrt(this.T) - Math.sqrt(
+      this.T+4*this.earth.OMEGA*this.L0);
+    const den = 2 * earth.OMEGA;
     this._thetaMax = Math.acos(num1/den);
     // console.log('num2', num2, num2/den);
     const y = num2/den;
@@ -78,7 +85,7 @@ var Coriolis = function(lat0, lon0, v0, earthType) {
       this._thetaMin = -this._thetaMax;
     }
   } else {
-    throw "Illegal earth type: " + earthType;
+    throw "Illegal earth type: " + earth.type;
   }
 
   if (Math.abs(this._thetaMax - this._thetaMin) < EPSILON) {
@@ -91,6 +98,7 @@ var Coriolis = function(lat0, lon0, v0, earthType) {
   }
 
   this._theta = this.theta0;
+  // console.log("this._theta: " + this._theta);
   // this._phi = radians(-75);
   this._phi = this.phi0;
 
@@ -116,12 +124,12 @@ var Coriolis = function(lat0, lon0, v0, earthType) {
 Coriolis.prototype.theta_dot_impl = function(theta) {
   // sec^2
   let radicand = null;
-  if (this.earthType == EARTH_SPHERE) {
+  if (this.earth.type == EARTH_SPHERE) {
     // spherical
     radicand = this.T0 - sq(this.L0/Math.cos(theta));
   } else {
     // ellipsoidal
-    const num = this.L0-OMEGA*sq(Math.cos(theta));
+    const num = this.L0-this.earth.OMEGA*sq(Math.cos(theta));
     radicand = this.T - sq(num/Math.cos(theta));
   }
   if (radicand < 0) {
@@ -135,7 +143,7 @@ Coriolis.prototype.theta_dot_impl = function(theta) {
 }
 
 Coriolis.prototype.phi_dot_impl = function(theta) {
-  return this.L0 / sq(Math.cos(theta)) - OMEGA;
+  return this.L0 / sq(Math.cos(theta)) - this.earth.OMEGA;
 }
 
 // Returns value in seconds
@@ -189,6 +197,7 @@ Coriolis.prototype.step = function(h) {
 
     this.theta_dot_negate = !this.theta_dot_negate;
   }
+  // console.log("x = " + this._theta);
   this._theta = p[0];
   this._phi = p[1];
 
@@ -200,7 +209,7 @@ Coriolis.prototype.step = function(h) {
   }
 
   const newInertialPoint =
-    new Position(this._theta, this._phi+earthRotation(time));
+    new Position(this._theta, this._phi+this.earth.earthRotation(time));
   if (this.lastInertialPoint == null ||
       this.lastInertialPoint.dist(newInertialPoint) > radians(pathInc)) {
     this.lastInertialPoint = newInertialPoint;
@@ -290,7 +299,7 @@ Coriolis.prototype.p = function(t) {
 // Computes the time-dependent velocity vector of the puck.
 //------------------------------------------------------------
 Coriolis.prototype.vFixed = function(t) {
-  let rad = this.v0.theta * Math.cos((t/T_)*2*Math.PI);
+  let rad = this.v0.theta * Math.cos((t/this.earth.T_)*2*Math.PI);
   let v = velFromRadians(rad, this.speedFixed).cartesian(this.p(t));
   v = v.normalize();
   v = v.multiplyScalar(this.speedFactor*this.speedFixed);
@@ -302,9 +311,9 @@ Coriolis.prototype.vFixed = function(t) {
 // Computes the time-dependent velocity vector of the puck.
 //------------------------------------------------------------
 Coriolis.prototype.vRotational = function(t) {
-  let rad = this.v0.theta * Math.cos((t/T_)*2*Math.PI);
+  let rad = this.v0.theta * Math.cos((t/this.earth.T_)*2*Math.PI);
   let vLatLon = velFromRadians(rad, this.speedFixed);
-  vLatLon = new Velocity(vLatLon.north, vLatLon.east - V);
+  vLatLon = new Velocity(vLatLon.north, vLatLon.east - this.earth.V);
   // return vLatLon.cartesian(this.p(t));
   // return this.vNormalized(vLatLon.cartesian(this.p(t)));
   let v = vLatLon.cartesian(this.p(t));
@@ -372,7 +381,8 @@ Coriolis.prototype.pathFixed = function(t0, t1) {
   this.inertialPath.forEach(p => {
     points.push(p);
   });
-  points.push(new Position(this._theta, this._phi+earthRotation(time)));
+  points.push(new Position(this._theta,
+                           this._phi+this.earth.earthRotation(time)));
 
   return points;
 }

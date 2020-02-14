@@ -28,9 +28,20 @@ let plane;//, arrows;
 let arrowLen = 0.22;
 const headLen = 0.045;
 let starSize = 0.007;
+
 let visiblePath = 0;
+let rotatingPathVisible = false;
+let inertialPathVisible = false;
+updatePathVisibility();
+
 let starStreaks = false;
 let arrowsVisible = 1;
+let puckVisible = false;
+let northVisible = false;
+let eastVisible = false;
+let vVisible = false;
+let xVisible = false;
+updateArrowVisibility();
 
 let map = new Map();
 
@@ -65,11 +76,13 @@ const view0 = ROTATIONAL_VIEW;
 // const view0 = FIXED_VIEW;
 // const view0 = DEBUG_VIEW;
 let view = view0;
-let earthType = EARTH_SPHERE;
+let globalEarth = new Earth();
+// let earthType = EARTH_SPHERE;
+globalEarth.type = EARTH_SPHERE;
 // let earthType = EARTH_ELLISPOID;
 
 if (localStorage.earthType) {
-  earthType = +localStorage.earthType;
+  globalEarth.type = +localStorage.earthType;
   document.getElementById('earthType').value = Number(localStorage.earthType);
 }
 if (localStorage.view) {
@@ -85,9 +98,9 @@ if (view == FIXED_VIEW) {
   document.getElementById('frame').innerHTML = 'debug'
 }
 
-if (earthType == EARTH_SPHERE) {
+if (globalEarth.type == EARTH_SPHERE) {
   document.getElementById('earthType').innerHTML = 'sphere';
-} else if (earthType == EARTH_ELLIPSOID) {
+} else if (globalEarth.type == EARTH_ELLIPSOID) {
   document.getElementById('earthType').innerHTML = 'ellipsoid';
 }
 
@@ -95,7 +108,7 @@ document.getElementById('time').value = (time/(60*60)).toFixed(2);
 // document.getElementById('rotation').value =
 //   degrees(earthRotation(time)).toFixed(2);
 document.getElementById('rotation').innerHTML =
-  degrees(earthRotation(time)).toFixed(2);
+  degrees(globalEarth.earthRotation(time)).toFixed(2);
 
 if (localStorage.lat0) {
   document.getElementById('lat0').value = Number(localStorage.lat0);
@@ -121,7 +134,7 @@ function incTime(inc) {
   // document.getElementById('rotation').value =
   //   degrees(earthRotation(time)).toFixed(2);
   document.getElementById('rotation').innerHTML =
-    degrees(earthRotation(time)).toFixed(2);
+    degrees(globalEarth.earthRotation(time)).toFixed(2);
 
   if (view == ROTATIONAL_VIEW) {
     geoStationaryTime += inc;
@@ -135,31 +148,31 @@ function incTime(inc) {
 function rotDelta() {
   let delta = 0;
   if (view == DEBUG_VIEW) {
-    delta = -sim.p(time).lon - earthRotation(time) -
-      earthRotation(-geoStationaryTime) - fixedViewRotation0;
+    delta = -sim.p(time).lon - globalEarth.earthRotation(time) -
+      globalEarth.earthRotation(-geoStationaryTime) - fixedViewRotation0;
   }
   return delta;
 }
 
 function viewRotationEarthMap() {
   const d = rotDelta();
-  return earthRotation(-geoStationaryTime) +
-    earthRotation(time) + fixedViewRotation0 + d;
+  return globalEarth.earthRotation(-geoStationaryTime) +
+    globalEarth.earthRotation(time) + fixedViewRotation0 + d;
 }
 
 function viewRotationEarth() {
   const d = rotDelta();
-  return earthRotation(time) + d;
+  return globalEarth.earthRotation(time) + d;
 }
 
 const skyRotationFactor = 0.7;
 function viewRotationSky() {
   const d = rotDelta();
-  return -earthRotation(-geoStationaryTime)*skyRotationFactor - d;
+  return -globalEarth.earthRotation(-geoStationaryTime)*skyRotationFactor - d;
 }
 
 function viewRotationScene() {
-  return earthRotation(-geoStationaryTime) + fixedViewRotation0;
+  return globalEarth.earthRotation(-geoStationaryTime) + fixedViewRotation0;
 }
 
 runTests();
@@ -178,7 +191,7 @@ function timeChanged() {
   }
   time = newTime;
   document.getElementById('rotation').value =
-    degrees(earthRotation(time)).toFixed(2);
+    degrees(globalEarth.earthRotation(time)).toFixed(2);
   updateBackgroundStars();
   updateAndRender();
 }
@@ -288,7 +301,7 @@ function resetSim(dorender=true) {
   const launchLongitude = +document.getElementById('lon0').value;
   const launchNorth = +document.getElementById('north0').value;
   const launchEast = +document.getElementById('east0').value;
-  const launchV = new Velocity(launchNorth*V, launchEast*V, 0);
+  const launchV = new Velocity(launchNorth*globalEarth.V, launchEast*globalEarth.V, 0);
 
   // let sim = new CoriolisSim(radians(launchLongitude));
   // let sim = new Coriolis(
@@ -304,7 +317,7 @@ function resetSim(dorender=true) {
   }
 
   sim = new Coriolis(
-    radians(launchLatitude), radians(launchLongitude), launchV, earthType);
+    radians(launchLatitude), radians(launchLongitude), launchV, globalEarth);
 
   if (dorender) render();
 }
@@ -351,27 +364,31 @@ function keydown(event) {
       view = ROTATIONAL_VIEW;
       document.getElementById('frame').innerHTML = 'rotational'
     } else if (view == ROTATIONAL_VIEW) {
-      view = DEBUG_VIEW;
-      document.getElementById('frame').innerHTML = 'debug'
-    } else if (view == DEBUG_VIEW) {
+    //   view = DEBUG_VIEW;
+    //   document.getElementById('frame').innerHTML = 'debug'
+    // } else if (view == DEBUG_VIEW) {
       view = FIXED_VIEW;
-      document.getElementById('frame').innerHTML = 'fixed'
+      document.getElementById('frame').innerHTML = 'inertial'
+    } else {
+      view = ROTATIONAL_VIEW;
+      document.getElementById('frame').innerHTML = 'rotational'
     }
     localStorage.view = view;
     changed = true;
   } else if (key == 'e') {
-    if (earthType == EARTH_SPHERE) {
-      earthType = EARTH_ELLIPSOID;
+    if (globalEarth.type == EARTH_SPHERE) {
+      globalEarth.type = EARTH_ELLIPSOID;
       document.getElementById('earthType').innerHTML = 'ellipsoid';
-    } else if (earthType == EARTH_ELLIPSOID) {
-      earthType = EARTH_SPHERE;
+    } else if (globalEarth.type == EARTH_ELLIPSOID) {
+      globalEarth.type = EARTH_SPHERE;
       document.getElementById('earthType').innerHTML = 'sphere';
     }
-    localStorage.earthType = earthType;
+    localStorage.earthType = globalEarth.type;
     resetSim();
     changed = true;
   } else if (key == 'p') {
-    visiblePath = (visiblePath+1)%3;
+    visiblePath = (visiblePath+1)%4;
+    updatePathVisibility();
     changed = true;
   } else if (key == 's') {
     starSize /= 1.1;
@@ -392,7 +409,9 @@ function keydown(event) {
     updateBackgroundStars();
     changed = true;
   } else if (key == 'a') {
-    arrowsVisible = (arrowsVisible+1)%3;
+    arrowsVisible = (arrowsVisible+1)%4;
+    // console.log(arrowsVisible);
+    updateArrowVisibility();
     changed = true;
   } else if (key == 'r') {
     // reset
@@ -408,6 +427,20 @@ function keydown(event) {
   if (changed) {
     updateAndRender();
   }
+}
+
+function updatePathVisibility() {
+  rotatingPathVisible = (visiblePath == 0 || visiblePath == 1);
+  inertialPathVisible = (visiblePath == 0 || visiblePath == 2);
+}
+
+function updateArrowVisibility() {
+  puckVisible = (arrowsVisible == 0 || arrowsVisible == 2 ||
+                 arrowsVisible == 3);
+  northVisible = (arrowsVisible < 2);
+  eastVisible = (arrowsVisible < 2);
+  vVisible = (arrowsVisible < 2);
+  xVisible = (arrowsVisible == 0 || arrowsVisible == 2);
 }
 
 function updateBackgroundStarsBox() {
@@ -733,13 +766,15 @@ function updateEarthGroup() {
     occludeMaterial(materialOccluded);
     let sphere = new THREE.Mesh(sgeometry, material);
     sim.step(timeInc);
+    // console.log('position: ' + sim.p(0)[0]);
     const p = sim.p(t);
     // console.log(p.cartesian);
     sphere.translateOnAxis(p.cartesian, 1);
     sphere.renderOrder = vecRenderOrder;
     sphere.materialFront = material;
     sphere.materialOccluded = materialOccluded;
-    if (arrowsVisible % 2 == 0) {
+    // if (arrowsVisible == 0 || arrowsVisible == 2 || arrowsVisible == 3) {
+    if (puckVisible) {
       earthGroup.add(sphere);
     }
 
@@ -755,49 +790,53 @@ function updateEarthGroup() {
     N = N.multiplyScalar(v.clone().dot(N));
     // debug.temp = v.x + " " + v.y;
 
-    if (arrowsVisible < 2) {
-      {
-        // v
-        let length = v.length();
-        let dir = v.normalize();
-        let origin = p.cartesian;
+    // if (arrowsVisible < 2) {
+    if (vVisible) {
+      // v
+      let length = v.length();
+      let dir = v.normalize();
+      let origin = p.cartesian;
 
+      let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+                                        vcolor, 20, headLen, 0.6*headLen);
+      prepArrowHelper(arrowHelper, vecRenderOrder);
+      arrowsGroup.add(arrowHelper);
+    }
+    if (eastVisible) {
+      // east
+      let length = E.length();
+      if (length > headLen) {
+        let dir = E.normalize();
+        let origin = p.cartesian;
         let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                          vcolor, 20, headLen, 0.6*headLen);
-        prepArrowHelper(arrowHelper, vecRenderOrder);
+                                          necolor, 20, headLen, 0.6*headLen);
+        prepArrowHelper(arrowHelper, eastRenderOrder);
         arrowsGroup.add(arrowHelper);
-      } {
-        // east
-        let length = E.length();
-        if (length > headLen) {
-          let dir = E.normalize();
-          let origin = p.cartesian;
-          let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                            necolor, 20, headLen, 0.6*headLen);
-          prepArrowHelper(arrowHelper, eastRenderOrder);
-          arrowsGroup.add(arrowHelper);
-        }
-      } {
-        // north
-        let length = N.length();
-        if (length > headLen) {
-          let dir = N.normalize();
-          let origin = p.cartesian;
-          let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                            necolor, 20, headLen, 0.6*headLen);
-          prepArrowHelper(arrowHelper, northRenderOrder);
-          arrowsGroup.add(arrowHelper);
-        }
       }
     }
+    if (northVisible) {
+      // north
+      let length = N.length();
+      if (length > headLen) {
+        let dir = N.normalize();
+        let origin = p.cartesian;
+        let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+                                          necolor, 20, headLen, 0.6*headLen);
+        prepArrowHelper(arrowHelper, northRenderOrder);
+        arrowsGroup.add(arrowHelper);
+      }
+    }
+    // }
     // puck's path
     // if (view == ROTATIONAL_VIEW) {
-    if (visiblePath == 0 || visiblePath == 1) {
+    // if (visiblePath == 0 || visiblePath == 1) {
+    if (rotatingPathVisible) {
       let path = getPuckPathRotating(t, rotatingPathColor);
       // console.log(path);
       earthGroup.add(path);
 
-      if (arrowsVisible % 2 == 0) {
+      // if (arrowsVisible % 2 == 0) {
+      if (xVisible) {
         let xpath = sim.pathRot(0, t);
         // console.log(path.length);
         let xl = xpath.length;
@@ -826,7 +865,8 @@ function updateEarthGroup() {
         }
       }
     }
-    if (visiblePath == 0 || visiblePath == 2) {
+    // if (visiblePath == 0 || visiblePath == 2) {
+    if (inertialPathVisible) {
       let path = getPuckPathFixed(t, fixedPathColor);
       fixedPathGroup.add(path);
     }
@@ -903,6 +943,51 @@ function tick() {
   updateAndRender();
 
   requestAnimationFrame(tick);
+}
+
+//----------------------------------------
+// demoChanged
+//----------------------------------------
+function demoChanged() {
+  let demo = document.getElementById('demos').value;
+  console.log(demo);
+  instructions = document.getElementById('demoInstructions');
+
+  if (demo == '') {
+    updateArrowVisibility();
+  } else if (demo == 'demo1') {
+    instructions.innerHTML = 'Press the "f" key to toggle between the inertial and rotating reference frames<br>Rotational - you are rotating with the earth<br>Inertial - you are fixed with the stars';
+    instructions.style.visibility = 'visible';
+
+    puckVisible = false;
+    northVisible = false;
+    eastVisible = false;
+    vVisible = false;
+    xVisible = false;
+
+    rotatingPathVisible = false;
+    inertialPathVisible = false;
+  } else if (demo == 'demo2') {
+    instructions.innerHTML = 'Press the "f" key to toggle between the inertial and rotating reference frames.<br>Nothing changes between the frames! Because the earth is not rotating.<br>Rotational - you are rotating with the earth<br>Inertial - you are fixed with the stars';
+    instructions.style.visibility = 'visible';
+
+    puckVisible = true;
+    northVisible = false;
+    eastVisible = false;
+    vVisible = false;
+    xVisible = false;
+
+    rotatingPathVisible = false;
+    inertialPathVisible = false;
+
+    document.getElementById('north0').value = 0;
+    document.getElementById('east0').value = 0;
+    V = 0;
+    resetSim(false);
+  }
+  updateAndRender();
+  animation = true;
+  tick();
 }
 
 //----------------------------------------

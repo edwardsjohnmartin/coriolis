@@ -38,6 +38,11 @@ td.vis {
     padding: 10px;
 }
 
+#demoInstructions {
+    text-align: center;
+    visibility: hidden;
+}
+
 #graphic {
     width: 500px;
     height: 500px;

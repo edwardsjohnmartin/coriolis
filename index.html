@@ -7,20 +7,32 @@
     <link rel="stylesheet" href="style.css?1"/>
   </head>
   <body>
-
+    <p id="demoInstructions">Instructions</p>
     <table>
       <tr>
         <td class="info">
           <div class="instructions">
             <table>
               <tr>
-                <td class="right">p0:</td><td>&nbsp;<input type="text" id="lat0" size=5 onchange="lat0Changed()" value="0"></input>,<input type="text" id="lon0" size=5 onchange="lon0Changed()" value="-75"></input>&nbsp;(lat,lon)</td>
+                <td class="right">
+                  <label for="demos">Demos:</label>
+                </td><td>
+                  <select id="demos" onchange="demoChanged()">
+                    <option value="none"></option>
+                    <option value="demo1">1</option>
+                    <option value="demo2">2</option>
+                    <option value="demo3">3</option>
+                    <option value="demo4">4</option>
+                  </select>
+              </tr>
               <tr>
-                <td class="right">v0:</td><td>&nbsp;<input type="text" id="north0" size=5 onchange="north0Changed()" value="1.12"></input><code>*V</code>,&nbsp;<input type="text" id="east0" size=5 onchange="east0Changed()" value="0"></input><code>*V</code>&nbsp;(north,east)</td>
+                <td class="right">Frame (f):</td><td>&nbsp;<b id="frame">fixed</b></td>
               <tr>
                 <td class="right">Earth type (e):</td><td>&nbsp;<b id="earthType">spherical</b></td>
               <tr>
-                <td class="right">Frame (f):</td><td>&nbsp;<b id="frame">fixed</b></td>
+                <td class="right">p0:</td><td>&nbsp;<input type="text" id="lat0" size=5 onchange="lat0Changed()" value="0"></input>,<input type="text" id="lon0" size=5 onchange="lon0Changed()" value="-75"></input>&nbsp;(lat,lon)</td>
+              <tr>
+                <td class="right">v0:</td><td>&nbsp;<input type="text" id="north0" size=5 onchange="north0Changed()" value="1.12"></input><code>*V</code>,&nbsp;<input type="text" id="east0" size=5 onchange="east0Changed()" value="0"></input><code>*V</code>&nbsp;(north,east)</td>
               <tr>
                 <td class="right">Simulation speed (&uarr;&darr;):</td>
                 <td>&nbsp;<b id="speed"></b></td>
