@@ -102,4 +102,20 @@ function calculateValues(
   gravityVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
   accelCentVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
   apperantGravVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
+  snap();
+}
+
+function snap() {
+  let svg = document.getElementById("diagram");
+  console.log('Taking SVG snapshot');
+  XMLS = new XMLSerializer();
+  svgtext = XMLS.serializeToString(svg.domElement);
+
+  // console.log(svgtext);
+  let textarea = document.getElementById("snapshot-output");
+  // textarea.innerHTML = svgtext;
+  textarea.value = svgtext;
+
+  textarea.select();
+  document.execCommand('copy');
 }

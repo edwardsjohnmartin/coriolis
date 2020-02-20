@@ -46,6 +46,14 @@ Rotation Rate: <input id="rotationRate", value = '0.75'/>
 <p>Enter a value to change the Rotational Rate</p>
 <button onclick="eccentricityChanged()">Click Me</button>
 <br>
+
+<div id="snapshot">
+    <!--a style="cursor:pointer" onclick="snap()">SVG snapshot</a-->
+    <a style="cursor:pointer" onclick="snap()">Copy SVG</a>
+    <br>
+    <textarea id="snapshot-output"></textarea>
+</div>
+
 <svg width="800" height="800" id="diagram">
 </svg>
 <g id="diagram-elements">
