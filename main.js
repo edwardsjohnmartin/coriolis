@@ -128,11 +128,34 @@ resetSim(false);
 const zPosition = 10;
 const zZero = -1.1;
 
+const formatted = (v) => {
+  return v < 10 ? "0" + v : v;
+};
+
 function incTime(inc) {
   time += inc;
   document.getElementById('time').value = (time/(60*60)).toFixed(2);
   // document.getElementById('rotation').value =
   //   degrees(earthRotation(time)).toFixed(2);
+  const clock = document.getElementById('clock')
+
+  const dayItem = clock.getElementsByClassName('day')[0]
+  const hourItem = clock.getElementsByClassName('hour')[0]
+  const minItem = clock.getElementsByClassName('min')[0]
+  const secItem = clock.getElementsByClassName('sec')[0]
+
+  let seconds = Math.floor(time)
+  dayItem.innerHTML = formatted(Math.floor(seconds / 86400));
+  seconds %= 86400;
+
+  hourItem.innerHTML = formatted(Math.floor(seconds / 3600));
+  seconds = seconds % 3600;
+
+  minItem.innerHTML = formatted(Math.floor(seconds / 60));
+
+  seconds %= 60;
+  secItem.innerHTML = formatted(Math.floor(seconds));
+
   document.getElementById('rotation').innerHTML =
     degrees(globalEarth.earthRotation(time)).toFixed(2);
 
