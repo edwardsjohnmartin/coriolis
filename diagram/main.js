@@ -14,7 +14,7 @@ function eccentricityChanged() {
   container.setAttribute("id", "container");
   svg.appendChild(container);
 
-  let s = 100;
+  let s = 75;
   let A = 0.2084558583;
   let B = 0.7915441417;
 
@@ -42,7 +42,7 @@ function eccentricityChanged() {
   let eqRad = a * scaleFactor;
   let polRad = b * scaleFactor;
 
-  let latitude = [0, Math.PI/6, Math.PI/3, Math.PI/2];
+  let latitude = [0,Math.atan(Math.tan(Math.PI/3)/(1-Math.pow(e,2))),Math.atan(Math.tan(Math.PI/6)/(1-Math.pow(e,2))), Math.PI/2];
   let latitudeLength = latitude.length;
   var i;
 
