@@ -103,7 +103,7 @@ function calculateValues(
   gravityVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
   accelCentVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
   apperantGravVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
-  //downloadSVGasTextFile();
+  downloadSVGasTextFile();
 }
 
 function downloadSVGasTextFile() {
