@@ -42,7 +42,7 @@ function eccentricityChanged() {
   let eqRad = a * scaleFactor;
   let polRad = b * scaleFactor;
 
-  let latitude = [5*Math.PI/18, 5*Math.PI/12];
+  let latitude = [5*Math.PI/36, 5*Math.PI/12];
   let latitudeLength = latitude.length;
   var i;
 
@@ -79,6 +79,7 @@ function makeEllipse(eqRad, polRad) {
   ellipse.style.strokeWidth = "3px";
   ellipse.setAttribute("id", "mydiagram");
   svg.appendChild(ellipse);
+
 }
 
 function calculateValues(
@@ -102,20 +103,15 @@ function calculateValues(
   gravityVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
   accelCentVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
   apperantGravVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
-  snap();
+  //downloadSVGasTextFile();
 }
 
-function snap() {
-  let svg = document.getElementById("diagram");
-  console.log('Taking SVG snapshot');
-  XMLS = new XMLSerializer();
-  svgtext = XMLS.serializeToString(svg.domElement);
+function downloadSVGasTextFile() {
+  const base64doc = btoa(unescape(encodeURIComponent(document.querySelector('svg').outerHTML)));
+  const a = document.createElement('a');
+  const e = new MouseEvent('click');
 
-  // console.log(svgtext);
-  let textarea = document.getElementById("snapshot-output");
-  // textarea.innerHTML = svgtext;
-  textarea.value = svgtext;
-
-  textarea.select();
-  document.execCommand('copy');
+  a.download = 'download.svg';
+  a.href = 'data:text/html;base64,' + base64doc;
+  a.dispatchEvent(e);
 }
