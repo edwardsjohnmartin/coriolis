@@ -74,9 +74,9 @@ function makeEllipse(eqRad, polRad) {
 
   let ellipse = document.createElementNS("http://www.w3.org/2000/svg", "path");
   ellipse.setAttribute("d", `M 400 100 a ${polRad},${eqRad} 90 1,0 1,0 z`);
-  ellipse.style.fill = "transparent";
+  ellipse.style.fill = "white";
   ellipse.style.stroke = "black";
-  ellipse.style.strokeWidth = "3px";
+  ellipse.style.strokeWidth = "2px";
   ellipse.setAttribute("id", "mydiagram");
   svg.appendChild(ellipse);
 
