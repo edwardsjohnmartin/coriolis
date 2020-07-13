@@ -74,7 +74,7 @@ function makeEllipse(eqRad, polRad) {
 
   let ellipse = document.createElementNS("http://www.w3.org/2000/svg", "path");
   ellipse.setAttribute("d", `M 400 100 a ${polRad},${eqRad} 90 1,0 1,0 z`);
-  ellipse.style.fill = "white";
+  ellipse.style.fill = "transparent";
   ellipse.style.stroke = "black";
   ellipse.style.strokeWidth = "2px";
   ellipse.setAttribute("id", "mydiagram");
@@ -103,7 +103,7 @@ function calculateValues(
   gravityVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
   accelCentVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
   apperantGravVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
-  downloadSVGasTextFile();
+  //downloadSVGasTextFile();
 }
 
 function downloadSVGasTextFile() {
