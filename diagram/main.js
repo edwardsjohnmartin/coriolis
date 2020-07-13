@@ -42,7 +42,7 @@ function eccentricityChanged() {
   let eqRad = a * scaleFactor;
   let polRad = b * scaleFactor;
 
-  let latitude = [5*Math.PI/36, 5*Math.PI/12];
+  let latitude = [0, Math.PI/6, Math.PI/3, Math.PI/2];
   let latitudeLength = latitude.length;
   var i;
 
@@ -76,9 +76,10 @@ function makeEllipse(eqRad, polRad) {
   ellipse.setAttribute("d", `M 400 100 a ${polRad},${eqRad} 90 1,0 1,0 z`);
   ellipse.style.fill = "transparent";
   ellipse.style.stroke = "black";
-  ellipse.style.strokeWidth = "2px";
+  ellipse.style.strokeWidth = "1px";
   ellipse.setAttribute("id", "mydiagram");
   svg.appendChild(ellipse);
+  downloadSVGasTextFile();
 
 }
 
@@ -103,7 +104,6 @@ function calculateValues(
   gravityVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
   accelCentVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
   apperantGravVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
-  downloadSVGasTextFile();
 }
 
 function downloadSVGasTextFile() {

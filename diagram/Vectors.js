@@ -21,14 +21,14 @@ function gravityVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
    let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
    path.setAttribute("d", `M 0 0 l 2.5 -5 M 0 0 l -2.5 -5 `);
    path.style.stroke = "maroon";
-   path.style.strokeWidth = "2px";
+   path.style.strokeWidth = "1px";
    g.appendChild(path);
 
     let arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
     arrow.setAttribute("d", `M ${rho1},${z1} L ${rho2} ${z2}`);
     arrow.setAttribute("id", "gravPath");
     arrow.style.stroke = "maroon";
-    arrow.style.strokeWidth = "2px";
+    arrow.style.strokeWidth = "1px";
     container.appendChild(arrow);
     arrow.setAttributeNS("marker-end", "triangle", "void");
 }
@@ -49,14 +49,14 @@ function accelCentVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
     let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("d", `M ${rho3} ${z2} l -5 2.5 M ${rho3} ${z2} l -5 -2.5`);
     path.style.stroke = "darkorange";
-    path.style.strokeWidth = "2px";
+    path.style.strokeWidth = "1px";
     container.appendChild(path);
 
     let arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
     arrow.setAttribute("d", `M ${rho2},${z2} L ${rho3} ${z2}`);
     arrow.setAttribute("id", "accelCentPath");
     arrow.style.stroke = "darkorange";
-    arrow.style.strokeWidth = "2px";
+    arrow.style.strokeWidth = "1px";
     container.appendChild(arrow);
     arrow.setAttributeNS("marker-end", "triangle", "void");
 }
@@ -83,13 +83,13 @@ function apperantGravVector(rho, z, rho2, z2, rho3, gravRho, gravZ, s, polRad) {
     let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("d", `M 0 0 l 2.5 -5 M 0 0 l -2.5 -5 `);
     path.style.stroke = "dodgerblue";
-    path.style.strokeWidth = "2px";
+    path.style.strokeWidth = "1px";
     g.appendChild(path);
 
     let arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
     arrow.setAttribute("d", `M ${rho},${z} L ${rho3} ${z2}`);
     arrow.style.stroke = "dodgerblue";
-    arrow.style.strokeWidth = "2px";
+    arrow.style.strokeWidth = "1px";
     container.appendChild(arrow);
     arrow.setAttributeNS("marker-end", "triangle", "void");
 }
