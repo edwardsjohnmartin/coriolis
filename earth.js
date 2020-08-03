@@ -17,7 +17,10 @@ var Earth = function(rotating=true) {
   this.T_ = 16*60*60;
 
   // Earth's angular velocity in rad/s
-  this.OMEGA = Math.PI / (12*60*60); // 0.0000727;
+  // this.OMEGA = Math.PI / (12*60*60); // 0.0000727;
+  this.OMEGA = 2 * Math.PI / this.T; // 0.0000727;
+  console.log("omega = " + this.OMEGA);
+  // console.log("V = " + this.V);
 
   if (!rotating) {
     this.T = Infinity; // in seconds

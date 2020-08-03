@@ -246,6 +246,10 @@ Coriolis.prototype.step = function(h) {
     this.inertialPath = newip;
     pathInc *= 2;
   }
+
+  console.log("T = " + this.T);
+  // console.log("V = " + this.V);
+  // console.log("L0 = " + this.L0);
 }
 
 //------------------------------------------------------------
