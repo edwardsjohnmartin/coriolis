@@ -14,7 +14,7 @@ function eccentricityChanged() {
   container.setAttribute("id", "container");
   svg.appendChild(container);
 
-  let s = 100;
+  let s = 75;
   let A = 0.2084558583;
   let B = 0.7915441417;
 
@@ -42,7 +42,7 @@ function eccentricityChanged() {
   let eqRad = a * scaleFactor;
   let polRad = b * scaleFactor;
 
-  let latitude = [5*Math.PI/18, 5*Math.PI/12];
+  let latitude = [0,Math.atan(Math.tan(Math.PI/3)/(1-Math.pow(e,2))),Math.atan(Math.tan(Math.PI/6)/(1-Math.pow(e,2))), Math.PI/2];
   let latitudeLength = latitude.length;
   var i;
 
@@ -76,9 +76,11 @@ function makeEllipse(eqRad, polRad) {
   ellipse.setAttribute("d", `M 400 100 a ${polRad},${eqRad} 90 1,0 1,0 z`);
   ellipse.style.fill = "transparent";
   ellipse.style.stroke = "black";
-  ellipse.style.strokeWidth = "3px";
+  ellipse.style.strokeWidth = "1px";
   ellipse.setAttribute("id", "mydiagram");
   svg.appendChild(ellipse);
+  downloadSVGasTextFile();
+
 }
 
 function calculateValues(
@@ -103,3 +105,14 @@ function calculateValues(
   accelCentVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
   apperantGravVector(rho1, z1, rho2, z2, rho3, gravRho, gravZ, s, polRad);
 }
+
+function downloadSVGasTextFile() {
+  const base64doc = btoa(unescape(encodeURIComponent(document.querySelector('svg').outerHTML)));
+  const a = document.createElement('a');
+  const e = new MouseEvent('click');
+
+  a.download = 'download.svg';
+  a.href = 'data:text/html;base64,' + base64doc;
+  a.dispatchEvent(e);
+}
+//lets try this again

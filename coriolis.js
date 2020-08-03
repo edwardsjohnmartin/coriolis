@@ -28,8 +28,9 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   // meters per second in each dimension
   // v0 is in the fixed frame
   // this.v0 = new Velocity(Math.sqrt(5/4)*V, V, 0);
-  this.v0 = new Velocity(v0.north, v0.east+V, 0);
-  console.log('v0', v0);
+  // this.v0 = new Velocity(v0.north, v0.east+V, 0);
+  this.v0 = new Velocity(v0.north, v0.east, 0);
+  console.log('v0', this.v0);
 
   // Speed of the puck
   this.speedRotational = this.v0.north;
@@ -90,10 +91,10 @@ var Coriolis = function(lat0, lon0, v0, earth) {
     throw "Illegal earth type: " + earth.type;
   }
 
-  if (this.earth.V == 0) {
-    this._thetaMax = this.theta0;
-    this._thetaMin = -this._thetaMax;
-  }
+  // if (this.earth.V == 0) {
+  //   this._thetaMax = this.theta0;
+  //   this._thetaMin = -this._thetaMax;
+  // }
 
   if (Math.abs(this._thetaMax - this._thetaMin) < EPSILON) {
     this._thetaMin = this._thetaMax;
@@ -116,6 +117,8 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   this.lastRotPoint = null;
   this.lastInertialPoint = null;
 
+  console.log('theta0', this.theta0);
+  console.log('phi0', this.phi0);
   console.log('V', V);
   console.log('vtheta0', this.vtheta0);
   console.log('theta_dot0', this.theta_dot0);
@@ -141,7 +144,11 @@ Coriolis.prototype.theta_dot_impl = function(theta) {
   }
   if (radicand < 0) {
     // Negative radicand!
-    throw("Overshot the theta maximum: " + theta);
+    if (radicand > -0.00001) {
+      radicand = 0;
+    } else {
+      throw("Overshot the theta maximum: " + theta);
+    }
   }
   if (this.theta_dot_negate) {
     return -1 * Math.sqrt(radicand);
@@ -188,7 +195,7 @@ Coriolis.prototype.step = function(h) {
     // We pushed past the theta max limit.
     console.log('error: ' + e);
   }
-  console.log('p = ' + p);
+  // console.log('p', p);
   // if (p == null || Math.abs(p[0]) > Math.abs(this._thetaMax)) {
   if (p == null || p[0] > this._thetaMax || p[0] < this._thetaMin) {
     // We're overshooting the max theta value. This is a hack. We fix

@@ -303,7 +303,8 @@ function resetSim(dorender=true, launchNorth=null, launchEast=null) {
     launchNorth = +document.getElementById('north0').value * globalEarth.V;
   }
   if (launchEast == null) {
-    launchEast = +document.getElementById('east0').value * globalEarth.V;
+    launchEast = +document.getElementById('east0').value * globalEarth.V
+      + globalEarth.V;
   }
   const launchV = new Velocity(launchNorth, launchEast, 0);
 
@@ -950,6 +951,30 @@ function tick() {
 }
 
 //----------------------------------------
+// snap
+//----------------------------------------
+function snap() {
+  console.log('Taking SVG snapshot');
+  XMLS = new XMLSerializer();
+  svgtext = XMLS.serializeToString(renderer.domElement);
+
+  // console.log(svgtext);
+  let textarea = document.getElementById("snapshot-output");
+  // textarea.innerHTML = svgtext;
+  textarea.value = svgtext;
+
+  textarea.select();
+  document.execCommand('copy');
+
+  // const el = document.createElement('textarea');
+  // el.value = svgtext;
+  // document.body.appendChild(el);
+  // el.select();
+  // document.execCommand('copy');
+  // document.body.removeChild(el);
+}
+
+//----------------------------------------
 // demoChanged
 //----------------------------------------
 function demoChanged() {
@@ -1007,11 +1032,41 @@ function demoChanged() {
     xVisible = false;
 
     rotatingPathVisible = false;
-    inertialPathVisible = false;
+    inertialPathVisible = true;
 
     globalEarth = new Earth(false);
 
-    resetSim(true, 20000, 44200);
+    animInc = 150;
+
+    // console.log('random', Math.random());
+    speed = 500;
+    let north = Math.random()*speed;
+    console.log('north', north);
+    let east = Math.sqrt(speed*speed - north*north);
+    resetSim(true, north, east);
+    animate = true;
+  } else if (demo == 'demo4') {
+    instructions.innerHTML = 'Press the "f" key to toggle between the inertial and rotating reference frames.<br>Nothing changes between the frames! Because the earth is not rotating.<br>Rotational - you are rotating with the earth<br>Inertial - you are fixed with the stars';
+    instructions.style.visibility = 'visible';
+
+    puckVisible = true;
+    northVisible = false;
+    eastVisible = false;
+    vVisible = false;
+    xVisible = false;
+
+    rotatingPathVisible = true;
+    inertialPathVisible = false;
+
+    document.getElementById('lat0').value = 20;
+    document.getElementById('lon0').value = -75;
+
+    globalEarth = new Earth(true);
+
+    animInc = 150;
+
+    // console.log('random', Math.random());
+    resetSim(true, 0, 0);
     animate = true;
   }
   updateAndRender();
@@ -1021,26 +1076,3 @@ function demoChanged() {
   }
 }
 
-//----------------------------------------
-// snap
-//----------------------------------------
-function snap() {
-  console.log('Taking SVG snapshot');
-  XMLS = new XMLSerializer();
-  svgtext = XMLS.serializeToString(renderer.domElement);
-
-  // console.log(svgtext);
-  let textarea = document.getElementById("snapshot-output");
-  // textarea.innerHTML = svgtext;
-  textarea.value = svgtext;
-
-  textarea.select();
-  document.execCommand('copy');
-
-  // const el = document.createElement('textarea');
-  // el.value = svgtext;
-  // document.body.appendChild(el);
-  // el.select();
-  // document.execCommand('copy');
-  // document.body.removeChild(el);
-}
