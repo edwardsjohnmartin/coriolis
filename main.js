@@ -1067,3 +1067,10 @@ function snap() {
   // document.execCommand('copy');
   // document.body.removeChild(el);
 }
+
+document.getElementById('eccentricity').onchange = function(e) {
+  const svg = document.getElementById('graphic').firstChild;
+  const scaleX = e.target.value;
+  svg.style.transform = `scaleX(${scaleX})`;
+
+}

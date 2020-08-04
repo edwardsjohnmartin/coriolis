@@ -1,3 +1,4 @@
+alert('here')
 function eccentricityChanged() {
   let svg = document.getElementById("diagram");
 
