@@ -11,7 +11,7 @@ var Earth = function(rotating=true) {
   // this.T = 24*60*60; // in seconds
   // this.R = 6371000; // mean radius in meters
   this.R = 6378137; // equatorial radius in meters
-  this.T = 23.93*60*60 // (23.93 hours, stored in seconds). 
+  this.T = 23.93447*60*60 // (23.93 hours, stored in seconds). 
   this.V_ = 2 * Math.PI * (this.R / this.T); // meters per second
   this.V = this.V_;
   // T_: the period of the puck
