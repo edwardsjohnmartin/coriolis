@@ -104,7 +104,7 @@ if (globalEarth.type == EARTH_SPHERE) {
   document.getElementById('earthType').innerHTML = 'ellipsoid';
 }
 
-document.getElementById('time').value = (time/(60*60)).toFixed(2);
+document.getElementById('time').value = (time/(60*60)).toFixed(10);
 // document.getElementById('rotation').value =
 //   degrees(earthRotation(time)).toFixed(2);
 document.getElementById('rotation').innerHTML =
@@ -130,7 +130,7 @@ const zZero = -1.1;
 
 function incTime(inc) {
   time += inc;
-  document.getElementById('time').value = (time/(60*60)).toFixed(2);
+  document.getElementById('time').value = (time/(60*60)).toFixed(10);
   // document.getElementById('rotation').value =
   //   degrees(earthRotation(time)).toFixed(2);
   document.getElementById('rotation').innerHTML =

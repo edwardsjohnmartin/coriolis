@@ -3,16 +3,16 @@ var debug = {
     document.getElementById('temp').innerHTML = v;
   },
   set theta(v) {
-    document.getElementById('theta').innerHTML = degrees(v).toFixed(3);
+    document.getElementById('theta').innerHTML = degrees(v).toFixed(10);
   },
   set phi(v) {
-    document.getElementById('phi').innerHTML = degrees(v).toFixed(3);
+    document.getElementById('phi').innerHTML = degrees(v).toFixed(10);
   },
   set theta_dot(v) {
-    document.getElementById('theta_dot').innerHTML = (v*10000).toFixed(3);
+    document.getElementById('theta_dot').innerHTML = (v*10000).toFixed(10);
   },
   set phi_dot(v) {
-    document.getElementById('phi_dot').innerHTML = (v*10000).toFixed(3);
+    document.getElementById('phi_dot').innerHTML = (v*10000).toFixed(10);
   },
   set L0(v) {
     document.getElementById('L0').innerHTML = (v*10000).toFixed(1);
