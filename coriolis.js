@@ -55,7 +55,7 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   this.phi_dot0 = this.vphi0 / (R * Math.cos(this.theta0));
 
   // ellipsoidal params
-  this.eccentricity = 0.5
+  this.eccentricity = 0.3
 
   // this.earthType = earth.type;
 
@@ -69,27 +69,6 @@ var Coriolis = function(lat0, lon0, v0, earth) {
     this._thetaMax = Math.acos(Math.sqrt(sq(this.L0)/this.T0));
     this._thetaMin = -this._thetaMax;
   } else if (this.earth.type === EARTH_ELLIPSOID) {
-    // sec^2
-    this.T = sq(this.phi_dot0) * sq(Math.cos(this.theta0)) +
-      sq(this.theta_dot0);
-
-    const num1 = -Math.sqrt(this.T) + Math.sqrt(
-      this.T+4*this.earth.OMEGA*this.L0);
-    // num2 can give a negative number which makes acos undefined.
-    const num2 = -Math.sqrt(this.T) - Math.sqrt(
-      this.T+4*this.earth.OMEGA*this.L0);
-    const den = 2 * earth.OMEGA;
-    this._thetaMax = Math.acos(num1/den);
-    // console.log('num2', num2, num2/den);
-    const y = num2/den;
-    if (y >= -1 && y <= 1) {
-      this._thetaMin = Math.acos(num2/den);
-      if (this._thetaMin > Math.PI/2) {
-        this._thetaMin = Math.PI - this._thetaMin;
-      }
-    } else {
-      this._thetaMin = -this._thetaMax;
-    }
   } else {
     throw "Illegal earth type: " + earth.type;
   }
@@ -97,15 +76,6 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   if (this.earth.V == 0) {
     this._thetaMax = this.theta0;
     this._thetaMin = -this._thetaMax;
-  }
-
-  if (Math.abs(this._thetaMax - this._thetaMin) < EPSILON) {
-    this._thetaMin = this._thetaMax;
-    this.theta0 = Math.min(this.theta0, this._thetaMax);
-    this.theta0 = Math.max(this.theta0, this._thetaMin);
-  } else {
-    this.theta0 = Math.min(this.theta0, this._thetaMax-EPSILON);
-    this.theta0 = Math.max(this.theta0, this._thetaMin+EPSILON);
   }
 
   this._theta = this.theta0;
@@ -117,6 +87,7 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   this.prev_theta_dot = this.theta_dot0
 
   this.L0 = this.L_momentum(this.phi_dot0, this.eccentricity, this.theta0, true)
+  this.T = this.T0 = this.Kinetic(this.theta0, this.phi_dot0, this.theta_dot0, this.eccentricity, true)
 
   // this.theta_dot_negate = false;
 
@@ -178,7 +149,10 @@ Coriolis.prototype.L_momentum = function(dphi, e, theta, calc = false) {
   return res
 }
 
-const T = (theta, dphi, dtheta, e) => {
+Coriolis.prototype.Kinetic = function(theta, dphi, dtheta, e, calc = false) {
+  if (!calc) {
+    return this.T
+  }
   const cos_sq = Math.cos(theta) * Math.cos(theta)
   const sin_sq = 1 - cos_sq
   const s_sq = stableAngularSpeed(e)
@@ -210,7 +184,7 @@ const sqrt = (v) => {
 
 Coriolis.prototype.f2 = function (theta, phi_dot, theta_dot, e) {
   const a = 1 - sq(e * Math.sin(theta))
-  const v = T(theta, phi_dot, theta_dot, e)
+  const v = this.Kinetic(theta, phi_dot, theta_dot, e)
   const res =  Math.pow(a, 1.5) / (1 - e * e) * sqrt(v - sq(this.f1(theta, phi_dot, e) * Math.cos(theta)) / a)
   console.log('f2', { res, theta, phi_dot, theta_dot, e })
   return res
