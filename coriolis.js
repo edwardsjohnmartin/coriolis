@@ -55,7 +55,7 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   this.phi_dot0 = this.vphi0 / (R * Math.cos(this.theta0));
 
   // ellipsoidal params
-  this.eccentricity = 0.3
+  this.eccentricity = 0.08182
 
   // this.earthType = earth.type;
 
@@ -69,6 +69,7 @@ var Coriolis = function(lat0, lon0, v0, earth) {
     this._thetaMax = Math.acos(Math.sqrt(sq(this.L0)/this.T0));
     this._thetaMin = -this._thetaMax;
   } else if (this.earth.type === EARTH_ELLIPSOID) {
+    // sec^2
   } else {
     throw "Illegal earth type: " + earth.type;
   }
@@ -87,7 +88,7 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   this.prev_theta_dot = this.theta_dot0
 
   this.L0 = this.L_momentum(this.phi_dot0, this.eccentricity, this.theta0, true)
-  this.T = this.T0 = this.Kinetic(this.theta0, this.phi_dot0, this.theta_dot0, this.eccentricity, true)
+  this.T = this.T0 = this.Kinetic(this.theta0, this.phi_dot0, this.theta_dot0, this.eccentricity, true) + 2
 
   // this.theta_dot_negate = false;
 
@@ -176,6 +177,7 @@ Coriolis.prototype.f1 = function(theta, dphi, e) {
 
 const sqrt = (v) => {
   if (v < 0) {
+    //debugger
     console.log('negative sqrt of ', v)
     return Math.sqrt(-v)
   }
