@@ -16,7 +16,7 @@
 // there will be a theta min and theta max
 // try initial velocity of zero - will stay there in ellipsoidal and
 // move in spherical if released away from equator
-var Coriolis = function(lat0, lon0, v0, earth) {
+var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   // console.log(earth);
   let V = earth.V;
   let R = earth.R;
@@ -38,6 +38,8 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   this.alpha = Math.atan2(this.v0.north/V, this.v0.east/V);
   this.speedFactor = 0.0005;
 
+  this.eccentricity = eccentricity
+
   //--------------------
   // New stuff
   //--------------------
@@ -53,11 +55,6 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   this.theta_dot0 = this.vtheta0 / R;
   // seconds
   this.phi_dot0 = this.vphi0 / (R * Math.cos(this.theta0));
-
-  // ellipsoidal params
-  this.eccentricity = 0.08182
-  this.eccentricity = 0.08181919084261345 * 0
-  // this.eccentricity = 0.08181919084261345
 
   // this.earthType = earth.type;
 
@@ -130,6 +127,7 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   console.log('T0', this.T * sphereAngularSpeed * sphereAngularSpeed);
   console.log('thetaMax', degrees(this._thetaMax));
   console.log('thetaMin', degrees(this._thetaMin));
+  console.log('eccentricity', eccentricity)
 }
 
 const F = (e) => {

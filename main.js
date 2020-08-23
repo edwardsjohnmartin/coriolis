@@ -21,6 +21,8 @@ if (localStorage.animInc) {
 // document.getElementById('speed').value = animInc.toFixed(1);
 document.getElementById('speed').innerHTML = animInc.toFixed(1);
 
+const eccentricitySlider = document.getElementById('eccentricity')
+
 const radius = 1;
 let radiusInWindow;
 
@@ -121,6 +123,26 @@ if (localStorage.north0) {
 }
 if (localStorage.east0) {
   document.getElementById('east0').value = Number(localStorage.east0);
+}
+
+const resizeGlobe = (eccentricity) => {
+  const Ro = 400 // in pixels
+
+  document.getElementById('eccentricity-value').innerHTML = eccentricity
+
+  const sq_eccentricity = eccentricity * eccentricity
+    console.log({ eccentricity, sq_eccentricity })
+
+  const a = Ro * Math.pow(1 - sq_eccentricity, - 1 / 6)
+  const b = Ro * Math.pow(1 - sq_eccentricity, 1 / 3)
+
+  const scaleA = a / Ro
+  const scaleB = b / Ro
+
+  const graphic = document.getElementById('graphic')
+  const svg = graphic.getElementsByTagName('svg')[0]
+  svg.style.transform = `scale(${scaleA}, ${scaleB})`
+  console.log({ scaleA, scaleB })
 }
 
 resetSim(false);
@@ -344,9 +366,11 @@ function resetSim(dorender=true, launchNorth=null, launchEast=null) {
   }
 
   sim = new Coriolis(
-    radians(launchLatitude), radians(launchLongitude), launchV, globalEarth);
+    radians(launchLatitude), radians(launchLongitude), launchV, globalEarth, +eccentricitySlider.value);
 
-  if (dorender) render();
+  if (dorender) {
+    render();
+  }
 }
 
 function keydown(event) {
@@ -930,6 +954,8 @@ function render() {
   renderer.clear();
   map.draw();
   renderer.render(scene, camera);
+
+  resizeGlobe(+eccentricitySlider.value)
 }
 
 function updateAndRender() {
@@ -1068,9 +1094,8 @@ function snap() {
   // document.body.removeChild(el);
 }
 
-document.getElementById('eccentricity').onchange = function(e) {
-  const svg = document.getElementById('graphic').firstChild;
-  const scaleX = e.target.value;
-  svg.style.transform = `scaleX(${scaleX})`;
-
+eccentricitySlider.onchange = function(e) {
+  // ellipsoidal params
+  // const flattening = 1 - sqrt(1 - sq(this.eccentricity))
+  resetSim()
 }
