@@ -31,7 +31,7 @@ td.info {
 
 td.vis {
     vertical-align: bottom;
-    width: 60%;
+    width: 700px;
 }
 
 .instructions {
@@ -54,4 +54,26 @@ td.vis {
 
 td.right {
   text-align: right;
+}
+
+#clock > div {
+    display: flex;
+}
+
+#clock .numeric {
+    font-size: 2.2rem;
+}
+
+#clock {
+    font-family: Monospace;
+}
+
+#clock > div > div {
+    display: flex;
+    border: 1px solid lightgrey;
+    border-radius: 2px;
+    flex-direction: column;
+    text-align: center;
+    margin: 2px;
+    padding: 4px;
 }

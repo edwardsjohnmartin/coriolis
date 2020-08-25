@@ -16,7 +16,7 @@
 // there will be a theta min and theta max
 // try initial velocity of zero - will stay there in ellipsoidal and
 // move in spherical if released away from equator
-var Coriolis = function(lat0, lon0, v0, earth) {
+var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   // console.log(earth);
   let V = earth.V;
   let R = earth.R;
@@ -39,6 +39,8 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   this.alpha = Math.atan2(this.v0.north/V, this.v0.east/V);
   this.speedFactor = 0.0005;
 
+  this.eccentricity = eccentricity
+
   //--------------------
   // New stuff
   //--------------------
@@ -59,22 +61,24 @@ var Coriolis = function(lat0, lon0, v0, earth) {
 
   // seconds
   this.L0 = (this.earth.OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0));
-  if (this.earth.type == EARTH_SPHERE) {
+
+  if (this.earth.type === EARTH_SPHERE) {
     // sec^2
     this.T0 = sq(this.earth.OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0)) +
       sq(this.theta_dot0);
     this._thetaMax = Math.acos(Math.sqrt(sq(this.L0)/this.T0));
     this._thetaMin = -this._thetaMax;
-  } else if (this.earth.type == EARTH_ELLIPSOID) {
+  } else if (this.earth.type === EARTH_ELLIPSOID) {
+    // sec^2
     // sec^2
     this.T = sq(this.phi_dot0) * sq(Math.cos(this.theta0)) +
-      sq(this.theta_dot0);
+        sq(this.theta_dot0);
 
     const num1 = -Math.sqrt(this.T) + Math.sqrt(
-      this.T+4*this.earth.OMEGA*this.L0);
+        this.T+4*this.earth.OMEGA*this.L0);
     // num2 can give a negative number which makes acos undefined.
     const num2 = -Math.sqrt(this.T) - Math.sqrt(
-      this.T+4*this.earth.OMEGA*this.L0);
+        this.T+4*this.earth.OMEGA*this.L0);
     const den = 2 * earth.OMEGA;
     this._thetaMax = Math.acos(num1/den);
     // console.log('num2', num2, num2/den);
@@ -96,19 +100,17 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   //   this._thetaMin = -this._thetaMax;
   // }
 
-  if (Math.abs(this._thetaMax - this._thetaMin) < EPSILON) {
-    this._thetaMin = this._thetaMax;
-    this.theta0 = Math.min(this.theta0, this._thetaMax);
-    this.theta0 = Math.max(this.theta0, this._thetaMin);
-  } else {
-    this.theta0 = Math.min(this.theta0, this._thetaMax-EPSILON);
-    this.theta0 = Math.max(this.theta0, this._thetaMin+EPSILON);
-  }
-
   this._theta = this.theta0;
   // console.log("this._theta: " + this._theta);
   // this._phi = radians(-75);
   this._phi = this.phi0;
+
+  this.prev_phi_dot = this.phi_dot0
+  this.prev_theta_dot = this.theta_dot0
+
+  this.L0 = this.L_momentum(this.phi_dot0, this.eccentricity, this.theta0, true)
+  this.T = this.T0 = this.Kinetic(this.theta0, this.phi_dot0, this.theta_dot0, this.eccentricity, true)
+  this.T0 = this.T
 
   // this.theta_dot_negate = false;
 
@@ -124,40 +126,124 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   console.log('theta_dot0', this.theta_dot0);
   console.log('phi_dot0', this.phi_dot0);
   console.log('theta0', this.theta0);
-  console.log('L0', this.L0);
-  console.log('T0', this.T0);
+  console.log('L0', this.L0 * sphereAngularSpeed);
+  console.log('T0', this.T * sphereAngularSpeed * sphereAngularSpeed);
   console.log('thetaMax', degrees(this._thetaMax));
   console.log('thetaMin', degrees(this._thetaMin));
+  console.log('eccentricity', eccentricity)
+}
+
+const F = (e) => {
+  const Fr = 0.8086
+  const er = 0.08182
+  const A = (1 - Fr) / (1 - er)
+  const B = (Fr - er) / (1 - er)
+  return A * e + B;
+}
+
+const sphereAngularSpeed = Math.PI / (12*60*60); // 0.0000727;
+
+const secondEccentricity = (e) => {
+  return e / Math.sqrt(1 - e * e)
+}
+
+const q = (e) => {
+  const es = secondEccentricity(e)
+  const res = 1 / es * (1 + 3 / (es * es)) * Math.atan(es) - 3 / (es * es)
+  return res
+}
+
+const stableAngularSpeed = (e) => {
+  const determinant = 15 / 4 * q(e) * (1 - 3 * F(e) / 5)
+  return sphereAngularSpeed * Math.sqrt(determinant)
+}
+
+Coriolis.prototype.L_momentum = function(dphi, e, theta, calc = false) {
+  if (!calc) {
+    return this.L0
+  }
+  const cos_sq = sq(Math.cos(theta))
+  const res = cos_sq * (1 + dphi / sphereAngularSpeed) / (1 - sq(e * Math.sin(theta)))
+  console.log('L', { res, dphi, e, theta })
+  return res
+}
+
+Coriolis.prototype.Kinetic = function(theta, dphi, dtheta, e, calc = false) {
+  if (!calc) {
+    return this.T
+  }
+  const cos_sq = Math.cos(theta) * Math.cos(theta)
+  const sin_sq = 1 - cos_sq
+  const s_sq = sq(sphereAngularSpeed)
+  const D = 1 - e * e * sin_sq
+  const res = cos_sq * dphi * dphi / D + dtheta * dtheta * sq(1 - e * e) / Math.pow(D, 3)
+  console.log('T', { res, theta, dphi, dtheta, e })
+  return res / s_sq
+}
+
+const Tdot = (theta, dphi, dtheta, e) => {
+  const A = sq(stableAngularSpeed(e)) / sq(sphereAngularSpeed) - 1
+  const B = (1 - e * e) * Math.sin(2 * theta) / Math.pow(1 - sq(e * Math.sin(theta))) * dtheta / sphereAngularSpeed
+  return sphereAngularSpeed * A * B;
+}
+
+Coriolis.prototype.f1 = function(theta, dphi, e) {
+  const res = (1 - sq(e * Math.sin(theta))) / sq(Math.cos(theta)) * this.L_momentum(dphi, e, theta) - 1
+  console.log('f1', { res, theta, dphi, e })
+  return res
+}
+
+const sqrt = (v) => {
+  if (v < 0) {
+    console.log('negative sqrt of ', v)
+    return Math.sqrt(-v)
+  }
+  return Math.sqrt(v)
+}
+
+Coriolis.prototype.f2 = function (theta, phi_dot, theta_dot, e) {
+  const a = 1 - sq(e * Math.sin(theta))
+  const v = this.Kinetic(theta, phi_dot, theta_dot, e)
+  const res =  Math.pow(a, 1.5) / (1 - e * e) * sqrt(v - sq(this.f1(theta, phi_dot, e) * Math.cos(theta)) / a)
+  console.log('f2', { res, theta, phi_dot, theta_dot, e })
+  return res
+}
+
+Coriolis.prototype.f3 = function (theta, dphi, dtheta, e) {
+  const A = Math.pow(stableAngularSpeed(e), 2) / Math.pow(sphereAngularSpeed, 2) - 1
+  const B = (1 - e * e) * Math.sin(2 * theta) / Math.pow(1 - e * e * Math.pow(Math.sin(theta), 2))
+  const res = A * B * this.f2(theta, dphi, dtheta, e)
+  console.log('f3', { res, theta, dphi, dtheta, e })
+  return res
 }
 
 // Returns value in seconds
 Coriolis.prototype.theta_dot_impl = function(theta) {
   // sec^2
-  let radicand = null;
-  if (this.earth.type == EARTH_SPHERE) {
+  if (this.earth.type === EARTH_SPHERE) {
     // spherical
-    radicand = this.T0 - sq(this.L0/Math.cos(theta));
-  } else {
-    // ellipsoidal
-    const num = this.L0-this.earth.OMEGA*sq(Math.cos(theta));
-    radicand = this.T - sq(num/Math.cos(theta));
-  }
-  if (radicand < 0) {
-    // Negative radicand!
-    if (radicand > -0.00001) {
-      radicand = 0;
-    } else {
+    let radicand = this.T0 - sq(this.L0/Math.cos(theta));
+    if (radicand < 0) {
+      // Negative radicand!
       throw("Overshot the theta maximum: " + theta);
     }
+    if (this.theta_dot_negate) {
+      return -1 * Math.sqrt(radicand);
+    }
+    return Math.sqrt(radicand);
   }
-  if (this.theta_dot_negate) {
-    return -1 * Math.sqrt(radicand);
-  }
-  return Math.sqrt(radicand);
+  const res = sphereAngularSpeed * this.f2(theta, this.prev_phi_dot, this.prev_theta_dot, this.eccentricity)
+  if (this.theta_dot_negate) return -res;
+  return res;
 }
 
 Coriolis.prototype.phi_dot_impl = function(theta) {
-  return this.L0 / sq(Math.cos(theta)) - this.earth.OMEGA;
+  if (this.earth.type === EARTH_SPHERE) {
+    return this.L0 / sq(Math.cos(theta)) - this.earth.OMEGA;
+  }
+  const res = sphereAngularSpeed * this.f1(theta, this.prev_phi_dot, this.eccentricity)
+  console.log('phi_dot', { res, theta })
+  return res
 }
 
 // Returns value in seconds
@@ -170,6 +256,10 @@ Coriolis.prototype.phi_dot = function() {
   return this.phi_dot_impl(this._theta);
 }
 
+Coriolis.prototype.t_dot = function() {
+  return Tdot(this._theta, this.prev_phi_dot, this.prev_theta_dot, this.eccentricity);
+}
+
 // RK4
 Coriolis.prototype.stepRK4 = function(h) {
   const k1 = [h * this.theta_dot_impl(this._theta),
@@ -180,7 +270,9 @@ Coriolis.prototype.stepRK4 = function(h) {
               h * this.phi_dot_impl(this._theta+k2[1]/2)];
   const k4 = [h * this.theta_dot_impl(this._theta+k3[0]),
               h * this.phi_dot_impl(this._theta+k3[1])];
-  
+
+  this.prev_theta_dot = (1/6)*(k1[0] + 2*k2[0] + 2*k3[0] + k4[0])
+  this.prev_phi_dot = (1/6)*(k1[1] + 2*k2[1] + 2*k3[1] + k4[1])
   return [this._theta + (1/6)*(k1[0] + 2*k2[0] + 2*k3[0] + k4[0]),
           this._phi + (1/6)*(k1[1] + 2*k2[1] + 2*k3[1] + k4[1])];
 }

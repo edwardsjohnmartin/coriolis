@@ -21,6 +21,8 @@ if (localStorage.animInc) {
 // document.getElementById('speed').value = animInc.toFixed(1);
 document.getElementById('speed').innerHTML = animInc.toFixed(1);
 
+const eccentricitySlider = document.getElementById('eccentricity')
+
 const radius = 1;
 let radiusInWindow;
 
@@ -123,16 +125,59 @@ if (localStorage.east0) {
   document.getElementById('east0').value = Number(localStorage.east0);
 }
 
+const resizeGlobe = (eccentricity) => {
+  const Ro = 400 // in pixels
+
+  document.getElementById('eccentricity-value').innerHTML = eccentricity
+
+  const sq_eccentricity = eccentricity * eccentricity
+    console.log({ eccentricity, sq_eccentricity })
+
+  const a = Ro * Math.pow(1 - sq_eccentricity, - 1 / 6)
+  const b = Ro * Math.pow(1 - sq_eccentricity, 1 / 3)
+
+  const scaleA = a / Ro
+  const scaleB = b / Ro
+
+  const graphic = document.getElementById('graphic')
+  const svg = graphic.getElementsByTagName('svg')[0]
+  svg.style.transform = `scale(${scaleA}, ${scaleB})`
+  console.log({ scaleA, scaleB })
+}
+
 resetSim(false);
 
 const zPosition = 10;
 const zZero = -1.1;
+
+const formatted = (v) => {
+  return v < 10 ? "0" + v : v;
+};
 
 function incTime(inc) {
   time += inc;
   document.getElementById('time').value = (time/(60*60)).toFixed(10);
   // document.getElementById('rotation').value =
   //   degrees(earthRotation(time)).toFixed(2);
+  const clock = document.getElementById('clock')
+
+  const dayItem = clock.getElementsByClassName('day')[0]
+  const hourItem = clock.getElementsByClassName('hour')[0]
+  const minItem = clock.getElementsByClassName('min')[0]
+  const secItem = clock.getElementsByClassName('sec')[0]
+
+  let seconds = Math.floor(time)
+  dayItem.innerHTML = formatted(Math.floor(seconds / 86400));
+  seconds %= 86400;
+
+  hourItem.innerHTML = formatted(Math.floor(seconds / 3600));
+  seconds = seconds % 3600;
+
+  minItem.innerHTML = formatted(Math.floor(seconds / 60));
+
+  seconds %= 60;
+  secItem.innerHTML = formatted(Math.floor(seconds));
+
   document.getElementById('rotation').innerHTML =
     degrees(globalEarth.earthRotation(time)).toFixed(2);
 
@@ -322,9 +367,11 @@ function resetSim(dorender=true, launchNorth=null, launchEast=null) {
   }
 
   sim = new Coriolis(
-    radians(launchLatitude), radians(launchLongitude), launchV, globalEarth);
+    radians(launchLatitude), radians(launchLongitude), launchV, globalEarth, +eccentricitySlider.value);
 
-  if (dorender) render();
+  if (dorender) {
+    render();
+  }
 }
 
 function keydown(event) {
@@ -908,6 +955,8 @@ function render() {
   renderer.clear();
   map.draw();
   renderer.render(scene, camera);
+
+  resizeGlobe(+eccentricitySlider.value)
 }
 
 function updateAndRender() {
@@ -1076,3 +1125,32 @@ function demoChanged() {
   }
 }
 
+//----------------------------------------
+// snap
+//----------------------------------------
+function snap() {
+  console.log('Taking SVG snapshot');
+  XMLS = new XMLSerializer();
+  svgtext = XMLS.serializeToString(renderer.domElement);
+
+  // console.log(svgtext);
+  let textarea = document.getElementById("snapshot-output");
+  // textarea.innerHTML = svgtext;
+  textarea.value = svgtext;
+
+  textarea.select();
+  document.execCommand('copy');
+
+  // const el = document.createElement('textarea');
+  // el.value = svgtext;
+  // document.body.appendChild(el);
+  // el.select();
+  // document.execCommand('copy');
+  // document.body.removeChild(el);
+}
+
+eccentricitySlider.onchange = function(e) {
+  // ellipsoidal params
+  // const flattening = 1 - sqrt(1 - sq(this.eccentricity))
+  resetSim()
+}
