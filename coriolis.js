@@ -58,47 +58,6 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
 
   // this.earthType = earth.type;
 
-  // seconds
-  this.L0 = (this.earth.OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0));
-
-  if (this.earth.type === EARTH_SPHERE) {
-    // sec^2
-    this.T0 = sq(this.earth.OMEGA + this.phi_dot0) * sq(Math.cos(this.theta0)) +
-      sq(this.theta_dot0);
-    this._thetaMax = Math.acos(Math.sqrt(sq(this.L0)/this.T0));
-    this._thetaMin = -this._thetaMax;
-  } else if (this.earth.type === EARTH_ELLIPSOID) {
-    // sec^2
-    // sec^2
-    this.T = sq(this.phi_dot0) * sq(Math.cos(this.theta0)) +
-        sq(this.theta_dot0);
-
-    const num1 = -Math.sqrt(this.T) + Math.sqrt(
-        this.T+4*this.earth.OMEGA*this.L0);
-    // num2 can give a negative number which makes acos undefined.
-    const num2 = -Math.sqrt(this.T) - Math.sqrt(
-        this.T+4*this.earth.OMEGA*this.L0);
-    const den = 2 * earth.OMEGA;
-    this._thetaMax = Math.acos(num1/den);
-    // console.log('num2', num2, num2/den);
-    const y = num2/den;
-    if (y >= -1 && y <= 1) {
-      this._thetaMin = Math.acos(num2/den);
-      if (this._thetaMin > Math.PI/2) {
-        this._thetaMin = Math.PI - this._thetaMin;
-      }
-    } else {
-      this._thetaMin = -this._thetaMax;
-    }
-  } else {
-    throw "Illegal earth type: " + earth.type;
-  }
-
-  if (this.earth.V == 0) {
-    this._thetaMax = this.theta0;
-    this._thetaMin = -this._thetaMax;
-  }
-
   this._theta = this.theta0;
   // console.log("this._theta: " + this._theta);
   // this._phi = radians(-75);
@@ -109,7 +68,6 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
 
   this.L0 = this.L_momentum(this.phi_dot0, this.eccentricity, this.theta0, true)
   this.T = this.T0 = this.Kinetic(this.theta0, this.phi_dot0, this.theta_dot0, this.eccentricity)
-  this.T0 = this.T
 
   // this.theta_dot_negate = false;
 
@@ -196,19 +154,25 @@ Coriolis.prototype.f1 = function(theta, dphi, e) {
 
 const sqrt = (v) => {
   if (v < 0) {
-    console.log('negative sqrt of ', v)
     if (v > -0.00001) {
       return 0;
     }
+    console.log('negative sqrt of ', v)
     throw "fatal error"
   }
   return Math.sqrt(v)
 }
 
+Coriolis.prototype.f4 = function (theta, phi_dot, theta_dot, e) {
+  const a = 1 - sq(e * Math.sin(theta))
+  const res = this.T - sq(this.f1(theta, phi_dot, e) * Math.cos(theta)) / a
+  console.log('f4', { res, theta, phi_dot, theta_dot, e })
+  return res
+}
+
 Coriolis.prototype.f2 = function (theta, phi_dot, theta_dot, e) {
   const a = 1 - sq(e * Math.sin(theta))
-  const v = this.T
-  const res =  Math.pow(a, 1.5) / (1 - e * e) * sqrt(v - sq(this.f1(theta, phi_dot, e) * Math.cos(theta)) / a)
+  const res =  Math.pow(a, 1.5) / (1 - e * e) * sqrt(this.f4(theta, phi_dot, theta_dot, e))
   console.log('f2', { res, theta, phi_dot, theta_dot, e })
   return res
 }
@@ -253,27 +217,62 @@ Coriolis.prototype.stepRK4 = function(h) {
   if (h === 0) {
     return [this._theta, this._phi, this.T]
   }
+
+  let error = false
+  let low = 0, high = h;
+  let iter = 10
+  while (iter--) {
+    const mid = (low + high) / 2;
+    let curError = false
+    try {
+      const k1 = [
+        mid * this.theta_dot_impl(this._theta),
+      ];
+      const k2 = [
+        mid * this.theta_dot_impl(this._theta + k1[0] / 2),
+      ];
+      const k3 = [
+        mid * this.theta_dot_impl(this._theta + k2[0] / 2),
+      ];
+      const k4 = [
+        mid * this.theta_dot_impl(this._theta + k3[0]),
+      ];
+    } catch (e) {
+      error = true
+      curError = true
+    }
+    if (curError) {
+      high = mid;
+    } else {
+      low = mid;
+    }
+  }
+
   const k1 = [
-    h * this.theta_dot_impl(this._theta),
-    h * this.phi_dot_impl(this._theta),
-    h * this.t_dot_impl(this._theta)
+    low * this.theta_dot_impl(this._theta),
+    low * this.phi_dot_impl(this._theta),
+    low * this.t_dot_impl(this._theta)
   ];
   const k2 = [
-    h * this.theta_dot_impl(this._theta+k1[0]/2),
-    h * this.phi_dot_impl(this._theta+k1[0]/2),
-    h * this.t_dot_impl(this._theta+k1[0]/2),
+    low * this.theta_dot_impl(this._theta + k1[0] / 2),
+    low * this.phi_dot_impl(this._theta + k1[0] / 2),
+    low * this.t_dot_impl(this._theta + k1[0] / 2),
   ];
   const k3 = [
-    h * this.theta_dot_impl(this._theta+k2[0]/2),
-    h * this.phi_dot_impl(this._theta+k2[0]/2),
-    h * this.t_dot_impl(this._theta+k2[0]/2),
+    low * this.theta_dot_impl(this._theta + k2[0] / 2),
+    low * this.phi_dot_impl(this._theta + k2[0] / 2),
+    low * this.t_dot_impl(this._theta + k2[0] / 2),
   ];
   const k4 = [
-    h * this.theta_dot_impl(this._theta+k3[0]),
-    h * this.phi_dot_impl(this._theta+k3[0]),
-    h * this.t_dot_impl(this._theta+k3[0]),
+    low * this.theta_dot_impl(this._theta + k3[0]),
+    low * this.phi_dot_impl(this._theta + k3[0]),
+    low * this.t_dot_impl(this._theta + k3[0]),
   ];
+  if (error) {
+    this.theta_dot_negate = !this.theta_dot_negate
+  }
 
+  console.log('k data', k1[2], k2[2], k3[2], k4[2])
   const step_theta = (1/6)*(k1[0] + 2*k2[0] + 2*k3[0] + k4[0])
   const step_phi = (1/6)*(k1[1] + 2*k2[1] + 2*k3[1] + k4[1])
   const step_t = (1/6)*(k1[2] + 2*k2[2] + 2*k3[2] + k4[2])
@@ -298,25 +297,6 @@ Coriolis.prototype.step = function(h) {
     console.log('error: ' + e);
   }
   console.log('p = ' + p);
-  // if (p == null || Math.abs(p[0]) > Math.abs(this._thetaMax)) {
-  if (p == null || p[0] > this._thetaMax || p[0] < this._thetaMin) {
-    // We're overshooting the max theta value. This is a hack. We fix
-    // theta to thetaMax and adjust phi as necessary.
-    // console.log("overshot");
-    p = [];
-    const theta_dot = this.theta_dot();
-    if (theta_dot > 0) {
-      p[0] = this._thetaMax - EPSILON;
-    } else {
-      p[0] = this._thetaMin + EPSILON;
-    }
-    const h_ = (Math.abs(p[0]-this._theta)+2*EPSILON) /
-      Math.abs(this.theta_dot());
-    p[1] = this._phi + this.phi_dot_impl(this._theta)*h_;
-
-    this.theta_dot_negate = !this.theta_dot_negate;
-  }
-  // console.log("x = " + this._theta);
   this._theta = p[0];
   this._phi = p[1];
 
