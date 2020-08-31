@@ -146,16 +146,18 @@ const secondEccentricity = (e) => {
 
 const q = (e) => {
   const es = secondEccentricity(e)
+  if (es < 0.000001) {
+    return 0;
+  }
   const res = 1 / es * (1 + 3 / (es * es)) * Math.atan(es) - 3 / (es * es)
   return res
 }
 
 const stableAngularSpeed = (e) => {
-  if (e < 0.0001) {
-    return 0;
-  }
   const determinant = 15 / 4 * q(e) * (1 - 3 * F(e) / 5)
-  return sphereAngularSpeed * Math.sqrt(determinant)
+  const result = sphereAngularSpeed * Math.sqrt(determinant)
+  console.log('stableAngularSpeed', { result })
+  return result
 }
 
 Coriolis.prototype.L_momentum = function(dphi, e, theta, calc = false) {
@@ -180,8 +182,10 @@ Coriolis.prototype.Kinetic = function(theta, dphi, dtheta, e) {
 
 Coriolis.prototype.t_dot = function (theta, dphi, dtheta, e) {
   const A = sq(stableAngularSpeed(e)) / sq(sphereAngularSpeed) - 1
-  const B = (1 - e * e) * Math.sin(2 * theta) / sq(1 - sq(e * Math.sin(theta))) * dtheta / sphereAngularSpeed
-  return sphereAngularSpeed * A * B;
+  const B = (1 - e * e) * Math.sin(2 * theta) / sq(1 - sq(e * Math.sin(theta))) * this.theta_dot_impl(theta) / sphereAngularSpeed
+  const result = sphereAngularSpeed * A * B;
+  console.log('t_dot', { result })
+  return result;
 }
 
 Coriolis.prototype.f1 = function(theta, dphi, e) {
