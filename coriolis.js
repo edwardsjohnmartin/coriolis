@@ -305,7 +305,7 @@ Coriolis.prototype.step = function(h) {
   console.log('p = ' + p);
   this._theta = p[0];
   this._phi = p[1];
-  console.log({ theta: p[0], phi: p[1], T: p[2] })
+  console.log('params', { theta: p[0], phi: p[1], T: p[2] })
 
   const newRotPoint = new Position(this._theta, this._phi);
   if (this.lastRotPoint == null ||
