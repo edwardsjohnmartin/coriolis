@@ -220,8 +220,7 @@ Coriolis.prototype.stepRK4 = function(h) {
 
   let error = false
   let low = 0, high = h;
-  let iter = 10
-  while (iter--) {
+  while (low + 1e-4 < high) {
     const mid = (low + high) / 2;
     let curError = false
     try {
@@ -248,40 +247,47 @@ Coriolis.prototype.stepRK4 = function(h) {
     }
   }
 
+  if (low === 0) {
+    this.theta_dot_negate = !this.theta_dot_negate
+    console.log('integration inverted', this.theta_dot_negate)
+    return [this._theta, this._phi, this.T]
+  }
+
   const k1 = [
     low * this.theta_dot_impl(this._theta),
     low * this.phi_dot_impl(this._theta),
     low * this.t_dot_impl(this._theta)
   ];
+
   const k2 = [
     low * this.theta_dot_impl(this._theta + k1[0] / 2),
     low * this.phi_dot_impl(this._theta + k1[0] / 2),
     low * this.t_dot_impl(this._theta + k1[0] / 2),
   ];
+
   const k3 = [
     low * this.theta_dot_impl(this._theta + k2[0] / 2),
     low * this.phi_dot_impl(this._theta + k2[0] / 2),
     low * this.t_dot_impl(this._theta + k2[0] / 2),
   ];
+
   const k4 = [
     low * this.theta_dot_impl(this._theta + k3[0]),
     low * this.phi_dot_impl(this._theta + k3[0]),
     low * this.t_dot_impl(this._theta + k3[0]),
   ];
+
   if (error) {
     this.theta_dot_negate = !this.theta_dot_negate
+    console.log('integration inverted', this.theta_dot_negate)
   }
-
-  console.log('k data', k1[2], k2[2], k3[2], k4[2])
   const step_theta = (1/6)*(k1[0] + 2*k2[0] + 2*k3[0] + k4[0])
   const step_phi = (1/6)*(k1[1] + 2*k2[1] + 2*k3[1] + k4[1])
   const step_t = (1/6)*(k1[2] + 2*k2[2] + 2*k3[2] + k4[2])
-  // const step_t = h * this.t_dot_impl(this._theta)
-  console.log({ step_t })
 
   this.prev_theta_dot = step_theta
   this.prev_phi_dot = step_phi
-  // this.prev_t_dot =
+
   return [this._theta + step_theta, this._phi + step_phi, this.T + step_t];
 }
 
@@ -299,6 +305,7 @@ Coriolis.prototype.step = function(h) {
   console.log('p = ' + p);
   this._theta = p[0];
   this._phi = p[1];
+  console.log({ theta: p[0], phi: p[1], T: p[2] })
 
   const newRotPoint = new Position(this._theta, this._phi);
   if (this.lastRotPoint == null ||
