@@ -28,7 +28,7 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   // meters per second in each dimension
   // v0 is in the fixed frame
   // this.v0 = new Velocity(Math.sqrt(5/4)*V, V, 0);
-  this.v0 = new Velocity(v0.north, v0.east+V, 0);
+  this.v0 = new Velocity(v0.north, v0.east, 0);
   console.log('v0', v0);
 
   // Speed of the puck
