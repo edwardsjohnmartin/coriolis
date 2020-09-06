@@ -1,165 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>Coriolis - SVG</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <link rel="stylesheet" href="style.css?1"/>
-  </head>
-  <body>
-    <p id="demoInstructions">Instructions</p>
-    <table>
-      <tr>
-        <td class="info">
-          <div class="instructions">
-            <table>
-              <tr>
-                <td class="right">
-                  <label for="demos">Demos:</label>
-                </td><td>
-                  <select id="demos" onchange="demoChanged()">
-                    <option value="none"></option>
-                    <option value="demo1">1</option>
-                    <option value="demo2">2</option>
-                    <option value="demo3">3</option>
-                    <option value="demo4">4</option>
-                  </select>
-              </tr>
-              <tr>
-                <td class="right">Frame (f):</td><td>&nbsp;<b id="frame">fixed</b></td>
-              <tr>
-                <td class="right">Earth type (e):</td><td>&nbsp;<b id="earthType">spherical</b></td>
-              <tr>
-                <td class="right">p0:</td><td>&nbsp;<input type="text" id="lat0" size=5 onchange="lat0Changed()" value="0"></input>,<input type="text" id="lon0" size=5 onchange="lon0Changed()" value="-75"></input>&nbsp;(lat,lon)</td>
-              <tr>
-                <td class="right">v0:</td><td>&nbsp;<input type="text" id="north0" size=5 onchange="north0Changed()" value="1.12"></input><code>*V</code>,&nbsp;<input type="text" id="east0" size=5 onchange="east0Changed()" value="0"></input><code>*V</code>&nbsp;(north,east)</td>
-              <tr>
-                <td class="right">Simulation speed (&uarr;&darr;):</td>
-                <td>&nbsp;<b id="speed"></b></td>
-              <tr>
-                <td class="right">Time  (&larr;&rarr;):</td>
-                <td><input type="text" id="time" size=12 onchange="timeChanged()" value="0"></input>&nbsp;hours</td>
-                <tr>
-                  <td class="right">Earth's rotation:</td>
-                  <td><b id="rotation"></b>&nbsp;degrees</td>
-            <!-- debug -->
-                <tr>
-                  <td class="right">theta:</td>
-                  <td><b id="theta"></b></td>
-                <tr>
-                  <td class="right">phi:</td>
-                  <td><b id="phi"></b></td>
-                <tr>
-                  <td class="right">theta_dot:</td>
-                  <td><b id="theta_dot"></b></td>
-                <tr>
-                  <td class="right">phi_dot:</td>
-                  <td><b id="phi_dot"></b></td>
-                <tr>
-                  <td class="right">L0:</td>
-                  <td><b id="L0"></b></td>
-                <tr>
-                  <td class="right">T0:</td>
-                  <td><b id="T0"></b></td>
-                <tr>
-                  <td class="right">FPS:</td>
-                  <td><b id="fps"></b></td>
-                <tr>
-                  <td class="right"></td><td><b id="temp"></b></td>
-            </table>
-          </div>
-        </td>
-
-        <td class="vis">
-          <div id="graphic"></div>
-        </td>
-        <td>
-          <div style="margin-bottom: 20px">
-            <label>
-              Eccentricity
-              <input id="eccentricity" type="range" min="0" max="0.999999" step="0.0001" value="0.08182"/>
-            </label>
-            <div id="eccentricity-value"></div>
-          </div>
-          <div id="clock">
-            <div>
-              <div>
-                <span>days</span>
-                <span class="numeric day">00</span>
-              </div>
-              <div>
-                <span>hours</span>
-                <span class="numeric hour">00</span>
-              </div>
-              <div>
-                <span>mins</span>
-                <span class="numeric min">00</span>
-              </div>
-              <div>
-                <span>secs</span>
-                <span class="numeric sec">00</span>
-              </div>
-            </div>
-          </div>
-        </td>
-      </tr>
-    </table>
-    
-    <hr>
-
-    <!-- Keystrokes -->
-    <div class="instructions">
-      Press spacebar to toggle animation.
-      <br>
-      Press up/down arrows to adjust simulation speed.
-      <br>
-      Press right/left arrows to go forward/backward in the animation.
-      <br>
-      Press 'p' to toggle paths on/off.
-      <br>
-      Press 'e' to change earth type.
-      <br>
-      Press S/s to increase/decrease star size.
-      <br>
-      Press 'f' to toggle between fixed and rotational frames.
-      <br>
-      Press 't' to toggle star streaks.
-      <br>
-      Press 'a' to toggle arrows.
-      <br>
-      Press 'r' to reset simulation.
-      <br>
-      <br>
-      <div id="snapshot">
-        <!--a style="cursor:pointer" onclick="snap()">SVG snapshot</a-->
-        <a style="cursor:pointer" onclick="snap()">Copy SVG</a>
-        <br>
-        <textarea id="snapshot-output"></textarea>
+<head>
+  <title>Coriolis - SVG</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <link rel="stylesheet" href="style.css?1"/>
+</head>
+<body>
+<p id="demoInstructions">Instructions</p>
+<table>
+  <tr>
+    <td class="info">
+      <div class="instructions">
+        <table>
+          <tr>
+            <td class="right">
+              <label for="demos">Demos:</label>
+            </td><td>
+            <select id="demos" onchange="demoChanged()">
+              <option value="none"></option>
+              <option value="demo1">1</option>
+              <option value="demo2">2</option>
+              <option value="demo3">3</option>
+              <option value="demo4">4</option>
+            </select>
+          </tr>
+          <tr>
+            <td class="right">Frame (f):</td><td>&nbsp;<b id="frame">fixed</b></td>
+          </tr>
+          <tr>
+            <td class="right">p0:</td><td>&nbsp;<input type="text" id="lat0" size=5 onchange="lat0Changed()" value="0"></input>,<input type="text" id="lon0" size=5 onchange="lon0Changed()" value="-75"></input>&nbsp;(lat,lon)</td>
+          </tr>
+          <tr>
+            <td class="right">v0:</td><td>&nbsp;<input type="text" id="north0" size=5 onchange="north0Changed()" value="1.12"></input><code>*V</code>,&nbsp;<input type="text" id="east0" size=5 onchange="east0Changed()" value="0"></input><code>*V</code>&nbsp;(north,east)</td>
+          </tr>
+          <tr>
+            <td class="right">Simulation speed (&uarr;&darr;):</td>
+            <td>&nbsp;<b id="speed"></b></td>
+          </tr>
+          <tr>
+            <td class="right">Time  (&larr;&rarr;):</td>
+            <td><input type="text" id="time" size=12 onchange="timeChanged()" value="0"></input>&nbsp;hours</td>
+          </tr>
+          <tr>
+            <td class="right">Earth's rotation:</td>
+            <td><b id="rotation"></b>&nbsp;degrees</td>
+          </tr>
+          <!-- debug -->
+          <tr>
+            <td class="right">theta:</td>
+            <td><b id="theta"></b></td>
+          </tr>
+          <tr>
+            <td class="right">phi:</td>
+            <td><b id="phi"></b></td>
+          </tr>
+          <tr>
+            <td class="right">theta_dot:</td>
+            <td><b id="theta_dot"></b></td>
+          </tr>
+          <tr>
+            <td class="right">phi_dot:</td>
+            <td><b id="phi_dot"></b></td>
+          </tr>
+          <tr>
+            <td class="right">L0:</td>
+            <td><b id="L0"></b></td>
+          </tr>
+          <tr>
+            <td class="right">T0:</td>
+            <td><b id="T0"></b></td>
+          </tr>
+          <tr>
+            <td class="right">FPS:</td>
+            <td><b id="fps"></b></td>
+          </tr>
+          <tr>
+            <td class="right"></td><td><b id="temp"></b></td>
+          </tr>
+        </table>
       </div>
-    </div>
+    </td>
+
+    <td class="vis">
+      <div id="graphic"></div>
+    </td>
+    <td>
+      <div style="margin-bottom: 20px">
+        <label>
+          Eccentricity
+          <input id="eccentricity" type="range" min="0" max="0.999999" step="0.0001" value="0.08182"/>
+        </label>
+        <div id="eccentricity-value"></div>
+      </div>
+      <div id="clock">
+        <div>
+          <div>
+            <span>days</span>
+            <span class="numeric day">00</span>
+          </div>
+          <div>
+            <span>hours</span>
+            <span class="numeric hour">00</span>
+          </div>
+          <div>
+            <span>mins</span>
+            <span class="numeric min">00</span>
+          </div>
+          <div>
+            <span>secs</span>
+            <span class="numeric sec">00</span>
+          </div>
+        </div>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<hr>
+
+<!-- Keystrokes -->
+<div class="instructions">
+  Press spacebar to toggle animation.
+  <br>
+  Press up/down arrows to adjust simulation speed.
+  <br>
+  Press right/left arrows to go forward/backward in the animation.
+  <br>
+  Press 'p' to toggle paths on/off.
+  <br>
+  Press 'e' to change earth type.
+  <br>
+  Press S/s to increase/decrease star size.
+  <br>
+  Press 'f' to toggle between fixed and rotational frames.
+  <br>
+  Press 't' to toggle star streaks.
+  <br>
+  Press 'a' to toggle arrows.
+  <br>
+  Press 'r' to reset simulation.
+  <br>
+  <br>
+  <div id="snapshot">
+    <!--a style="cursor:pointer" onclick="snap()">SVG snapshot</a-->
+    <a style="cursor:pointer" onclick="snap()">Copy SVG</a>
+    <br>
+    <textarea id="snapshot-output"></textarea>
+  </div>
+</div>
 
 
-    <script src="three.min.js"></script>
-    <script src="d3.js"></script>
-    <script src="topojson.min.js"></script>
-    <script src="seedrandom.min.js"></script>
-    <script src="rk4.js"></script>
+<script src="three.min.js"></script>
+<script src="d3.js"></script>
+<script src="topojson.min.js"></script>
+<script src="seedrandom.min.js"></script>
+<script src="rk4.js"></script>
 
-    <script src="Projector.js"></script>
-    <script src="SVGRenderer.js"></script>
-    <script src="OrbitControls.js"></script>
-    <script src="MyArrowHelper.js"></script>
-    <script src="math.js"></script>
-    <!-- This code uses analytic equations for puck position and velocity. -->
-    <!--script src="CoriolisSim.js"></script-->
-    <!-- This code uses integration for puck position and velocity. -->
-    <script src="coriolis.js"></script>
-    <script src="map.js"></script>
-    <script src="earth.js"></script>
-    <script src="debug.js?1"></script>
-    <script src="test.js"></script>
-    <script src="main.js?9"></script>
+<script src="Projector.js"></script>
+<script src="SVGRenderer.js"></script>
+<script src="OrbitControls.js"></script>
+<script src="MyArrowHelper.js"></script>
+<script src="math.js"></script>
+<!-- This code uses analytic equations for puck position and velocity. -->
+<!--script src="CoriolisSim.js"></script-->
+<!-- This code uses integration for puck position and velocity. -->
+<script src="coriolis.js"></script>
+<script src="map.js"></script>
+<script src="earth.js"></script>
+<script src="debug.js?1"></script>
+<script src="test.js"></script>
+<script src="main.js?9"></script>
 
-    </div>
-  </body>
+</div>
+</body>
 </html>

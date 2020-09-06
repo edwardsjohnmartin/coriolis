@@ -85,7 +85,6 @@ let globalEarth = new Earth();
 
 if (localStorage.earthType) {
   globalEarth.type = +localStorage.earthType;
-  document.getElementById('earthType').value = Number(localStorage.earthType);
 }
 if (localStorage.view) {
   view = +localStorage.view;
@@ -98,12 +97,6 @@ if (view == FIXED_VIEW) {
   document.getElementById('frame').innerHTML = 'rotational'
 } else if (view == DEBUG_VIEW) {
   document.getElementById('frame').innerHTML = 'debug'
-}
-
-if (globalEarth.type == EARTH_SPHERE) {
-  document.getElementById('earthType').innerHTML = 'sphere';
-} else if (globalEarth.type == EARTH_ELLIPSOID) {
-  document.getElementById('earthType').innerHTML = 'ellipsoid';
 }
 
 document.getElementById('time').value = (time/(60*60)).toFixed(10);
@@ -426,17 +419,6 @@ function keydown(event) {
       document.getElementById('frame').innerHTML = 'rotational'
     }
     localStorage.view = view;
-    changed = true;
-  } else if (key == 'e') {
-    if (globalEarth.type == EARTH_SPHERE) {
-      globalEarth.type = EARTH_ELLIPSOID;
-      document.getElementById('earthType').innerHTML = 'ellipsoid';
-    } else if (globalEarth.type == EARTH_ELLIPSOID) {
-      globalEarth.type = EARTH_SPHERE;
-      document.getElementById('earthType').innerHTML = 'sphere';
-    }
-    localStorage.earthType = globalEarth.type;
-    resetSim();
     changed = true;
   } else if (key == 'p') {
     visiblePath = (visiblePath+1)%4;
