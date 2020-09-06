@@ -63,11 +63,8 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   // this._phi = radians(-75);
   this._phi = this.phi0;
 
-  this.prev_phi_dot = this.phi_dot0
-  this.prev_theta_dot = this.theta_dot0
-
-  this.L0 = this.L_momentum(this.phi_dot0, this.eccentricity, this.theta0, true)
-  this.T = this.T0 = this.Kinetic(this.theta0, this.phi_dot0, this.theta_dot0, this.eccentricity)
+  this.L0 = this.L_momentum(this.phi_dot0, this.theta0)
+  this.T = this.T0 = this.Kinetic(this.theta0, this.phi_dot0, this.theta_dot0)
 
   // this.theta_dot_negate = false;
 
@@ -118,82 +115,78 @@ const stableAngularSpeed = (e) => {
   return result
 }
 
-Coriolis.prototype.L_momentum = function(dphi, e, theta, calc = false) {
-  if (!calc) {
-    return this.L0
-  }
+Coriolis.prototype.L_momentum = function(phi_dot, theta) {
   const cos_sq = sq(Math.cos(theta))
-  const res = cos_sq * (1 + dphi / sphereAngularSpeed) / (1 - sq(e * Math.sin(theta)))
-  console.log('L', { res, dphi, e, theta })
+  const res = cos_sq * (1 + phi_dot / sphereAngularSpeed) / (1 - sq(this.eccentricity * Math.sin(theta)))
+  console.log('L', { res, phi_dot, theta })
   return res
 }
 
-Coriolis.prototype.Kinetic = function(theta, dphi, dtheta, e) {
+Coriolis.prototype.Kinetic = function(theta, dphi, dtheta) {
   const cos_sq = Math.cos(theta) * Math.cos(theta)
   const sin_sq = 1 - cos_sq
   const s_sq = sq(sphereAngularSpeed)
-  const D = 1 - e * e * sin_sq
-  const res = cos_sq * dphi * dphi / D + dtheta * dtheta * sq(1 - e * e) / Math.pow(D, 3)
-  console.log('T', { res, theta, dphi, dtheta, e })
+  const D = 1 - sq(this.eccentricity) * sin_sq
+  const res = cos_sq * dphi * dphi / D + dtheta * dtheta * sq(1 - sq(this.eccentricity)) / Math.pow(D, 3)
+  console.log('T', { res, theta, dphi, dtheta })
   return res / s_sq
 }
 
-Coriolis.prototype.t_dot = function (theta, dphi, dtheta, e) {
-  const A = sq(stableAngularSpeed(e)) / sq(sphereAngularSpeed) - 1
-  const B = (1 - e * e) * Math.sin(2 * theta) / sq(1 - sq(e * Math.sin(theta))) * this.theta_dot_impl(theta) / sphereAngularSpeed
+Coriolis.prototype.t_dot = function (theta) {
+  const A = sq(stableAngularSpeed(this.eccentricity)) / sq(sphereAngularSpeed) - 1
+  const B = (1 - sq(this.eccentricity)) * Math.sin(2 * theta) / sq(1 - sq(this.eccentricity * Math.sin(theta))) * this.f2(theta)
   const result = sphereAngularSpeed * A * B;
   console.log('t_dot', { result })
   return result;
 }
 
-Coriolis.prototype.f1 = function(theta, dphi, e) {
-  const res = (1 - sq(e * Math.sin(theta))) / sq(Math.cos(theta)) * this.L_momentum(dphi, e, theta) - 1
-  console.log('f1', { res, theta, dphi, e })
+Coriolis.prototype.f1 = function(theta) {
+  const res = (1 - sq(this.eccentricity * Math.sin(theta))) / sq(Math.cos(theta)) * this.L0 - 1
+  console.log('f1', { res, theta })
   return res
 }
 
 const sqrt = (v) => {
   if (v < 0) {
-    if (v > -0.00001) {
-      return 0;
-    }
     console.log('negative sqrt of ', v)
     throw "fatal error"
   }
   return Math.sqrt(v)
 }
 
-Coriolis.prototype.f4 = function (theta, phi_dot, theta_dot, e) {
-  const a = 1 - sq(e * Math.sin(theta))
-  const res = this.T - sq(this.f1(theta, phi_dot, e) * Math.cos(theta)) / a
-  console.log('f4', { res, theta, phi_dot, theta_dot, e })
+Coriolis.prototype.f4 = function (theta) {
+  const a = 1 - sq(this.eccentricity * Math.sin(theta))
+  const res = this.T - sq(this.f1(theta) * Math.cos(theta)) / a
+  console.log('f4', { res, theta })
   return res
 }
 
-Coriolis.prototype.f2 = function (theta, phi_dot, theta_dot, e) {
-  const a = 1 - sq(e * Math.sin(theta))
-  const res =  Math.pow(a, 1.5) / (1 - e * e) * sqrt(this.f4(theta, phi_dot, theta_dot, e))
-  console.log('f2', { res, theta, phi_dot, theta_dot, e })
+Coriolis.prototype.f2 = function (theta) {
+  const a = 1 - sq(this.eccentricity * Math.sin(theta))
+  let res =  Math.pow(a, 1.5) / (1 - sq(this.eccentricity)) * sqrt(this.f4(theta))
+  if (this.theta_dot_negate) {
+    res *= -1;
+  }
+  console.log('f2', { res, theta })
   return res
 }
 
-Coriolis.prototype.f3 = function (theta, dphi, dtheta, e) {
-  const A = Math.pow(stableAngularSpeed(e), 2) / Math.pow(sphereAngularSpeed, 2) - 1
-  const B = (1 - e * e) * Math.sin(2 * theta) / Math.pow(1 - e * e * Math.pow(Math.sin(theta), 2))
-  const res = A * B * this.f2(theta, dphi, dtheta, e)
-  console.log('f3', { res, theta, dphi, dtheta, e })
+Coriolis.prototype.f3 = function (theta) {
+  const A = Math.pow(stableAngularSpeed(this.eccentricity), 2) / Math.pow(sphereAngularSpeed, 2) - 1
+  const B = (1 - sq(this.eccentricity)) * Math.sin(2 * theta) / Math.pow(1 - sq(this.eccentricity) * Math.pow(Math.sin(theta), 2))
+  const res = A * B * this.f2(theta)
+  console.log('f3', { res, theta })
   return res
 }
 
 // Returns value in seconds
 Coriolis.prototype.theta_dot_impl = function(theta) {
-  const res = sphereAngularSpeed * this.f2(theta, this.prev_phi_dot, this.prev_theta_dot, this.eccentricity)
-  if (this.theta_dot_negate) return -res;
+  const res = sphereAngularSpeed * this.f2(theta)
   return res;
 }
 
 Coriolis.prototype.phi_dot_impl = function(theta) {
-  const res = sphereAngularSpeed * this.f1(theta, this.prev_phi_dot, this.eccentricity)
+  const res = sphereAngularSpeed * this.f1(theta)
   console.log('phi_dot', { res, theta })
   return res
 }
@@ -209,7 +202,7 @@ Coriolis.prototype.phi_dot = function() {
 }
 
 Coriolis.prototype.t_dot_impl = function(theta) {
-  return this.t_dot(theta, this.prev_phi_dot, this.prev_theta_dot, this.eccentricity);
+  return this.t_dot(theta, this.eccentricity);
 }
 
 // RK4
@@ -248,7 +241,10 @@ Coriolis.prototype.stepRK4 = function(h) {
   }
 
   if (low === 0) {
-    this.theta_dot_negate = !this.theta_dot_negate
+      if (!this.prev_negate) {
+        this.theta_dot_negate = !this.theta_dot_negate
+        this.prev_negate = true
+      }
     console.log('integration inverted', this.theta_dot_negate)
     return [this._theta, this._phi, this.T]
   }
@@ -280,13 +276,13 @@ Coriolis.prototype.stepRK4 = function(h) {
   if (error) {
     this.theta_dot_negate = !this.theta_dot_negate
     console.log('integration inverted', this.theta_dot_negate)
+  } else {
+    this.prev_negate = false
   }
+
   const step_theta = (1/6)*(k1[0] + 2*k2[0] + 2*k3[0] + k4[0])
   const step_phi = (1/6)*(k1[1] + 2*k2[1] + 2*k3[1] + k4[1])
   const step_t = (1/6)*(k1[2] + 2*k2[2] + 2*k3[2] + k4[2])
-
-  this.prev_theta_dot = step_theta
-  this.prev_phi_dot = step_phi
 
   return [this._theta + step_theta, this._phi + step_phi, this.T + step_t];
 }
