@@ -64,7 +64,7 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   this._phi = this.phi0;
 
   this.L0 = this.L_momentum(this.phi_dot0, this.theta0)
-  this.T = this.T0 = this.Kinetic(this.theta0, this.phi_dot0, this.theta_dot0)
+  this.T = this.Kinetic(this.theta0, this.phi_dot0, this.theta_dot0)
 
   // this.theta_dot_negate = false;
 
@@ -78,11 +78,10 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   console.log('theta_dot0', this.theta_dot0);
   console.log('phi_dot0', this.phi_dot0);
   console.log('theta0', this.theta0);
+  console.log('phi0', this.phi0);
   console.log('L0', this.L0 * sphereAngularSpeed);
   console.log('T0', this.T * sphereAngularSpeed * sphereAngularSpeed);
-  console.log('thetaMax', degrees(this._thetaMax));
-  console.log('thetaMin', degrees(this._thetaMin));
-  console.log('eccentricity', eccentricity)
+  console.log('eccentricity', this.eccentricity)
 }
 
 const sqrt = (v) => {
@@ -109,7 +108,7 @@ const secondEccentricity = (e) => {
 
 const q = (e) => {
   const es = secondEccentricity(e)
-  if (es < 0.000001) {
+  if (es < 1e-7) {
     return 0;
   }
   const res = 1 / es * (1 + 3 / (es * es)) * Math.atan(es) - 3 / (es * es)
