@@ -115,9 +115,11 @@ const q = (e) => {
   return res
 }
 
+const w0 = 1.242 * 1e-3
+
 const stableAngularSpeed = (e) => {
   const determinant = 15 / 4 * q(e) * (1 - 3 * F(e) / 5)
-  const result = sphereAngularSpeed * Math.sqrt(determinant)
+  const result = w0 * Math.sqrt(determinant)
   console.log('stableAngularSpeed', { result })
   return result
 }
