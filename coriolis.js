@@ -64,7 +64,7 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   this._phi = this.phi0;
 
   this.L0 = this.L_momentum(this.phi_dot0, this.theta0)
-  this.T = this.Kinetic(this.theta0, this.phi_dot0, this.theta_dot0)
+  this.T = this.T0 = this.Kinetic(this.theta0, this.phi_dot0, this.theta_dot0)
 
   // this.theta_dot_negate = false;
 

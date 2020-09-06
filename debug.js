@@ -8,6 +8,9 @@ var debug = {
   set phi(v) {
     document.getElementById('phi').innerHTML = degrees(v).toFixed(10);
   },
+  set T(v) {
+    document.getElementById('T').innerHTML = (v * 10000).toFixed(1);
+  },
   set theta_dot(v) {
     document.getElementById('theta_dot').innerHTML = (v*10000).toFixed(10);
   },
