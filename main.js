@@ -92,9 +92,9 @@ if (localStorage.view) {
 }
 
 if (view == FIXED_VIEW) {
-  document.getElementById('frame').innerHTML = 'fixed'
+  document.getElementById('frame').innerHTML = 'Inertial'
 } else if (view == ROTATIONAL_VIEW) {
-  document.getElementById('frame').innerHTML = 'rotational'
+  document.getElementById('frame').innerHTML = 'Rotating'
 } else if (view == DEBUG_VIEW) {
   document.getElementById('frame').innerHTML = 'debug'
 }
@@ -407,16 +407,16 @@ function keydown(event) {
     console.log('view', view);
     if (view == FIXED_VIEW) {
       view = ROTATIONAL_VIEW;
-      document.getElementById('frame').innerHTML = 'rotational'
+      document.getElementById('frame').innerHTML = 'Rotating'
     } else if (view == ROTATIONAL_VIEW) {
     //   view = DEBUG_VIEW;
     //   document.getElementById('frame').innerHTML = 'debug'
     // } else if (view == DEBUG_VIEW) {
       view = FIXED_VIEW;
-      document.getElementById('frame').innerHTML = 'inertial'
+      document.getElementById('frame').innerHTML = 'Inertial'
     } else {
       view = ROTATIONAL_VIEW;
-      document.getElementById('frame').innerHTML = 'rotational'
+      document.getElementById('frame').innerHTML = 'Rotating'
     }
     localStorage.view = view;
     changed = true;
