@@ -78,14 +78,12 @@ const view0 = ROTATIONAL_VIEW;
 // const view0 = FIXED_VIEW;
 // const view0 = DEBUG_VIEW;
 let view = view0;
-let globalEarth = new Earth();
+
+let globalEarth = new Earth(true, +localStorage.timePeriod || undefined);
 // let earthType = EARTH_SPHERE;
 // globalEarth.type = EARTH_SPHERE;
 // let earthType = EARTH_ELLISPOID;
 
-if (localStorage.earthType) {
-  globalEarth.type = +localStorage.earthType;
-}
 if (localStorage.view) {
   view = +localStorage.view;
   document.getElementById('frame').value = Number(localStorage.view);
@@ -116,6 +114,10 @@ if (localStorage.north0) {
 }
 if (localStorage.east0) {
   document.getElementById('east0').value = Number(localStorage.east0);
+}
+
+if (localStorage.timePeriod) {
+  document.getElementById('time_period').value = Number(localStorage.timePeriod);
 }
 
 const resizeGlobe = (eccentricity) => {
@@ -247,6 +249,12 @@ function north0Changed() {
 }
 function east0Changed() {
   localStorage.east0 = +document.getElementById('east0').value;
+  resetSim();
+}
+
+function timePeriodChanged() {
+  localStorage.timePeriod = +document.getElementById('time_period').value;
+  globalEarth = new Earth(true, localStorage.timePeriod);
   resetSim();
 }
 
