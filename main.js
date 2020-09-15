@@ -21,7 +21,7 @@ if (localStorage.animInc) {
 // document.getElementById('speed').value = animInc.toFixed(1);
 document.getElementById('speed').innerHTML = animInc.toFixed(1);
 
-const eccentricitySlider = document.getElementById('eccentricity')
+const eccentricitySlider = document.getElementById('eccentricity-slider')
 
 const radius = 1;
 let radiusInWindow;
@@ -121,10 +121,9 @@ if (localStorage.east0) {
 const resizeGlobe = (eccentricity) => {
   const Ro = 400 // in pixels
 
-  document.getElementById('eccentricity-value').innerHTML = eccentricity
+  document.getElementById('eccentricity-value').value = eccentricity
 
   const sq_eccentricity = eccentricity * eccentricity
-    console.log({ eccentricity, sq_eccentricity })
 
   const a = Ro * Math.pow(1 - sq_eccentricity, - 1 / 6)
   const b = Ro * Math.pow(1 - sq_eccentricity, 1 / 3)
@@ -360,7 +359,7 @@ function resetSim(dorender=true, launchNorth=null, launchEast=null) {
   }
 
   sim = new Coriolis(
-    radians(launchLatitude), radians(launchLongitude), launchV, globalEarth, +eccentricitySlider.value);
+      radians(launchLatitude), radians(launchLongitude), launchV, globalEarth, +eccentricitySlider.value);
 
   if (dorender) {
     render();
@@ -1132,8 +1131,19 @@ function snap() {
   // document.body.removeChild(el);
 }
 
+
+document.getElementById('reset-eccentricity').onclick = function() {
+  eccentricitySlider.value = "0.08182"
+  resetSim()
+}
+
 eccentricitySlider.onchange = function(e) {
   // ellipsoidal params
   // const flattening = 1 - sqrt(1 - sq(this.eccentricity))
+  resetSim()
+}
+
+document.getElementById('eccentricity-value').oninput = function(e) {
+  eccentricitySlider.value = e.target.value
   resetSim()
 }
