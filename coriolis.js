@@ -56,17 +56,12 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   // seconds
   this.phi_dot0 = this.vphi0 / (R * Math.cos(this.theta0));
 
-  // this.earthType = earth.type;
-
   this._theta = this.theta0;
-  // console.log("this._theta: " + this._theta);
-  // this._phi = radians(-75);
+
   this._phi = this.phi0;
 
   this.L0 = this.L_momentum(this.phi_dot0, this.theta0)
   this.T = this.T0 = this.Kinetic(this.theta0, this.phi_dot0, this.theta_dot0)
-
-  // this.theta_dot_negate = false;
 
   this.rotPath = [];
   this.inertialPath = [];
@@ -79,8 +74,8 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   console.log('phi_dot0', this.phi_dot0);
   console.log('theta0', this.theta0);
   console.log('phi0', this.phi0);
-  console.log('L0', this.L0 * sphereAngularSpeed);
-  console.log('T0', this.T * sphereAngularSpeed * sphereAngularSpeed);
+  console.log('L0', this.L0 * this.earth.OMEGA);
+  console.log('T0', this.T * this.earth.OMEGA * this.earth.OMEGA);
   console.log('eccentricity', this.eccentricity)
 }
 
@@ -99,8 +94,6 @@ const F = (e) => {
   const B = (Fr - er) / (1 - er)
   return A * e + B;
 }
-
-const sphereAngularSpeed = 2 * Math.PI / (23.93447*60*60)
 
 const secondEccentricity = (e) => {
   return e / Math.sqrt(1 - e * e)
@@ -126,7 +119,7 @@ const stableAngularSpeed = (e) => {
 
 Coriolis.prototype.L_momentum = function(phi_dot, theta) {
   const cos_sq = sq(Math.cos(theta))
-  const res = cos_sq * (1 + phi_dot / sphereAngularSpeed) / (1 - sq(this.eccentricity * Math.sin(theta)))
+  const res = cos_sq * (1 + phi_dot / this.earth.OMEGA) / (1 - sq(this.eccentricity * Math.sin(theta)))
   console.log('L', { res, phi_dot, theta })
   return res
 }
@@ -134,7 +127,7 @@ Coriolis.prototype.L_momentum = function(phi_dot, theta) {
 Coriolis.prototype.Kinetic = function(theta, dphi, dtheta) {
   const cos_sq = Math.cos(theta) * Math.cos(theta)
   const sin_sq = 1 - cos_sq
-  const s_sq = sq(sphereAngularSpeed)
+  const s_sq = sq(this.earth.OMEGA)
   const D = 1 - sq(this.eccentricity) * sin_sq
   const res = cos_sq * dphi * dphi / D + dtheta * dtheta * sq(1 - sq(this.eccentricity)) / Math.pow(D, 3)
   console.log('T', { res, theta, dphi, dtheta })
@@ -158,7 +151,7 @@ Coriolis.prototype.f2 = function (theta, T) {
 }
 
 Coriolis.prototype.f3 = function (theta) {
-  const A = Math.pow(stableAngularSpeed(this.eccentricity), 2) / Math.pow(sphereAngularSpeed, 2) - 1
+  const A = Math.pow(stableAngularSpeed(this.eccentricity), 2) / Math.pow(this.earth.OMEGA, 2) - 1
   const B = (1 - sq(this.eccentricity)) * Math.sin(2 * theta) / Math.pow(1 - sq(this.eccentricity) * Math.pow(Math.sin(theta), 2))
   const res = A * B * this.f2(theta)
   console.log('f3', { res, theta })
@@ -174,12 +167,12 @@ Coriolis.prototype.f4 = function (theta, T) {
 
 // Returns value in seconds
 Coriolis.prototype.theta_dot_impl = function(theta, T) {
-  const res = sphereAngularSpeed * this.f2(theta, T)
+  const res = this.earth.OMEGA * this.f2(theta, T)
   return res;
 }
 
 Coriolis.prototype.phi_dot_impl = function(theta) {
-  const res = sphereAngularSpeed * this.f1(theta)
+  const res = this.earth.OMEGA * this.f1(theta)
   console.log('phi_dot', { res, theta })
   return res
 }
@@ -199,9 +192,9 @@ Coriolis.prototype.phi_dot = function() {
 }
 
 Coriolis.prototype.t_dot = function (theta, T) {
-  const A = sq(stableAngularSpeed(this.eccentricity)) / sq(sphereAngularSpeed) - 1
+  const A = sq(stableAngularSpeed(this.eccentricity)) / sq(this.earth.OMEGA) - 1
   const B = (1 - sq(this.eccentricity)) * Math.sin(2 * theta) / sq(1 - sq(this.eccentricity * Math.sin(theta))) * this.f2(theta, T)
-  const result = sphereAngularSpeed * A * B;
+  const result = this.earth.OMEGA * A * B;
   console.log('t_dot', { result })
   return result;
 }

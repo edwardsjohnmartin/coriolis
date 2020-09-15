@@ -1,5 +1,4 @@
 const EARTH_SPHERE = 0;
-const EARTH_ELLIPSOID = 1;
 
 var Earth = function(rotating=true) {
   this.rotating = rotating;
