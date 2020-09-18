@@ -1155,3 +1155,9 @@ document.getElementById('eccentricity-value').oninput = function(e) {
   eccentricitySlider.value = e.target.value
   resetSim()
 }
+
+document.getElementById('reset-time-period').onclick = function() {
+  document.getElementById('time_period').value = "23.93447"
+  timePeriodChanged()
+}
+
