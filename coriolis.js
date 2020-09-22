@@ -179,7 +179,7 @@ Coriolis.prototype.stepRK4 = function(h) {
 
   let error = false
   let low = 0, high = h;
-  while (low + 1e-3 < high) {
+  while (low + 1e-6 < high) {
     const mid = (low + high) / 2;
     try {
       rk4(mid, [this._theta, this.T], [this.theta_dot_impl.bind(this), this.t_dot_impl.bind(this)])
