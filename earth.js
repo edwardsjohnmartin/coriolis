@@ -1,16 +1,51 @@
-const EARTH_SPHERE = 0;
+const F = (e) => {
+  const Fr = 0.8086
+  const er = 0.08182
+  const A = (1 - Fr) / (1 - er)
+  const B = (Fr - er) / (1 - er)
+  return A * e + B;
+}
 
-var Earth = function(rotating=true, timePeriod = 23.93447) {
+const secondEccentricity = (e) => {
+  return e / Math.sqrt(1 - e * e)
+}
+
+const q = (e) => {
+  const es = secondEccentricity(e)
+  if (es < 1e-7) {
+    return 0;
+  }
+  const res = 1 / es * (1 + 3 / (es * es)) * Math.atan(es) - 3 / (es * es)
+  return res
+}
+
+const stableAngularSpeed = (e) => {
+  const determinant = 15 / 4 * q(e) * (1 - 3 * F(e) / 5)
+  const result = w0 * Math.sqrt(determinant)
+  console.log('stableAngularSpeed', { result })
+  return result
+}
+
+// if period is supplied, it will be used to calculate angular speed, otherwise eccentricity is used to calculate the period
+// timePeriod => unit hrs
+var Earth = function(rotating=true, eccentricity = 0.08182, timePeriod = undefined) {
   this.rotating = rotating;
 
   // R: earth's radius (assumed spherical)
   // T: earth's period of rotation (24 hours, stored in seconds)
   // V: earth's tangential equatorial speed -- V = 2*PI*R/T
-  // this.R = 6371393; // in meters
-  // this.T = 24*60*60; // in seconds
-  // this.R = 6371000; // mean radius in meters
   this.R = 6378137; // equatorial radius in meters
-  this.T = timePeriod*60*60 // (23.93 hours, stored in seconds).
+  this.stableAngularSpeed = stableAngularSpeed(eccentricity)
+
+  if (timePeriod == null) {
+    timePeriod = 2 * Math.PI / this.stableAngularSpeed
+  } else {
+    timePeriod *= 60 * 60
+  }
+
+  document.getElementById('time_period').value = "" + timePeriod / (60 * 60)
+
+  this.T = timePeriod
   this.V_ = 2 * Math.PI * (this.R / this.T); // meters per second
   this.V = this.V_;
   // T_: the period of the puck
@@ -29,7 +64,6 @@ var Earth = function(rotating=true, timePeriod = 23.93447) {
     this.OMEGA = 0;
   }
 
-  this.type = EARTH_SPHERE;
 }
 
 // returns the number of radians the earth has rotated after

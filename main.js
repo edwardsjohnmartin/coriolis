@@ -79,7 +79,7 @@ const view0 = ROTATIONAL_VIEW;
 // const view0 = DEBUG_VIEW;
 let view = view0;
 
-let globalEarth = new Earth(true, +localStorage.timePeriod || undefined);
+let globalEarth = new Earth(true, 0.08182)
 // let earthType = EARTH_SPHERE;
 // globalEarth.type = EARTH_SPHERE;
 // let earthType = EARTH_ELLISPOID;
@@ -116,9 +116,7 @@ if (localStorage.east0) {
   document.getElementById('east0').value = Number(localStorage.east0);
 }
 
-if (localStorage.timePeriod) {
-  document.getElementById('time_period').value = Number(localStorage.timePeriod);
-}
+const timePeriodInput = document.getElementById('time_period')
 
 const resizeGlobe = (eccentricity) => {
   const Ro = 400 // in pixels
@@ -252,9 +250,9 @@ function east0Changed() {
   resetSim();
 }
 
-function timePeriodChanged() {
-  localStorage.timePeriod = +document.getElementById('time_period').value;
-  globalEarth = new Earth(true, localStorage.timePeriod);
+function timePeriodChanged(forceStablePeriod = false) {
+  localStorage.timePeriod = +timePeriodInput.value;
+  rebuildGlobalEarth(forceStablePeriod)
   resetSim();
 }
 
@@ -1139,25 +1137,40 @@ function snap() {
   // document.body.removeChild(el);
 }
 
-
 document.getElementById('reset-eccentricity').onclick = function() {
   eccentricitySlider.value = "0.08182"
+  rebuildGlobalEarth()
   resetSim()
 }
 
+const rotateAtStableSpeed = document.getElementById('rotate-at-stable-speed')
+
+const rebuildGlobalEarth = (forceStablePeriod = false) => {
+  const period = !forceStablePeriod && !rotateAtStableSpeed.checked ? +timePeriodInput.value : undefined
+  globalEarth = new Earth(true, +eccentricitySlider.value, period);
+}
+
 eccentricitySlider.onchange = function(e) {
-  // ellipsoidal params
-  // const flattening = 1 - sqrt(1 - sq(this.eccentricity))
+  rebuildGlobalEarth()
   resetSim()
 }
 
 document.getElementById('eccentricity-value').oninput = function(e) {
   eccentricitySlider.value = e.target.value
+  rebuildGlobalEarth()
   resetSim()
 }
 
-document.getElementById('reset-time-period').onclick = function() {
-  document.getElementById('time_period').value = "23.93447"
-  timePeriodChanged()
+const resetTimePeriodBtn = document.getElementById('reset-time-period')
+
+resetTimePeriodBtn.onclick = function() {
+  //timePeriodInput.value = "23.93447"
+  timePeriodChanged(true)
 }
 
+rotateAtStableSpeed.onchange = function(e) {
+  resetTimePeriodBtn.disabled = e.target.checked
+  timePeriodInput.disabled = e.target.checked
+  rebuildGlobalEarth()
+  resetSim()
+}

@@ -87,35 +87,7 @@ const sqrt = (v) => {
   return Math.sqrt(v)
 }
 
-const F = (e) => {
-  const Fr = 0.8086
-  const er = 0.08182
-  const A = (1 - Fr) / (1 - er)
-  const B = (Fr - er) / (1 - er)
-  return A * e + B;
-}
-
-const secondEccentricity = (e) => {
-  return e / Math.sqrt(1 - e * e)
-}
-
-const q = (e) => {
-  const es = secondEccentricity(e)
-  if (es < 1e-7) {
-    return 0;
-  }
-  const res = 1 / es * (1 + 3 / (es * es)) * Math.atan(es) - 3 / (es * es)
-  return res
-}
-
 const w0 = 1.242 * 1e-3
-
-const stableAngularSpeed = (e) => {
-  const determinant = 15 / 4 * q(e) * (1 - 3 * F(e) / 5)
-  const result = w0 * Math.sqrt(determinant)
-  console.log('stableAngularSpeed', { result })
-  return result
-}
 
 Coriolis.prototype.L_momentum = function(phi_dot, theta) {
   const cos_sq = sq(Math.cos(theta))
@@ -151,7 +123,7 @@ Coriolis.prototype.f2 = function (theta, T) {
 }
 
 Coriolis.prototype.f3 = function (theta) {
-  const A = Math.pow(stableAngularSpeed(this.eccentricity), 2) / Math.pow(this.earth.OMEGA, 2) - 1
+  const A = Math.pow(this.earth.stableAngularSpeed, 2) / Math.pow(this.earth.OMEGA, 2) - 1
   const B = (1 - sq(this.eccentricity)) * Math.sin(2 * theta) / Math.pow(1 - sq(this.eccentricity) * Math.pow(Math.sin(theta), 2))
   const res = A * B * this.f2(theta)
   console.log('f3', { res, theta })
@@ -192,7 +164,7 @@ Coriolis.prototype.phi_dot = function() {
 }
 
 Coriolis.prototype.t_dot = function (theta, T) {
-  const A = sq(stableAngularSpeed(this.eccentricity)) / sq(this.earth.OMEGA) - 1
+  const A = sq(this.earth.stableAngularSpeed) / sq(this.earth.OMEGA) - 1
   const B = (1 - sq(this.eccentricity)) * Math.sin(2 * theta) / sq(1 - sq(this.eccentricity * Math.sin(theta))) * this.f2(theta, T)
   const result = this.earth.OMEGA * A * B;
   console.log('t_dot', { result })
@@ -207,7 +179,7 @@ Coriolis.prototype.stepRK4 = function(h) {
 
   let error = false
   let low = 0, high = h;
-  while (low + 1e-10 < high) {
+  while (low + 1e-3 < high) {
     const mid = (low + high) / 2;
     try {
       rk4(mid, [this._theta, this.T], [this.theta_dot_impl.bind(this), this.t_dot_impl.bind(this)])
