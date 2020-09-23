@@ -1161,15 +1161,7 @@ document.getElementById('eccentricity-value').oninput = function(e) {
   resetSim()
 }
 
-const resetTimePeriodBtn = document.getElementById('reset-time-period')
-
-resetTimePeriodBtn.onclick = function() {
-  //timePeriodInput.value = "23.93447"
-  timePeriodChanged(true)
-}
-
 rotateAtStableSpeed.onchange = function(e) {
-  resetTimePeriodBtn.disabled = e.target.checked
   timePeriodInput.disabled = e.target.checked
   rebuildGlobalEarth()
   resetSim()
