@@ -31,7 +31,7 @@ const stableAngularSpeed = (e) => {
 var Earth = function(rotating=true, eccentricity = 0.08182, timePeriod = undefined) {
   this.rotating = rotating;
 
-  // R: earth's radius (assumed spherical)
+  // R: earth's radius (assumed spherical) in meters
   // T: earth's period of rotation (24 hours, stored in seconds)
   // V: earth's tangential equatorial speed -- V = 2*PI*R/T
   this.R = 6378137; // equatorial radius in meters

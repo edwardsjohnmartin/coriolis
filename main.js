@@ -265,6 +265,8 @@ function rotationChanged() {
 //------------------------------------------------------------
 
 function init() {
+  rk4test1();
+
   document.onkeydown = keydown;
 
   // camera = new THREE.PerspectiveCamera(
