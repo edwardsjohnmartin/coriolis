@@ -42,21 +42,25 @@
 // }
 
 const rk4 = (stepSize, position, derivative_func) => {
-  // console.log('delta1');
-  const delta1 = derivative_func(position).mult(stepSize);
-  // console.log('delta2');
-  const delta2 = derivative_func(position.add(delta1.mult(0.5))).mult(stepSize);
-  // console.log('delta3');
-  const delta3 = derivative_func(position.add(delta2.mult(0.5))).mult(stepSize);
-  // console.log('delta4');
-  const delta4 = derivative_func(position.add(delta3)).mult(stepSize);
-  // console.log('rk4 done');
-  const sum = delta1.add(delta2.mult(2)).add(delta3.mult(2)).add(delta4);
-  return position.add(sum.mult(1/6));
+  // console.log('k1');
+  const k1 = derivative_func(position).mult(stepSize);
+  // console.log('k1', k1.phi);
 
-  // return position.map((value, idx) => {
-  //   return value + (delta1[idx] + 2 * delta2[idx] + 2 * delta3[idx] + delta4[idx]) / 6
-  // })
+  // console.log('k2');
+  const k2 = derivative_func(position.add(k1.mult(0.5))).mult(stepSize);
+  // console.log('k2', k2.phi);
+
+  // console.log('k3');
+  const k3 = derivative_func(position.add(k2.mult(0.5))).mult(stepSize);
+  // console.log('k3', k3.phi);
+
+  // console.log('k4');
+  const k4 = derivative_func(position.add(k3)).mult(stepSize);
+  // console.log('k4', k4.phi);
+
+  // console.log('rk4 done');
+  const sum = k1.add(k2.mult(2)).add(k3.mult(2)).add(k4);
+  return position.add(sum.mult(1/6));
 }
 
 const rk4_old = (stepSize, position, derivative_funcs) => {

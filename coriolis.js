@@ -24,9 +24,13 @@
 // try initial velocity of zero - will stay there in ellipsoidal and
 // move in spherical if released away from equator
 var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
-  // console.log(earth);
-  let V = earth.V;
-  let R = earth.R;
+  // console.log();
+  // console.log();
+  // console.log();
+  // console.log();
+
+  const V = earth.V;
+  const a = earth.a;
   this.earth = earth;
 
   // The initial position
@@ -38,18 +42,15 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   this.v0 = new Velocity(v0.north, v0.east, 0);
   console.log('v0', v0);
 
-  // Speed of the puck
+  // Speed of the puck in the two frames
   this.speedRotational = this.v0.north;
   this.speedFixed = Math.sqrt(sq(this.v0.east)+sq(this.v0.north));
-  // this.alpha = Math.atan2(Math.sqrt(5/4), 1);
+
   this.alpha = Math.atan2(this.v0.north/V, this.v0.east/V);
   this.speedFactor = 0.0005;
 
   this.eccentricity = eccentricity
 
-  //--------------------
-  // New stuff
-  //--------------------
   // radians
   this.theta0 = this.p0.lat;
   // radians
@@ -59,9 +60,17 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   // meters/second
   this.vphi0 = this.v0.east - V;
   // seconds
-  this.theta_dot0 = this.vtheta0 / R;
+  this.theta_dot0 = this.vtheta0 / this.earth.R(this.theta0);
+  // console.log('**** lat0', lat0);
+  // console.log('**** this.p0.lat', this.p0.lat);
+  // console.log('**** theta0', this.theta0);
+  // console.log('**** vtheta0', this.vtheta0);
+  // console.log('**** R', this.earth.R(this.theta0));
+  // console.log('**** a', a);
+  // console.log('****', this.theta_dot0);
+
   // seconds
-  this.phi_dot0 = this.vphi0 / (R * Math.cos(this.theta0));
+  this.phi_dot0 = this.vphi0 / (this.earth.R(this.theta0) * Math.cos(this.theta0));
 
   this._theta = this.theta0;
 
@@ -81,6 +90,7 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   console.log('phi_dot0', this.phi_dot0);
   console.log('theta0', this.theta0);
   console.log('phi0', this.phi0);
+  console.log('OMEGA', this.earth.OMEGA);
   console.log('L0', this.L0 * this.earth.OMEGA);
   console.log('T0', this.T * this.earth.OMEGA * this.earth.OMEGA);
   console.log('eccentricity', this.eccentricity)
@@ -94,8 +104,6 @@ const sqrt = (v) => {
   return Math.sqrt(v)
 }
 
-const w0 = 1.242 * 1e-3
-
 Coriolis.prototype.L_momentum = function(phi_dot, theta) {
   const cos_sq = sq(Math.cos(theta))
   const res = cos_sq * (1 + phi_dot / this.earth.OMEGA) / (1 - sq(this.eccentricity * Math.sin(theta)))
@@ -104,24 +112,34 @@ Coriolis.prototype.L_momentum = function(phi_dot, theta) {
 }
 
 Coriolis.prototype.Kinetic = function(theta, dphi, dtheta) {
-  const cos_sq = Math.cos(theta) * Math.cos(theta)
-  const sin_sq = 1 - cos_sq
-  const s_sq = sq(this.earth.OMEGA)
-  const D = 1 - sq(this.eccentricity) * sin_sq
-  const res = cos_sq * dphi * dphi / D + dtheta * dtheta * sq(1 - sq(this.eccentricity)) / Math.pow(D, 3)
-  console.log('T', { res, theta, dphi, dtheta })
-  return res / s_sq
+  // theta = 0;
+  // dphi = 0.785398;
+  // dtheta = 7.30428e-6;
+  const e = this.eccentricity;
+  const c = 1-sq(e) * sq(Math.sin(theta))
+  const phidot = dphi;
+  const thetadot = dtheta;
+  const Omega = this.earth.OMEGA;
+  const T = sq(Math.cos(theta)) * sq(phidot / Omega) / c 
+    + sq(1-sq(e)) * sq(thetadot / Omega) / (c*c*c) // dimensionless kinetic energy, rotating frame
+
+  // thetadot is off
+  // console.log('**+ phidot theta thetadot e omega T');
+  // console.log('**+', phidot, theta, thetadot, e, Omega, T);
+
+  return T;
+
+  // const cos_sq = Math.cos(theta) * Math.cos(theta);
+  // const sin_sq = 1 - cos_sq;
+  // const s_sq = sq(this.earth.OMEGA);
+  // const D = 1 - sq(this.eccentricity) * sin_sq;
+  // const res = cos_sq * dphi * dphi / D + dtheta * dtheta * sq(1 - sq(this.eccentricity)) / Math.pow(D, 3);
+  // const temp = res/s_sq;
+  // console.log('T', { res, theta, dphi, dtheta, temp });
+  // return res / s_sq;
 }
 
-//----------------------------------------
-// Functions for the RK4 stepping
-//----------------------------------------
-
-// var FState = function(theta, T) {
-//   this.theta = theta;
-//   this.T = T;
-// }
-
+//------------------------------------------------------------
 // An object that stores phi, theta, and T
 var PhiThetaT = function(phi, theta, T) {
   this.phi = phi;
@@ -131,138 +149,94 @@ var PhiThetaT = function(phi, theta, T) {
 
 PhiThetaT.prototype.add = function(state) {
   return new PhiThetaT(this.phi + state.phi, this.theta + state.theta, this.T + state.T);
-  // this.phi += state.phi;
-  // this.theta += state.theta;
-  // this.T += state.T;
-  // return this;
 }
 
 PhiThetaT.prototype.mult = function(scalar) {
   return new PhiThetaT(this.phi * scalar, this.theta * scalar, this.T * scalar);
-  // this.phi *= scalar;
-  // this.theta *= scalar;
-  // this.T *= scalar;
-  // return this;
 }
+//------------------------------------------------------------
 
-// Coriolis.prototype.f1 = function(theta) {
-//   const res = (1 - sq(this.eccentricity * Math.sin(theta))) / sq(Math.cos(theta)) * this.L0 - 1;
-//   return res;
-// }
-
-// Coriolis.prototype.f2 = function (theta, T) {
-//   const a = 1 - sq(this.eccentricity * Math.sin(theta));
-//   let res =  Math.pow(a, 1.5) / (1 - sq(this.eccentricity)) * sqrt(this.f4(theta, T));
-//   if (this.theta_dot_negate) {
-//     res *= -1;
-//   }
-//   return res;
-// }
-
-// Coriolis.prototype.f3 = function (theta) {
-//   const A = Math.pow(this.earth.stableAngularSpeed, 2) / Math.pow(this.earth.OMEGA, 2) - 1;
-//   const B = (1 - sq(this.eccentricity)) * Math.sin(2 * theta) /
-//     Math.pow(1 - sq(this.eccentricity) * Math.pow(Math.sin(theta), 2));
-//   const res = A * B * this.f2(theta);
-//   return res;
-// }
-
-// Coriolis.prototype.f4 = function (theta, T) {
-//   const a = 1 - sq(this.eccentricity * Math.sin(theta));
-//   const res = T - sq(this.f1(theta) * Math.cos(theta)) / a;
-//   return res;
-// }
+//------------------------------------------------------------
+// Functions for the RK4 stepping
+//------------------------------------------------------------
 
 Coriolis.prototype.f1 = function(state) {
-  const res = (1 - sq(this.eccentricity * Math.sin(state.theta))) / sq(Math.cos(state.theta)) * this.L0 - 1;
-  let theta = state.theta;
-  // console.log('f1', { res, theta });
+  const c1 = 1 - sq(this.eccentricity) * sq(Math.sin(state.theta));
+  const res = c1 * this.L0 / sq(Math.cos(state.theta)) - 1;
   return res;
 }
 
 Coriolis.prototype.f2 = function (state) {
-  const a = 1 - sq(this.eccentricity * Math.sin(state.theta));
-  let res =  Math.pow(a, 1.5) / (1 - sq(this.eccentricity)) * sqrt(this.f4(state));
-  // if (this.theta_dot_negate) {
-  //   res *= -1;
-  // }
-  let theta = state.theta;
-  // console.log('f2', { res, theta });
+  const c1 = 1 - sq(this.eccentricity) * sq(Math.sin(state.theta));
+  const c2 = 1 - sq(this.eccentricity);
+  let res =  Math.pow(c1, 1.5) * sqrt(this.f4(state)) / c2;
   return res;
 }
 
+// In the paper, OMEGA is the angular speed and OMEGA~ is the stable angular speed
 Coriolis.prototype.f3 = function (state) {
-  const A = Math.pow(this.earth.stableAngularSpeed, 2) / Math.pow(this.earth.OMEGA, 2) - 1;
-  const B = (1 - sq(this.eccentricity)) * Math.sin(2 * state.theta) /
-    Math.pow(1 - sq(this.eccentricity) * Math.pow(Math.sin(state.theta), 2));
-  const res = A * B * this.f2(state);
-  let theta = state.theta;
-  // console.log('f3', { res, theta });
+  // Code to match Boyd's
+  const c1 = 1 - sq(this.eccentricity) * sq(Math.sin(state.theta));
+  const c2 = 1 - sq(this.eccentricity);
+  const OmegaS = this.earth.stableAngularSpeed;
+  const Omega = this.earth.OMEGA;
+  const res = (sq(OmegaS/Omega) - 1) * c2 * Math.sin(2 * state.theta) * this.f2(state) / sq(c1)
+  // const A = sq(this.earth.stableAngularSpeed) / sq(this.earth.OMEGA) - 1;
+  // const B = (1 - sq(this.eccentricity)) * Math.sin(2 * state.theta) /
+  //   sq(1 - sq(this.eccentricity * Math.sin(state.theta)));
+  // const res = A * B * this.f2(state);
   return res;
 }
 
 Coriolis.prototype.f4 = function(state) {
-  const a = 1 - sq(this.eccentricity * Math.sin(state.theta));
-  const res = state.T - sq(this.f1(state) * Math.cos(state.theta)) / a;
-  let theta = state.theta;
-  // console.log('f4', { res, theta });
+  const c1 = 1 - sq(this.eccentricity) * sq(Math.sin(state.theta));
+  const res = state.T - sq(this.f1(state) * Math.cos(state.theta)) / c1;
+  return res;
+}
+
+Coriolis.prototype.phi_dot_impl = function(state) {
+  const res = this.earth.OMEGA * this.f1(state);
   return res;
 }
 
 // Returns value in seconds
 Coriolis.prototype.theta_dot_impl = function(state) {
-  // console.log('theta_dot', state.theta);
   const res = this.earth.OMEGA * this.f2(state);
-  // console.log('theta_dot', res);
   return res;
 }
 
-Coriolis.prototype.phi_dot_impl = function(state) {
-  // console.log('phi_dot ' + this._theta);
-  const res = this.earth.OMEGA * this.f1(state)
-  // console.log('phi_dot', { res, theta })
-  return res
-}
-
 Coriolis.prototype.T_dot_impl = function(state) {
-  // console.log('t_dot')
-  const theta = state.theta;
-  const T = state.T;
-  const A = sq(this.earth.stableAngularSpeed) / sq(this.earth.OMEGA) - 1;
-  const B = (1 - sq(this.eccentricity)) * Math.sin(2 * theta) /
-    sq(1 - sq(this.eccentricity * Math.sin(theta))) * this.f2(state);
-  const result = this.earth.OMEGA * A * B;
-  // console.log('t_dot', { result })
-  return result;
+  const res = this.earth.OMEGA * this.f3(state);
+  return res;
 }
 
 // Phi, Theta, and T derivative functions
 Coriolis.prototype._dot = function(state) {
-  // console.log('_dot');
-  let newState = new PhiThetaT(state.phi, state.theta, state.T);
-  newState.theta = this.theta_dot_impl(state);
-  newState.T = this.T_dot_impl(state);
-  newState.phi = this.phi_dot_impl(state);
-  // console.log('_dot--');
-  return newState;
+  const c1 = 1 - sq(this.eccentricity) * sq(Math.sin(state.theta));
+  const c2 = 1 - sq(this.eccentricity);
+  const f1 = this.f1(state);
+  const f2 = this.f2(state);
+  const f3 = this.f3(state);
+  const f4 = this.f4(state);
+  // console.log(c1, c2, f1, f2, f3, f4, state.phi, state.theta, state.T);
+
+  let phi_dot = this.phi_dot_impl(state);
+  let theta_dot = this.theta_dot_impl(state);
+  let T_dot = this.T_dot_impl(state);
+  return new PhiThetaT(phi_dot, theta_dot, T_dot);
 }
 
 // Returns value in seconds
 Coriolis.prototype.theta_dot = function() {
-  // return this.theta_dot_impl(this._theta, this.T);
   return this.theta_dot_impl(new PhiThetaT(this._phi, this._theta, this.T));
 }
 
 // Returns value in seconds
 Coriolis.prototype.phi_dot = function() {
-  // return this.phi_dot_impl(this._theta);
   return this.phi_dot_impl(new PhiThetaT(this._phi, this._theta, this.T));
 }
 
-// Coriolis.prototype.t_dot = function (theta, T) {
 Coriolis.prototype.T_dot = function() {
-  // const theta = this._theta;
-  // const T = this.T;
   return this.T_dot_impl(new PhiThetaT(this._phi, this._theta, this.T));
 }
 
@@ -276,15 +250,17 @@ Coriolis.prototype.T_dot = function() {
 // The code integrates forward with a regular time step of h = 1000 s until one of these time steps is invalid (that is, when one of the four radicands is negative).  Then the code integrates forward with a time step of h/2 until one of these time steps is invalid, then with h/4, etc., with the smallest time step being h/1024.  The code declares the last valid result at this time step to be the extremum.  The attached file shows all valid time steps.  Note that, for the two theta extrema found by the code, neither is within its original invalid time step of 1000 s.  The last column of the file says “theta” when the code is searching for a theta extremum, and “phi” for a phi extremum.  The second-to-last column gives the time step used for the previous step. 
 function rk4test1(h0 = 1000) {
   // V is in m/s, so N is in m/s
-  const N = 0.1 * globalEarth.V;
+  // const N = 0.1 * globalEarth.V;
+  const v_theta = 0.1 * globalEarth.a * globalEarth.OMEGA;
   const E = globalEarth.V;
-  const V = new Velocity(N, E, 0);
+  
+  const V = new Velocity(v_theta, E, 0);
   c = new Coriolis(radians(45), radians(30), V, globalEarth, 0.08182);
   console.log('*******************************************');
   console.log('       t (s)    phi    theta      K      K/K0   K_/K0_     h      ext');
 
   t = 0;
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 20; i++) {
     t = rk4test1step(c, h0, t);
     // p = rk4test1step(c, h0, t);
     // c._theta = p[0];
@@ -300,9 +276,6 @@ function rk4test1step(c, h0, t) {
   try {
     // return c.stepRK4(h0, t);
     p = c.stepRK4(h0, t);
-    // c._theta = p[0];
-    // c._phi = p[1];
-    // c.T = p[2]
     c._theta = p.theta;
     c._phi = p.phi;
     c.T = p.T;
@@ -316,9 +289,6 @@ function rk4test1step(c, h0, t) {
         // Go as far as we can with this step size
         while(true) {
           const p = c.stepRK4(h, t);
-          // c._theta = p[0];
-          // c._phi = p[1];
-          // c.T = p[2]
           c._theta = p.theta;
           c._phi = p.phi;
           c.T = p.T;
@@ -332,179 +302,30 @@ function rk4test1step(c, h0, t) {
   return t;
 }
 
-// // Same order, same values
-// Coriolis.prototype.test1 = function(h, t) {
-//   const [new_theta, new_T, new_phi] = rk4(
-//       h,
-//       [this._theta, this.T, this._phi],
-//       [this.theta_dot_impl.bind(this), this.t_dot_impl.bind(this), this.phi_dot_impl.bind(this)]
-//   )
-//   console.log(new_theta, new_T, new_phi);
-//   // console.log('a', this._phi);
-//   // console.log(this);
-
-//   const [new_theta5, new_T5, new_phi5] = rk4(
-//       h,
-//       [this._theta, this.T, this._phi],
-//       [this.theta_dot_impl.bind(this), this.t_dot_impl.bind(this), this.phi_dot_impl.bind(this)]
-//   )
-//   console.log(new_theta5, new_T5, new_phi5);
-//   // console.log('b', this._phi);
-//   // console.log(this);
-// }
-
-// // Different order
-// Coriolis.prototype.test2 = function(h, t) {
-//   const [new_theta, new_T, new_phi] = rk4(
-//       h,
-//       [this._theta, this.T, this._phi],
-//       [this.theta_dot_impl.bind(this), this.t_dot_impl.bind(this), this.phi_dot_impl.bind(this)]
-//   )
-//   console.log(new_theta, new_T, new_phi);
-//   // console.log('a', this._phi);
-//   // console.log(this);
-
-//   const [new_theta_, new_phi_, new_T_] = rk4(
-//       h,
-//       [this._theta, this._phi, this.T],
-//       [this.theta_dot_impl.bind(this), this.phi_dot_impl.bind(this), this.t_dot_impl.bind(this)]
-//   )
-//   console.log(new_theta_, new_T_, new_phi_);
-//   // console.log('e', this._phi);
-//   // console.log(this);
-// }
-
 // RK4
 Coriolis.prototype.stepRK4 = function(h, t=0) {
-  const phi = degrees(this._phi).toFixed(3).padStart(6, ' ');
-  const theta = degrees(this._theta).toFixed(3).padStart(8, ' ');
-  const K = this.T.toFixed(3).padStart(6, ' ');
+  // console.log('constants', this.earth.stableAngularSpeed, this.earth.OMEGA);
+
+  const phi = degrees(this._phi).toFixed(5).padStart(6, ' ');
+  const theta = degrees(this._theta).toFixed(5).padStart(8, ' ');
+  const K = this.T.toFixed(5).padStart(6, ' ');
   const KK0 = '.'.padStart(9);
   const K_K0_ = '.'.padStart(8);
-  const hs = h.toFixed(3).padStart(9, ' ');
-  console.log(`${t.toFixed(3).padStart(12, ' ')} ${phi} ${theta} ${K} ${KK0} ${K_K0_} ${hs}`);
+  const hs = h.toFixed(5).padStart(9, ' ');
+  console.log(`${t.toFixed(5).padStart(12, ' ')} ${phi} ${theta} ${K} ${KK0} ${K_K0_} ${hs}`);
 
   const state = new PhiThetaT(this._phi, this._theta, this.T);
   if (h === 0) {
-    // return [this._theta, this._phi, this.T]
     return state;
   }
 
-  // this.test2(h, t);
-
-  // const a = this._theta;
-  // const b = this.T;
-  // const c = this._phi;
-  // const p = new PhiThetaT(this._theta, this.T, this._phi);
-  // const [new_theta, new_T, new_phi] = rk4(
-  //   h,
-  //   // [this._theta, this.T, this._phi],
-  //   p,
-  //   [this.theta_dot_impl.bind(this), this.t_dot_impl.bind(this), this.phi_dot_impl.bind(this)]
-  // )
-  // console.log('phi = ' + state.phi);
-  // console.log('calling rk4');
   const newState = rk4(h, state, this._dot.bind(this));
-  // console.log('called rk4');
-  // console.log(new_theta, new_T, new_phi);
-  // console.log('a', this._phi);
-  // console.log(this);
-
-  // const [new_theta5, new_T5, new_phi5] = rk4(
-  //     h,
-  //     [this._theta, this.T, this._phi],
-  //     [this.theta_dot_impl.bind(this), this.t_dot_impl.bind(this), this.phi_dot_impl.bind(this)]
-  // )
-  // console.log(new_theta5, new_T5, new_phi5);
-  // console.log('b', this._phi);
-  // console.log(this);
-
-  // try {
-  //   const [new_phi4, new_T4, new_theta4] = rk4(
-  //     h,
-  //     [this._phi, this.T, this._theta],
-  //     [this.phi_dot_impl.bind(this), this.t_dot_impl.bind(this), this.theta_dot_impl.bind(this)]
-  //   )
-  //   console.log('x');
-  //   console.log('c', this._phi);
-  // } catch (e) {
-  //   console.log(e);
-  // }
-  // console.log(new_theta4, new_T4, new_phi4);
-
-  // const [new_theta_, new_phi_, new_T_] = rk4(
-  //     h,
-  //     [this._theta, this._phi, this.T],
-  //     [this.theta_dot_impl.bind(this), this.phi_dot_impl.bind(this), this.t_dot_impl.bind(this)]
-  // )
-  // console.log(new_theta_, new_T_, new_phi_);
-  // console.log('e', this._phi);
-  // console.log(this);
-
-  // const [new_T3, new_theta3, new_phi3] = rk4(
-  //     h,
-  //     [this.T, this._theta, this._phi],
-  //     [this.t_dot_impl.bind(this), this.theta_dot_impl.bind(this), this.phi_dot_impl.bind(this)]
-  // )
-  // console.log(new_theta3, new_T3, new_phi3);
-  // const [new_theta2, new_T2, new_phi2] = rk4(
-  //     h,
-  //     [this._theta, this.T, this._phi],
-  //     [this.theta_dot_impl.bind(this), this.t_dot_impl.bind(this), this.phi_dot_impl.bind(this)]
-  // )
-  // console.log(new_theta2, new_T2, new_phi2);
-
-  // return [new_theta, new_phi, new_T];
+  // console.log(degrees(newState.phi));
   return newState;
-}
-
-Coriolis.prototype.stepRK4_old = function(h) {
-  console.log(`rk4: ${this._theta}`);
-
-  if (h === 0) {
-    return [this._theta, this._phi, this.T]
-  }
-
-  let error = false
-  let low = 0, high = h;
-  while (low + 1e-6 < high) {
-    const mid = (low + high) / 2;
-    try {
-      rk4(mid, [this._theta, this.T], [this.theta_dot_impl.bind(this), this.t_dot_impl.bind(this)])
-      low = mid
-    } catch (e) {
-      error = true
-      high = mid
-    }
-  }
-
-  if (!error) {
-    low = h
-  }
-
-  if (low === 0) {
-    alert('what')
-    console.log('integration inverted', this.theta_dot_negate)
-    return [this._theta, this._phi, this.T]
-  }
-
-  const [new_theta, new_T, new_phi] = rk4(
-      low,
-      [this._theta, this.T, this._phi],
-      [this.theta_dot_impl.bind(this), this.t_dot_impl.bind(this), this.phi_dot_impl.bind(this)]
-  )
-
-  if (error) {
-    this.theta_dot_negate = !this.theta_dot_negate
-    console.log('integration inverted', this.theta_dot_negate)
-  }
-
-  return [new_theta, new_phi, new_T];
 }
 
 let pathInc = 1; // In degrees
 Coriolis.prototype.step = function(h) {
-  // console.log('theta = ' + this._theta);
   const p = this.stepRK4(h);
   console.log('params', { theta: p[0], phi: p[1], T: p[2] })
 
