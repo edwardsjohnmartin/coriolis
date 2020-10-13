@@ -209,6 +209,9 @@ Coriolis.prototype.T_dot = function() {
   return this.T_dot_impl(new PhiThetaT(this._phi, this._theta, this.T));
 }
 
+//------------------------------------------------------------
+// The following is test code from Boyd.
+
 // e = 0.08182 (earth’s eccentricity)
 // Tau = stable period (23.935 hr) for that eccentricity
 // Phi = 30°
@@ -219,7 +222,6 @@ Coriolis.prototype.T_dot = function() {
 // The code integrates forward with a regular time step of h = 1000 s until one of these time steps is invalid (that is, when one of the four radicands is negative).  Then the code integrates forward with a time step of h/2 until one of these time steps is invalid, then with h/4, etc., with the smallest time step being h/1024.  The code declares the last valid result at this time step to be the extremum.  The attached file shows all valid time steps.  Note that, for the two theta extrema found by the code, neither is within its original invalid time step of 1000 s.  The last column of the file says “theta” when the code is searching for a theta extremum, and “phi” for a phi extremum.  The second-to-last column gives the time step used for the previous step. 
 function rk4test1(h0 = 1000) {
   // V is in m/s, so N is in m/s
-  // const N = 0.1 * globalEarth.V;
   const v_theta = 0.1 * globalEarth.a * globalEarth.OMEGA;
   const E = globalEarth.V;
   
@@ -230,49 +232,11 @@ function rk4test1(h0 = 1000) {
 
   t = 0;
   for (let i = 0; i < 80; i++) {
-    // t = rk4test1step(c, h0, t);
     t = stepRK4(c, h0, t, true);
-    // console.log('*');
-    // p = rk4test1step(c, h0, t);
-    // c._theta = p[0];
-    // c._phi = p[1];
-    // c.T = p[2]
-    // t += h0;
   }
   console.log('completed test');
   console.log('*******************************************');
 }
-
-// function rk4test1step(c, h0, t) {
-//   try {
-//     p = c.stepRK4(h0, t);
-//     c._theta = p.theta;
-//     c._phi = p.phi;
-//     c.T = p.T;
-//     t += h0;
-//   } catch(e) {
-//     // We went into illegal territory, so do the modified binary search:
-//     // console.log('illegal', e);
-//     h = h0/2;
-//     while (h > h0/2048) {
-//       try {
-//         // Go as far as we can with this step size
-//         while(true) {
-//           const p = c.stepRK4(h, t);
-//           c._theta = p.theta;
-//           c._phi = p.phi;
-//           c.T = p.T;
-//           t += h;
-//         }
-//       } catch(e) {
-//         // console.log('illegal', e);
-//         h /= 2;
-//       }
-//     }
-//     c.dir = -c.dir;
-//   }
-//   return t;
-// }
 
 Coriolis.prototype.getState = function() {
   return new PhiThetaT(this._phi, this._theta, this.T);
@@ -289,11 +253,11 @@ Coriolis.prototype.printValues = function(t, h) {
   console.log(`${t.toFixed(3).padStart(12, ' ')} ${phi} ${theta} ${K} ${KK0} ${K_K0_} ${hs}`);
 }
 
-// RK4
-// Coriolis.prototype.stepRK4 = function(c, h) {//, t=0) {
-function stepRK4(c, h0, t, debug=false) {//, t=0) {
+// stepRK4
+// If we tread into illegal territory (theta exceeds/falls below theta_max/theta_min)
+// then cut the step in half and go as far as you can. Then cut the step in half again...
+function stepRK4(c, h0, t, debug=false) {
   try {
-    // p = c.stepRK4(h0, t);
     const p = rk4(h0, c.getState(), c._dot.bind(c));
 
     c._theta = p.theta;
@@ -302,9 +266,7 @@ function stepRK4(c, h0, t, debug=false) {//, t=0) {
     if (debug) c.printValues(t, h0);
     t += h0;
   } catch(e) {
-    if (e != 'negative radicand') {
-      throw e;
-    }
+    if (e != 'negative radicand') throw e;
     // We went into illegal territory, so do the modified binary search:
     // console.log('illegal', e);
     h = h0/2;
@@ -313,7 +275,6 @@ function stepRK4(c, h0, t, debug=false) {//, t=0) {
         // Go as far as we can with this step size
         while(true) {
           const p = rk4(h, c.getState(), c._dot.bind(c));
-          // const p = c.stepRK4(h, t);
           c._theta = p.theta;
           c._phi = p.phi;
           c.T = p.T;
@@ -321,46 +282,18 @@ function stepRK4(c, h0, t, debug=false) {//, t=0) {
           if (debug) c.printValues(t, h);
         }
       } catch(e) {
-        if (e != 'negative radicand') {
-          throw e;
-        }
-        // console.log('illegal', e);
+        if (e != 'negative radicand') throw e;
         h /= 2;
       }
     }
     c.dir = -c.dir;
   }
   return t;
-  // return c;
-
-  // const state = new PhiThetaT(this._phi, this._theta, this.T);
-  // if (h === 0) {
-  //   return state;
-  // }
-
-  // const newState = rk4(h, state, this._dot.bind(this));
-
-  // // Succeeded, so print out values
-  // const phi = degrees(this._phi).toFixed(5).padStart(6, ' ');
-  // const theta = degrees(this._theta).toFixed(5).padStart(8, ' ');
-  // const K = this.T.toFixed(5).padStart(6, ' ');
-  // const KK0 = '.'.padStart(9);
-  // const K_K0_ = '.'.padStart(8);
-  // const hs = h.toFixed(3).padStart(9, ' ');
-  // console.log(`${t.toFixed(3).padStart(12, ' ')} ${phi} ${theta} ${K} ${KK0} ${K_K0_} ${hs}`);
-
-  // return newState;
 }
 
 let pathInc = 1; // In degrees
 Coriolis.prototype.step = function(h) {
   stepRK4(this, h, 0);
-  // const p = this.stepRK4(h);
-  // console.log('params', { theta: p[0], phi: p[1], T: p[2] })
-
-  // this._theta = p[0];
-  // this._phi = p[1];
-  // this.T = p[2]
 
   const newRotPoint = new Position(this._theta, this._phi);
   if (this.lastRotPoint == null ||
