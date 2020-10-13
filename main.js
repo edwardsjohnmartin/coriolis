@@ -266,7 +266,7 @@ function rotationChanged() {
 
 function init() {
   // rk4test1();
-  rk4test2();
+  // rk4test2();
 
   document.onkeydown = keydown;
 
