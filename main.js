@@ -134,7 +134,7 @@ const resizeGlobe = (eccentricity) => {
   const graphic = document.getElementById('graphic')
   const svg = graphic.getElementsByTagName('svg')[0]
   svg.style.transform = `scale(${scaleA}, ${scaleB})`
-  console.log({ scaleA, scaleB })
+  // console.log({ scaleA, scaleB })
 }
 
 resetSim(false);
@@ -265,7 +265,7 @@ function rotationChanged() {
 //------------------------------------------------------------
 
 function init() {
-  rk4test1();
+  // rk4test1();
 
   document.onkeydown = keydown;
 
