@@ -24,11 +24,6 @@
 // try initial velocity of zero - will stay there in ellipsoidal and
 // move in spherical if released away from equator
 var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
-  // console.log();
-  // console.log();
-  // console.log();
-  // console.log();
-
   const V = earth.V;
   const a = earth.a;
   this.earth = earth;
@@ -40,7 +35,6 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   // v0 is in the fixed frame
   // this.v0 = new Velocity(Math.sqrt(5/4)*V, V, 0);
   this.v0 = new Velocity(v0.north, v0.east, 0);
-  console.log('v0', v0);
 
   // Speed of the puck in the two frames
   this.speedRotational = this.v0.north;
@@ -68,7 +62,9 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   }
 
   // seconds
-  this.phi_dot0 = this.vphi0 / (this.earth.R(this.theta0) * Math.cos(this.theta0));
+  // this.phi_dot0 = this.vphi0 / (this.earth.R(this.theta0) * Math.cos(this.theta0));
+  const rho = this.earth.a * Math.cos(this.theta0) / Math.sqrt(1 - sq(this.earth.e*Math.sin(this.theta0)));
+  this.phi_dot0 = this.vphi0 / rho;
 
   this._theta = this.theta0;
 
@@ -82,16 +78,21 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   this.lastRotPoint = null;
   this.lastInertialPoint = null;
 
+  console.log('****************************************');
+  console.log('Coriolis parameters');
+  console.log('****************************************');
+  console.log('v0', v0);
   console.log('V', V);
-  console.log('vtheta0', this.vtheta0);
-  console.log('theta_dot0', this.theta_dot0);
-  console.log('phi_dot0', this.phi_dot0);
-  console.log('theta0', this.theta0);
+  // console.log('vtheta0', this.vtheta0);
   console.log('phi0', this.phi0);
+  console.log('theta0', this.theta0);
+  console.log('phi_dot0', this.phi_dot0);
+  console.log('theta_dot0', this.theta_dot0);
   console.log('OMEGA', this.earth.OMEGA);
   console.log('L0', this.L0 * this.earth.OMEGA);
   console.log('T0', this.T * this.earth.OMEGA * this.earth.OMEGA);
   console.log('eccentricity', this.eccentricity)
+  console.log('rho', rho)
 }
 
 const sqrt = (v) => {
@@ -212,6 +213,7 @@ Coriolis.prototype.T_dot = function() {
 //------------------------------------------------------------
 // The following is test code from Boyd.
 
+// series1.txt
 // e = 0.08182 (earth’s eccentricity)
 // Tau = stable period (23.935 hr) for that eccentricity
 // Phi = 30°
@@ -231,6 +233,7 @@ function rk4test1(h0 = 1000) {
   console.log('       t (s)    phi    theta      K      K/K0   K_/K0_     h      ext');
 
   t = 0;
+  if (debug) c.printValues(t, h0);
   for (let i = 0; i < 80; i++) {
     t = stepRK4(c, h0, t, true);
   }
@@ -238,8 +241,34 @@ function rk4test1(h0 = 1000) {
   console.log('*******************************************');
 }
 
-Coriolis.prototype.getState = function() {
-  return new PhiThetaT(this._phi, this._theta, this.T);
+// series2.txt
+// e = 0.3 ! eccentricity (reference = 0.08182) TEST 2
+// Tau = 10 ! earth's sidereal period (hr) TEST 2
+// phi = 5 ! initial longitude (degrees) TEST 2
+// theta = 10 ! initial latitude (degrees) TEST 2
+// vphi = -0.8 ! initial dimensionless eastward velocity TEST 2
+// vtheta = 0.1 ! initial dimensionless northward velocity TEST 2
+// Here are the angular speeds:
+//   stable angular speed (rad/s) =   0.0002617225
+//   angular speed (rad/s) =   0.0001745329
+function rk4test2(h0 = 1000) {
+  let earth = new Earth(true, 0.3, 10)
+  // V is in m/s, so N is in m/s
+  const v_theta = 0.1 * earth.a * earth.OMEGA;
+  const E = -0.8 * earth.a * earth.OMEGA + earth.V;
+
+  const V = new Velocity(v_theta, E, 0);
+  c = new Coriolis(radians(10), radians(5), V, earth, earth.e);
+  console.log('*******************************************');
+  console.log('       t (s)    phi    theta      K      K/K0   K_/K0_     h      ext');
+
+  t = 0;
+  if (debug) c.printValues(t, h0);
+  for (let i = 0; i < 80; i++) {
+    t = stepRK4(c, h0, t, true);
+  }
+  console.log('completed test');
+  console.log('*******************************************');
 }
 
 Coriolis.prototype.printValues = function(t, h) {
@@ -253,6 +282,10 @@ Coriolis.prototype.printValues = function(t, h) {
   console.log(`${t.toFixed(3).padStart(12, ' ')} ${phi} ${theta} ${K} ${KK0} ${K_K0_} ${hs}`);
 }
 
+Coriolis.prototype.getState = function() {
+  return new PhiThetaT(this._phi, this._theta, this.T);
+}
+
 // stepRK4
 // If we tread into illegal territory (theta exceeds/falls below theta_max/theta_min)
 // then cut the step in half and go as far as you can. Then cut the step in half again...
@@ -263,8 +296,8 @@ function stepRK4(c, h0, t, debug=false) {
     c._theta = p.theta;
     c._phi = p.phi;
     c.T = p.T;
-    if (debug) c.printValues(t, h0);
     t += h0;
+    if (debug) c.printValues(t, h0);
   } catch(e) {
     if (e != 'negative radicand') throw e;
     // We went into illegal territory, so do the modified binary search:

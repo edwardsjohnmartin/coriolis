@@ -31,7 +31,7 @@ const stableAngularSpeed = (e) => {
   const w0 = Math.sqrt(g0/r0); // angular speed scale (rad/s)
   // const w0 = 1.242 * 1e-3
   const result = w0 * Math.sqrt(determinant)
-  console.log('stableAngularSpeed', { result })
+  // console.log('stableAngularSpeed', { result })
   return result
 }
 
@@ -60,13 +60,10 @@ var Earth = function(rotating=true, eccentricity = 0.08182, timePeriod = undefin
 
   // Called a in the paper
   this.a = getEquatorialRadius(eccentricity);
-  console.log('eccentricity::::', eccentricity);
   this.stableAngularSpeed = stableAngularSpeed(eccentricity)
 
   if (timePeriod == null) {
     timePeriod = 2 * Math.PI / this.stableAngularSpeed
-    console.log('timePeriod::::', timePeriod);
-    console.log('timePeriod::::', this.stableAngularSpeed);
   } else {
     timePeriod *= 60 * 60
   }
@@ -74,14 +71,12 @@ var Earth = function(rotating=true, eccentricity = 0.08182, timePeriod = undefin
   document.getElementById('time_period').value = "" + timePeriod / (60 * 60)
 
   this.T = timePeriod
-  this.V_ = 2 * Math.PI * (this.a / this.T); // meters per second
-  this.V = this.V_;
+  this.V = 2 * Math.PI * (this.a / this.T); // meters per second
   // T_: the period of the puck
   this.T_ = 16*60*60;
 
   // Earth's angular velocity in rad/s
   this.OMEGA = 2 * Math.PI / this.T; // 0.0000727;
-  console.log("omega = " + this.OMEGA);
   // console.log("V = " + this.V);
 
   if (!rotating) {
@@ -91,6 +86,14 @@ var Earth = function(rotating=true, eccentricity = 0.08182, timePeriod = undefin
     this.OMEGA = 0;
   }
 
+  console.log('****************************************');
+  console.log('Earth parameters');
+  console.log('****************************************');
+  console.log("OMEGA (angular speed)", this.OMEGA);
+  console.log('eccentricity', this.e);
+  console.log('T (timePeriod)', this.T);
+  console.log('stableAngularSpeed', this.stableAngularSpeed);
+  console.log('a (equatorial radius)', this.a);
 }
 
 // Earth's meridional radius of curvature
