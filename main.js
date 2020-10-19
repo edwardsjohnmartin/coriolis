@@ -134,9 +134,10 @@ const resizeGlobe = (eccentricity) => {
   let scaleA = Math.pow(1 - sq_eccentricity, - 1 / 6);
   let scaleB = Math.pow(1 - sq_eccentricity, 1 / 3);
 
-  scaleB = scaleB / scaleA;
-  scaleA = 1;
-  console.log('scaleB', scaleB);
+  // Keep the x-axis scale the same
+  // scaleB = scaleB / scaleA;
+  // scaleA = 1;
+  // console.log('scaleB', scaleB);
 
   const graphic = document.getElementById('graphic')
   const svg = graphic.getElementsByTagName('svg')[0]
@@ -150,11 +151,22 @@ const resizeGlobe = (eccentricity) => {
   // scaleA >= 1
   // scaleB <= 1
   // 0 <= dir.y <= 1
-  const diffA = scaleA - 1;
-  const diffB = 1-scaleB;
-  const f = Math.sin(Math.abs(dir.y)*Math.PI/2);
-  // console.log('f', f);
 
+  const theta = Math.abs(Math.atan2(dir.y, Math.sqrt(1-sq(dir.y))));
+  // console.log('theta_vis', theta);
+
+  // // Code keeping the x-axis scale the same
+  // const diffA = scaleA - 1;
+  // const diffB = 1-scaleB;
+  // const f = Math.sin(Math.abs(dir.y)*Math.PI/2);
+  // scaleA -= f * diffA;
+  // scaleB += f * diffB;
+
+  // Code keeping volume constant
+  const diffA = 0;
+  const diffB = scaleA-scaleB;
+  // const f = Math.sin(Math.abs(dir.y)*Math.PI/2);
+  const f = Math.sin(theta);
   scaleA -= f * diffA;
   scaleB += f * diffB;
 
