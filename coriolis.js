@@ -344,7 +344,7 @@ Coriolis.prototype.step = function(h) {
   }
 
   // console.log('path length =', this.rotPath.length);
-  if (this.rotPath.length > maxPathSegments) {
+  if (efficientPath && this.rotPath.length > maxPathSegments) {
     console.log('updating path - new pathInc =', pathInc*2);
     let newrp = [];
     let newip = [];

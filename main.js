@@ -7,6 +7,7 @@ let fixedPathGroup = new THREE.Group();
 let starGroup = new THREE.Group();
 let renderer;
 let controls;
+let efficientPath = true;
 // turning transparency off improves the FPS only a little -- from ~25
 // to ~30.
 let transparency = true;
@@ -471,6 +472,10 @@ function keydown(event) {
   } else if (key == 'p') {
     visiblePath = (visiblePath+1)%4;
     updatePathVisibility();
+    changed = true;
+  } else if (key == 'P') {
+    efficientPath = !efficientPath;
+    console.log('Efficient path changed:', efficientPath);
     changed = true;
   } else if (key == 's') {
     starSize /= 1.1;
