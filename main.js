@@ -119,22 +119,50 @@ if (localStorage.east0) {
 const timePeriodInput = document.getElementById('time_period')
 
 const resizeGlobe = (eccentricity) => {
-  const Ro = 400 // in pixels
+  // const Ro = 400 // in pixels
+  // const Ro = 4 // in pixels
 
   document.getElementById('eccentricity-value').value = eccentricity
 
   const sq_eccentricity = eccentricity * eccentricity
 
-  const a = Ro * Math.pow(1 - sq_eccentricity, - 1 / 6)
-  const b = Ro * Math.pow(1 - sq_eccentricity, 1 / 3)
+  // const a = Ro * Math.pow(1 - sq_eccentricity, - 1 / 6)
+  // const b = Ro * Math.pow(1 - sq_eccentricity, 1 / 3)
 
-  const scaleA = a / Ro
-  const scaleB = b / Ro
+  // const scaleA = a / Ro
+  // const scaleB = b / Ro
+  let scaleA = Math.pow(1 - sq_eccentricity, - 1 / 6);
+  let scaleB = Math.pow(1 - sq_eccentricity, 1 / 3);
+
+  scaleB = scaleB / scaleA;
+  scaleA = 1;
+  console.log('scaleB', scaleB);
 
   const graphic = document.getElementById('graphic')
   const svg = graphic.getElementsByTagName('svg')[0]
-  svg.style.transform = `scale(${scaleA}, ${scaleB})`
+  // svg.style.transform = `scale(${scaleA}, ${scaleB})`
   // console.log({ scaleA, scaleB })
+
+  let target = new THREE.Vector3(0,0,0);
+  let dir = camera.getWorldDirection(target).normalize();
+  // console.log('dir', dir);
+
+  // scaleA >= 1
+  // scaleB <= 1
+  // 0 <= dir.y <= 1
+  const diffA = scaleA - 1;
+  const diffB = 1-scaleB;
+  const f = Math.sin(Math.abs(dir.y)*Math.PI/2);
+  // console.log('f', f);
+
+  scaleA -= f * diffA;
+  scaleB += f * diffB;
+
+  // if (Math.abs(dir.y) > 1e-4) {
+  //   scaleA = 1;
+  //   scaleB = 1;
+  // }
+  svg.style.transform = `scale(${scaleA}, ${scaleB})`
 }
 
 resetSim(false);
