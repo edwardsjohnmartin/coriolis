@@ -475,7 +475,8 @@ function keydown(event) {
     changed = true;
   } else if (key == 'P') {
     efficientPath = !efficientPath;
-    console.log('Efficient path changed:', efficientPath);
+    document.getElementById('path-draw').innerHTML = efficientPath ? 'Efficient' : 'Exact';
+    // console.log('Efficient path changed:', efficientPath);
     changed = true;
   } else if (key == 's') {
     starSize /= 1.1;
