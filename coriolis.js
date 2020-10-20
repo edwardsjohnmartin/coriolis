@@ -53,22 +53,52 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   this.vtheta0 = this.v0.north;
   // meters/second
   this.vphi0 = this.v0.east - V;
+
+  const rho = this.earth.a * Math.cos(this.theta0) / Math.sqrt(1 - sq(this.earth.e*Math.sin(this.theta0)));
+  this.phi_dot0 = this.vphi0 / rho;
+  this._theta = this.theta0;
+  this._phi = this.phi0;
+
+  // Equation 66 of the paper
+  const Omega = this.earth.OMEGA;
+  const OmegaS = this.earth.stableAngularSpeed;
+  const Fn = rho * Math.sin(this._theta)
+    * (sq(Omega) - sq(OmegaS) + 2 * Omega * this.phi_dot0);
   // seconds
   this.theta_dot0 = this.vtheta0 / this.earth.R(this.theta0);
   if (this.theta_dot0 > 0) {
     this.dir = 1; // thetadot is positive
-  } else {
+  } else if(this.theta_dot0 < 0) {
     this.dir = -1; // thetadot is negative
+  } else if(this._theta == 0) {
+    this.dir = 0; // velocity east or west at equator
+  } else if (Fn > 0) {
+    this.dir = 1; // net force has a northward component
+    this.theta_dot0 = 1e-10;
+  } else if (Fn < 0) {
+    this.dir = -1; // net force has a southward component
+    this.theta_dot0 = -1e-10;
+  } else {
+    this.dir = 0; // net force has no northward or southward component
   }
+
+// Fn = -rho*sin(theta)*(Omega**2 - OmegaS**2 + 2.d0*Omega*phidot) ! northward component of net force per unit mass
+// if (thetadot .gt. 0.d0) then
+//   dir = 1 ! velocity has a northward component
+// else if (thetadot.lt.0.d0) then
+//   dir = -1 ! velocity has a southward component
+// else if (theta .eq. 0.d0) then
+//   dir = 0 ! velocity east or west at the equator
+// else if (Fn .gt. 0.d0) then
+//   dir = 1 ! net force has a northward component
+//   thetadot = 1.d-10
+// else if (Fn .lt. 0.d0) then
+//   dir = -1 ! net force has a southward component
+//   thetadot = -1.d-10
+// endif
 
   // seconds
   // this.phi_dot0 = this.vphi0 / (this.earth.R(this.theta0) * Math.cos(this.theta0));
-  const rho = this.earth.a * Math.cos(this.theta0) / Math.sqrt(1 - sq(this.earth.e*Math.sin(this.theta0)));
-  this.phi_dot0 = this.vphi0 / rho;
-
-  this._theta = this.theta0;
-
-  this._phi = this.phi0;
 
   this.L0 = this.L_momentum(this.phi_dot0, this.theta0)
   this.T = this.T0 = this.Kinetic(this.theta0, this.phi_dot0, this.theta_dot0)

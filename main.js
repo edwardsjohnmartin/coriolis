@@ -444,14 +444,15 @@ function keydown(event) {
     // Right arrow
     // earthRotation += animInc*2;
     // time += animInc*2;
-    incTime(2*animInc);
+    // incTime(2*animInc);
+    sim.step(1000);
     changed = true;
   } else if (x == 37) {
-    // Left arrow
-    // earthRotation -= animInc*2;
-    // time -= animInc*2;
-    incTime(-2*animInc);
-    changed = true;
+  //   // Left arrow
+  //   // earthRotation -= animInc*2;
+  //   // time -= animInc*2;
+  //   incTime(-2*animInc);
+  //   changed = true;
   } else if (key == 'f') {
     console.log('view', view);
     if (view == FIXED_VIEW) {
