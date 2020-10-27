@@ -134,9 +134,12 @@ const sqrt = (v) => {
 }
 
 Coriolis.prototype.L_momentum = function(phi_dot, theta) {
+  // if (this.eccentricity == 0) {
+  //   return 0;
+  // }
   const cos_sq = sq(Math.cos(theta))
   const res = cos_sq * (1 + phi_dot / this.earth.OMEGA) / (1 - sq(this.eccentricity * Math.sin(theta)))
-  console.log('L', { res, phi_dot, theta })
+  // console.log('L', { res, phi_dot, theta })
   return res
 }
 

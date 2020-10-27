@@ -1,3 +1,5 @@
+const OMEGA_r = 7.292e-5;
+
 const F = (e) => {
   const Fr = 0.8086
   const er = 0.08182
@@ -21,6 +23,9 @@ const q = (e) => {
 }
 
 const stableAngularSpeed = (e) => {
+  if (e == 0) {
+    return 0;
+  }
   const determinant = 15.0 / 4.0 * q(e) * (1.0 - 3.0 * F(e) / 5.0)
 
   const G = 6.674e-11; // Newton's universal gravitational constant G (N m^2/kg^2)
@@ -109,7 +114,14 @@ Earth.prototype.earthRotation = function(t) {
     return 0;
   }
 
-  // return (t/T_)*2*Math.PI;
   return (t/this.T)*2*Math.PI;
 }
+
+// Reference earth
+// Simulation earth
+
+// // Simulation earth's time period
+// Earth.prototype.T = function() {
+//   return 2 * Math.PI / this.OMEGA; // 0.0000727;
+// }
 

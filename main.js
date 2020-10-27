@@ -138,23 +138,19 @@ const resizeGlobe = (eccentricity) => {
   // Keep the x-axis scale the same
   // scaleB = scaleB / scaleA;
   // scaleA = 1;
-  // console.log('scaleB', scaleB);
 
   const graphic = document.getElementById('graphic')
   const svg = graphic.getElementsByTagName('svg')[0]
   // svg.style.transform = `scale(${scaleA}, ${scaleB})`
-  // console.log({ scaleA, scaleB })
 
   let target = new THREE.Vector3(0,0,0);
   let dir = camera.getWorldDirection(target).normalize();
-  // console.log('dir', dir);
 
   // scaleA >= 1
   // scaleB <= 1
   // 0 <= dir.y <= 1
 
   const theta = Math.abs(Math.atan2(dir.y, Math.sqrt(1-sq(dir.y))));
-  // console.log('theta_vis', theta);
 
   // // Code keeping the x-axis scale the same
   // const diffA = scaleA - 1;
@@ -353,14 +349,12 @@ function init() {
   
   // Set the window sizes
   let graphicParent = document.getElementById("graphic");
-  // console.log(graphicParent.clientWidth);
   let w = graphicParent.clientWidth;
   if (graphicParent.clientHeight < w) {
     w = graphicParent.clientHeight;
   }
   renderer.setSize(w, w);
   // renderer.domElement.setAttribute('shape-rendering', 'optimizeSpeed');
-  // console.log(renderer.domElement);
   graphicParent.appendChild(renderer.domElement);
 
   radiusInWindow = radius/(width/2)*(w/2);
@@ -422,7 +416,6 @@ function keydown(event) {
   var key = event.key;
   var changed = false;
   if (x == 40 || key == "j" || key == "J") {
-    // console.log('down');
     // Down arrow
     if (event.shiftKey) {
     } else if (event.ctrlKey) {
@@ -477,7 +470,6 @@ function keydown(event) {
   } else if (key == 'P') {
     efficientPath = !efficientPath;
     document.getElementById('path-draw').innerHTML = efficientPath ? 'Efficient' : 'Exact';
-    // console.log('Efficient path changed:', efficientPath);
     changed = true;
   } else if (key == 's') {
     starSize /= 1.1;
@@ -499,7 +491,6 @@ function keydown(event) {
     changed = true;
   } else if (key == 'a') {
     arrowsVisible = (arrowsVisible+1)%4;
-    // console.log(arrowsVisible);
     updateArrowVisibility();
     changed = true;
   } else if (key == 'r') {
@@ -689,7 +680,6 @@ function updateBackgroundStars() {
 // getPuckPath
 //----------------------------------------
 function getPuckPath(points, color) {
-  // console.log('getPuckPath ', points);
   points.forEach((p, i, arr) => {
     arr[i] = p.cartesian;
   });
@@ -817,7 +807,6 @@ function updateEarthGroup() {
 
   const hours = time / (60*60);
   let timeInc = 0;
-  // console.log("oldTime", oldTime);
   if (oldTime > 0) {
     timeInc = time - oldTime;
   }
@@ -856,9 +845,7 @@ function updateEarthGroup() {
     occludeMaterial(materialOccluded);
     let sphere = new THREE.Mesh(sgeometry, material);
     sim.step(timeInc);
-    // console.log('position: ' + sim.p(0)[0]);
     const p = sim.p(t);
-    // console.log(p.cartesian);
     sphere.translateOnAxis(p.cartesian, 1);
     sphere.renderOrder = vecRenderOrder;
     sphere.materialFront = material;
@@ -922,13 +909,11 @@ function updateEarthGroup() {
     // if (visiblePath == 0 || visiblePath == 1) {
     if (rotatingPathVisible) {
       let path = getPuckPathRotating(t, rotatingPathColor);
-      // console.log(path);
       earthGroup.add(path);
 
       // if (arrowsVisible % 2 == 0) {
       if (xVisible) {
         let xpath = sim.pathRot(0, t);
-        // console.log(path.length);
         let xl = xpath.length;
         if (xl > 1) {
           let x0 = xpath[xl-2].cartesian;
@@ -941,11 +926,10 @@ function updateEarthGroup() {
           let xv = x1.clone().sub(x0);
           let xlength = 0.18;
           let xdir = xv.normalize();
-          console.log(x0);
-          console.log(x1);
+          console.log('puck path x0', x0);
+          console.log('puck path x1', x1);
           if (xdir.x == 0) {
-            console.log(xdir);
-            console.log("***");
+            console.log('puck path xdir', xdir);
           }
           let xorigin = x1;
           let xarrowHelper = new ArrowHelper(xdir, xorigin, xlength, lineWidth,
@@ -955,7 +939,6 @@ function updateEarthGroup() {
         }
       }
     }
-    // if (visiblePath == 0 || visiblePath == 2) {
     if (inertialPathVisible) {
       let path = getPuckPathFixed(t, fixedPathColor);
       fixedPathGroup.add(path);
@@ -982,9 +965,6 @@ function render() {
 
   updateEarthGroup();
 
-  // console.log('a', viewRotationEarth());
-  // console.log('b', viewRotationSky());
-  // console.log('c', viewRotationScene());
   earthGroup.rotation.y = viewRotationEarth();
   starGroup.rotation.y = viewRotationSky();
   fixedPathGroup.rotation.y = rotDelta();
@@ -1045,7 +1025,6 @@ function snap() {
   XMLS = new XMLSerializer();
   svgtext = XMLS.serializeToString(renderer.domElement);
 
-  // console.log(svgtext);
   let textarea = document.getElementById("snapshot-output");
   // textarea.innerHTML = svgtext;
   textarea.value = svgtext;
@@ -1066,7 +1045,7 @@ function snap() {
 //----------------------------------------
 function demoChanged() {
   let demo = document.getElementById('demos').value;
-  console.log(demo);
+  console.log('demo: ', demo);
   instructions = document.getElementById('demoInstructions');
 
   animate = true;
@@ -1125,10 +1104,8 @@ function demoChanged() {
 
     animInc = 150;
 
-    // console.log('random', Math.random());
     speed = 500;
     let north = Math.random()*speed;
-    console.log('north', north);
     let east = Math.sqrt(speed*speed - north*north);
     resetSim(true, north, east);
     animate = true;
@@ -1152,7 +1129,6 @@ function demoChanged() {
 
     animInc = 150;
 
-    // console.log('random', Math.random());
     resetSim(true, 0, 0);
     animate = true;
   }
@@ -1171,7 +1147,6 @@ function snap() {
   XMLS = new XMLSerializer();
   svgtext = XMLS.serializeToString(renderer.domElement);
 
-  // console.log(svgtext);
   let textarea = document.getElementById("snapshot-output");
   // textarea.innerHTML = svgtext;
   textarea.value = svgtext;
