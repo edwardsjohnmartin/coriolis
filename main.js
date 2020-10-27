@@ -80,7 +80,7 @@ const view0 = ROTATIONAL_VIEW;
 // const view0 = DEBUG_VIEW;
 let view = view0;
 
-let globalEarth = new Earth(true, 0.08182)
+let globalEarth = null;//new Earth(true, 0.08182)
 // let earthType = EARTH_SPHERE;
 // globalEarth.type = EARTH_SPHERE;
 // let earthType = EARTH_ELLISPOID;
@@ -101,8 +101,6 @@ if (view == FIXED_VIEW) {
 document.getElementById('time').value = (time/(60*60)).toFixed(10);
 // document.getElementById('rotation').value =
 //   degrees(earthRotation(time)).toFixed(2);
-document.getElementById('rotation').innerHTML =
-  degrees(globalEarth.earthRotation(time)).toFixed(2);
 
 if (localStorage.lat0) {
   document.getElementById('lat0').value = Number(localStorage.lat0);
@@ -116,8 +114,14 @@ if (localStorage.north0) {
 if (localStorage.east0) {
   document.getElementById('east0').value = Number(localStorage.east0);
 }
+// if (localStorage.angularSpeedRatio) {
+//   document.getElementById('angular-speed-ratio').value = Number(localStorage.angularSpeedRatio);
+// } else {
+  document.getElementById('angular-speed-ratio').value = 1;
+// }
 
-const timePeriodInput = document.getElementById('time_period')
+// const timePeriodInput = document.getElementById('time_period')
+const angularSpeedRatioInput = document.getElementById('angular-speed-ratio')
 
 const resizeGlobe = (eccentricity) => {
   // const Ro = 400 // in pixels
@@ -173,8 +177,6 @@ const resizeGlobe = (eccentricity) => {
   // }
   svg.style.transform = `scale(${scaleA}, ${scaleB})`
 }
-
-resetSim(false);
 
 const zPosition = 10;
 const zZero = -1.1;
@@ -287,14 +289,32 @@ function east0Changed() {
   resetSim();
 }
 
-function timePeriodChanged(forceStablePeriod = false) {
-  localStorage.timePeriod = +timePeriodInput.value;
-  rebuildGlobalEarth(forceStablePeriod)
+// function timePeriodChanged(forceStablePeriod = false) {
+//   localStorage.timePeriod = +timePeriodInput.value;
+//   rebuildGlobalEarth(forceStablePeriod)
+//   resetSim();
+// }
+
+function angularSpeedRatioChanged() {
+  localStorage.angularSpeedRatio = +angularSpeedRatioInput.value;
+  rebuildGlobalEarth();//forceStablePeriod)
   resetSim();
+}
+
+function setToStableAngularSpeed() {
+  angularSpeedRatioInput.value = (globalEarth.OmegaS / Omega_r).toFixed(4);
+  angularSpeedRatioChanged();
 }
 
 function rotationChanged() {
   console.log("Not supported at this time");
+}
+
+function rebuildGlobalEarth() {
+  const angularSpeedRatio = +angularSpeedRatioInput.value;
+  globalEarth = new Earth(+eccentricitySlider.value, angularSpeedRatio);
+  // const period = !forceStablePeriod && !rotateAtStableSpeed.checked ? +timePeriodInput.value : undefined
+  // globalEarth = new Earth(true, +eccentricitySlider.value, period);
 }
 
 //------------------------------------------------------------
@@ -302,9 +322,6 @@ function rotationChanged() {
 //------------------------------------------------------------
 
 function init() {
-  // rk4test1();
-  // rk4test2();
-
   document.onkeydown = keydown;
 
   // camera = new THREE.PerspectiveCamera(
@@ -366,6 +383,17 @@ function init() {
   // scene.add(getGreatCircle());
   // scene.add(getArrowsGroup());
 
+  rebuildGlobalEarth();
+
+  // rk4test1();
+  // rk4test2();
+  // rk4test3();
+
+  document.getElementById('rotation').innerHTML =
+    degrees(globalEarth.earthRotation(time)).toFixed(2);
+  resetSim(false);
+
+
   updateEarthGroup();
   scene.add(earthGroup);
   scene.add(fixedPathGroup);
@@ -399,7 +427,8 @@ function resetSim(dorender=true, launchNorth=null, launchEast=null) {
   }
 
   sim = new Coriolis(
-      radians(launchLatitude), radians(launchLongitude), launchV, globalEarth, +eccentricitySlider.value);
+      // radians(launchLatitude), radians(launchLongitude), launchV, globalEarth, +eccentricitySlider.value);
+      radians(launchLatitude), radians(launchLongitude), launchV, globalEarth);
 
   if (dorender) {
     render();
@@ -1173,10 +1202,10 @@ document.getElementById('reset-eccentricity').onclick = function() {
 
 const rotateAtStableSpeed = document.getElementById('rotate-at-stable-speed')
 
-const rebuildGlobalEarth = (forceStablePeriod = false) => {
-  const period = !forceStablePeriod && !rotateAtStableSpeed.checked ? +timePeriodInput.value : undefined
-  globalEarth = new Earth(true, +eccentricitySlider.value, period);
-}
+// const rebuildGlobalEarth = (forceStablePeriod = false) => {
+//   const period = !forceStablePeriod && !rotateAtStableSpeed.checked ? +timePeriodInput.value : undefined
+//   globalEarth = new Earth(true, +eccentricitySlider.value, period);
+// }
 
 eccentricitySlider.onchange = function(e) {
   rebuildGlobalEarth()
@@ -1189,8 +1218,8 @@ document.getElementById('eccentricity-value').oninput = function(e) {
   resetSim()
 }
 
-rotateAtStableSpeed.onchange = function(e) {
-  timePeriodInput.disabled = e.target.checked
-  rebuildGlobalEarth()
-  resetSim()
-}
+// rotateAtStableSpeed.onchange = function(e) {
+//   timePeriodInput.disabled = e.target.checked
+//   rebuildGlobalEarth()
+//   resetSim()
+// }

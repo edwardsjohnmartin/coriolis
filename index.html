@@ -94,27 +94,32 @@
     </td>
     <td>
       <div style="margin-top: 10px; margin-bottom: 20px">
-        <button style="padding: 5px 10px" id="reset-eccentricity">Reset to Earth's Eccentricity</button>
+        
         <br/>
         <br/>
         <label>
           Eccentricity
           <input id="eccentricity-value" type="text" />
-          <br/>
+          <button id="reset-eccentricity">Set to reference</button>
           <br/>
           Eccentricity
           <input id="eccentricity-slider" type="range" min="0" max="0.999999" step="0.00001" value="0.08182"/>
         </label>
       </div>
       <div style="margin-top: 30px; margin-bottom: 20px">
-        <label>
+        <!--label>
           <input id="rotate-at-stable-speed" type="checkbox" checked>Rotate at stable angular speed
-        </label>
-        <br/>
-        <br/>
+        </label-->
+        <!--br/-->
+        <!--br/>
         <label>
           Period(hours)
           <input disabled type="text" id="time_period" onchange="timePeriodChanged()">
+        </label-->
+        <label>
+          Angular speed ratio (Omega/Omega_r)
+          <input type="text" id="angular-speed-ratio" onchange="angularSpeedRatioChanged()">
+          <button onclick="setToStableAngularSpeed()">Set to stable</button>
         </label>
       </div>
       <div id="clock">

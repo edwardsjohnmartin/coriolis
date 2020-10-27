@@ -5,7 +5,7 @@
 // Reference earth constants
 //----------------------------------------
 // Angular speed in rad/s.
-const OMEGA_r = 7.292e-5;
+const Omega_r = 7.292e-5;
 
 //----------------------------------------
 // Calculate the stable angular speed
@@ -73,44 +73,42 @@ function getEquatorialRadius(eccentricity) {
 // If period is supplied, it will be used to calculate angular speed, otherwise eccentricity is used to calculate the period
 // timePeriod => unit hrs
 //----------------------------------------
-var Earth = function(rotating=true, eccentricity = 0.08182, timePeriod = undefined) {
-  this.rotating = rotating;
+// var Earth = function(rotating=true, eccentricity = 0.08182, timePeriod = undefined) {
+// var Earth = function(rotating=true, eccentricity = 0.08182, angularSpeedRatio = null) {
+var Earth = function(eccentricity = 0.08182, angularSpeedRatio = null) {
+  // this.rotating = rotating;
   this.e = eccentricity;
 
   // a - equatorial radius in meters
   this.a = getEquatorialRadius(this.e);
 
-  this.stableAngularSpeed = stableAngularSpeed(this.e);
+  // OmegaS - stable angular speed (rad/s)
+  this.OmegaS = stableAngularSpeed(this.e);
 
   // tau - period of rotation in seconds (roughly 24*60*60 for our Earth)
-  if (timePeriod == null) {
-    timePeriod = 2 * Math.PI / this.stableAngularSpeed;
-  } else {
-    timePeriod *= 60 * 60;
-  }
-  document.getElementById('time_period').value = "" + timePeriod / (60 * 60);
-  this._tau = timePeriod;
+  // if (timePeriod == null) {
+  //   timePeriod = 2 * Math.PI / this.OmegaS;
+  // } else {
+  //   timePeriod *= 60 * 60;
+  // }
+  // document.getElementById('time_period').value = "" + timePeriod / (60 * 60);
+  // this._tau = timePeriod;
 
-  // V - earth's tangential equatorial speed
-  // this._V = 2 * Math.PI * (this.a / this._tau); // meters per second
+  // Earth's angular speed (rad/s)
+  // this.Omega = 2 * Math.PI / this._tau; // 0.0000727;
+  this.Omega = angularSpeedRatio * Omega_r;
 
-  // Earth's angular velocity in rad/s
-  this.OMEGA = 2 * Math.PI / this._tau; // 0.0000727;
-
-  if (!rotating) {
-    this._tau = Infinity; // in seconds
-    // this._V = 0;
-    // this.T_ = Infinity;
-    this.OMEGA = 0;
-  }
+  // if (!rotating) {
+  //   // this._tau = Infinity; // in seconds
+  //   this.Omega = 0;
+  // }
 
   console.log('****************************************');
   console.log('Earth parameters');
   console.log('****************************************');
-  console.log("OMEGA (angular speed)", this.OMEGA);
-  console.log('eccentricity', this.e);
-  console.log('tau (timePeriod)', this._tau);
-  console.log('stableAngularSpeed', this.stableAngularSpeed);
+  console.log("Omega (angular speed)", this.Omega);
+  console.log('e (eccentricity)', this.e);
+  console.log('OmegaS (stable angular speed)', this.OmegaS);
   console.log('a (equatorial radius)', this.a);
 }
 
@@ -123,18 +121,16 @@ Earth.prototype.R = function(theta) {
 // returns the number of radians the earth has rotated after
 // time seconds
 Earth.prototype.earthRotation = function(t) {
-  if (!this.rotating) {
-    return 0;
-  }
+  // if (!this.rotating) {
+  //   return 0;
+  // }
 
-  return (t/this._tau)*2*Math.PI;
+  // return (t/this._tau)*2*Math.PI;
+  return t * this.Omega;
 }
-
-// Reference earth
-// Simulation earth
 
 // Simulation earth's time period
-Earth.prototype.tau = function() {
-  return this._tau;//2 * Math.PI / this.OMEGA; // 0.0000727;
-}
+// Earth.prototype.tau = function() {
+//   return this._tau;//2 * Math.PI / this.Omega; // 0.0000727;
+// }
 

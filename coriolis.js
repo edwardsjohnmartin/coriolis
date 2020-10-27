@@ -1,8 +1,6 @@
 //------------------------------------------------------------
-//------------------------------------------------------------
 // Everything should be in the rotating frame -- all equations
 // in the paper are in the rotating frame.
-//------------------------------------------------------------
 //------------------------------------------------------------
 
 //------------------------------------------------------------
@@ -10,8 +8,7 @@
 // lon0 - longitude in radians at which the puck was struck.
 // v0 - velocity of the puck in the rotating frame
 //------------------------------------------------------------
-var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
-  // const V = earth.V;
+var Coriolis = function(lat0, lon0, v0, earth) {
   const a = earth.a;
   this.earth = earth;
 
@@ -30,7 +27,8 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   // this.alpha = Math.atan2(this.v0.north/this.earth._V, this.v0.east/this.earth._V);
   this.speedFactor = 0.0005;
 
-  this.eccentricity = eccentricity
+  // this.eccentricity = eccentricity
+  // this.eccentricity = this.earth.e;
 
   // radians
   this.theta0 = this.p0.lat;
@@ -47,8 +45,8 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   this._phi = this.phi0;
 
   // Equation 66 of the paper
-  const Omega = this.earth.OMEGA;
-  const OmegaS = this.earth.stableAngularSpeed;
+  const Omega = this.earth.Omega;
+  const OmegaS = this.earth.OmegaS;
   const Fn = rho * Math.sin(this._theta)
     * (sq(Omega) - sq(OmegaS) + 2 * Omega * this.phi_dot0);
   // seconds
@@ -105,10 +103,10 @@ var Coriolis = function(lat0, lon0, v0, earth, eccentricity = 0.08182) {
   console.log('theta0', this.theta0);
   console.log('phi_dot0', this.phi_dot0);
   console.log('theta_dot0', this.theta_dot0);
-  console.log('OMEGA', this.earth.OMEGA);
-  console.log('L0', this.L0 * this.earth.OMEGA);
-  console.log('T0', this.T * this.earth.OMEGA * this.earth.OMEGA);
-  console.log('eccentricity', this.eccentricity)
+  // console.log('Omega', this.earth.Omega);
+  console.log('L0', this.L0 * this.earth.Omega);
+  console.log('T0', this.T * this.earth.Omega * this.earth.Omega);
+  // console.log('eccentricity', this.earth.e)
   console.log('rho', rho)
 }
 
@@ -121,21 +119,21 @@ const sqrt = (v) => {
 }
 
 Coriolis.prototype.L_momentum = function(phi_dot, theta) {
-  // if (this.eccentricity == 0) {
+  // if (this.earth.e == 0) {
   //   return 0;
   // }
   const cos_sq = sq(Math.cos(theta))
-  const res = cos_sq * (1 + phi_dot / this.earth.OMEGA) / (1 - sq(this.eccentricity * Math.sin(theta)))
+  const res = cos_sq * (1 + phi_dot / this.earth.Omega) / (1 - sq(this.earth.e * Math.sin(theta)))
   // console.log('L', { res, phi_dot, theta })
   return res
 }
 
 Coriolis.prototype.Kinetic = function(theta, dphi, dtheta) {
-  const e = this.eccentricity;
+  const e = this.earth.e;
   const c = 1-sq(e) * sq(Math.sin(theta))
   const phidot = dphi;
   const thetadot = dtheta;
-  const Omega = this.earth.OMEGA;
+  const Omega = this.earth.Omega;
   const T = sq(Math.cos(theta)) * sq(phidot / Omega) / c 
     + sq(1-sq(e)) * sq(thetadot / Omega) / (c*c*c) // dimensionless kinetic energy, rotating frame
   return T;
@@ -163,48 +161,48 @@ PhiThetaT.prototype.mult = function(scalar) {
 //------------------------------------------------------------
 
 Coriolis.prototype.f1 = function(state) {
-  const c1 = 1 - sq(this.eccentricity) * sq(Math.sin(state.theta));
+  const c1 = 1 - sq(this.earth.e) * sq(Math.sin(state.theta));
   const res = c1 * this.L0 / sq(Math.cos(state.theta)) - 1;
   return res;
 }
 
 Coriolis.prototype.f2 = function (state) {
-  const c1 = 1 - sq(this.eccentricity) * sq(Math.sin(state.theta));
-  const c2 = 1 - sq(this.eccentricity);
+  const c1 = 1 - sq(this.earth.e) * sq(Math.sin(state.theta));
+  const c2 = 1 - sq(this.earth.e);
   let res =  this.dir*Math.pow(c1, 1.5) * sqrt(this.f4(state)) / c2;
   return res;
 }
 
-// In the paper, OMEGA is the angular speed and OMEGA~ is the stable angular speed
+// In the paper, Omega is the angular speed and OmegaS is the stable angular speed
 Coriolis.prototype.f3 = function (state) {
   // Code to match Boyd's
-  const c1 = 1 - sq(this.eccentricity) * sq(Math.sin(state.theta));
-  const c2 = 1 - sq(this.eccentricity);
-  const OmegaS = this.earth.stableAngularSpeed;
-  const Omega = this.earth.OMEGA;
+  const c1 = 1 - sq(this.earth.e) * sq(Math.sin(state.theta));
+  const c2 = 1 - sq(this.earth.e);
+  const OmegaS = this.earth.OmegaS;
+  const Omega = this.earth.Omega;
   const res = (sq(OmegaS/Omega) - 1) * c2 * Math.sin(2 * state.theta) * this.f2(state) / sq(c1)
   return res;
 }
 
 Coriolis.prototype.f4 = function(state) {
-  const c1 = 1 - sq(this.eccentricity) * sq(Math.sin(state.theta));
+  const c1 = 1 - sq(this.earth.e) * sq(Math.sin(state.theta));
   const res = state.T - sq(this.f1(state) * Math.cos(state.theta)) / c1;
   return res;
 }
 
 Coriolis.prototype.phi_dot_impl = function(state) {
-  const res = this.earth.OMEGA * this.f1(state);
+  const res = this.earth.Omega * this.f1(state);
   return res;
 }
 
 // Returns value in seconds
 Coriolis.prototype.theta_dot_impl = function(state) {
-  const res = this.earth.OMEGA * this.f2(state);
+  const res = this.earth.Omega * this.f2(state);
   return res;
 }
 
 Coriolis.prototype.T_dot_impl = function(state) {
-  const res = this.earth.OMEGA * this.f3(state);
+  const res = this.earth.Omega * this.f3(state);
   return res;
 }
 
@@ -244,7 +242,7 @@ Coriolis.prototype.T_dot = function() {
 // The code integrates forward with a regular time step of h = 1000 s until one of these time steps is invalid (that is, when one of the four radicands is negative).  Then the code integrates forward with a time step of h/2 until one of these time steps is invalid, then with h/4, etc., with the smallest time step being h/1024.  The code declares the last valid result at this time step to be the extremum.  The attached file shows all valid time steps.  Note that, for the two theta extrema found by the code, neither is within its original invalid time step of 1000 s.  The last column of the file says “theta” when the code is searching for a theta extremum, and “phi” for a phi extremum.  The second-to-last column gives the time step used for the previous step. 
 function rk4test1(h0 = 1000) {
   // V is in m/s, so N is in m/s
-  const v_theta = 0.1 * globalEarth.a * globalEarth.OMEGA;
+  const v_theta = 0.1 * globalEarth.a * globalEarth.Omega;
   const E = 0;//globalEarth._V;
   
   const V = new Velocity(v_theta, E, 0);
@@ -274,8 +272,8 @@ function rk4test1(h0 = 1000) {
 function rk4test2(h0 = 1000) {
   let earth = new Earth(true, 0.3, 10)
   // V is in m/s, so N is in m/s
-  const v_theta = 0.1 * earth.a * earth.OMEGA;
-  const E = -0.8 * earth.a * earth.OMEGA;// + earth._V;
+  const v_theta = 0.1 * earth.a * earth.Omega;
+  const E = -0.8 * earth.a * earth.Omega;// + earth._V;
 
   const V = new Velocity(v_theta, E, 0);
   c = new Coriolis(radians(10), radians(5), V, earth, earth.e);
@@ -285,6 +283,36 @@ function rk4test2(h0 = 1000) {
   t = 0;
   if (debug) c.printValues(t, h0);
   for (let i = 0; i < 80; i++) {
+    t = stepRK4(c, h0, t, true);
+  }
+  console.log('completed test');
+  console.log('*******************************************');
+}
+
+// series3.txt
+// e = 0.3  eccentricity
+// OmegaRat = 2  ratio of angular speed to reference angular speed
+// phi = 5 initial longitude (degrees)
+// theta = 10 initial latitude (degrees)
+// vphi = -700 initial eastward velocity (m/s)
+// vtheta = 100 initial westward velocity (m/s)
+// m = 70 number of integration steps
+// h = 1000 regular time step (s)
+function rk4test3(h0 = 1000) {
+  let earth = new Earth(0.3, 2)
+  // V is in m/s, so N is in m/s
+  // const v_theta = 0.1 * earth.a * earth.Omega;
+  // const E = -0.8 * earth.a * earth.Omega;// + earth._V;
+
+  // const V = new Velocity(v_theta, E, 0);
+  const V = new Velocity(100, -700);
+  c = new Coriolis(radians(10), radians(5), V, earth);
+  console.log('*******************************************');
+  console.log('       t (s)    phi    theta      K      K/K0   K_/K0_     h      ext');
+
+  t = 0;
+  if (debug) c.printValues(t, h0);
+  for (let i = 0; i < 70; i++) {
     t = stepRK4(c, h0, t, true);
   }
   console.log('completed test');
