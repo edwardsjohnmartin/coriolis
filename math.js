@@ -36,7 +36,6 @@ Velocity.prototype.cartesian = function(p) {
 }
 
 function velFromRadians(theta, speed) {
-  // console.log('theta=',degrees(theta));
   return new Velocity(speed*Math.sin(theta), speed*Math.cos(theta));
 }
 

@@ -1,4 +1,16 @@
+// The "Reference Earth" is our Earth as we know it
+// The "Simulation earth" is the earth we are running in the simulation
+
+//----------------------------------------
+// Reference earth constants
+//----------------------------------------
+// Angular speed in rad/s.
 const OMEGA_r = 7.292e-5;
+
+//----------------------------------------
+// Calculate the stable angular speed
+// given eccentricity
+//----------------------------------------
 
 const F = (e) => {
   const Fr = 0.8086
@@ -40,6 +52,11 @@ const stableAngularSpeed = (e) => {
   return result
 }
 
+//----------------------------------------
+// Calculate the equatorial radius given
+// eccentricity
+//----------------------------------------
+
 function getEquatorialRadius(eccentricity) {
   const G = 6.674e-11; // Newton's universal gravitational constant G (N m^2/kg^2)
   const M = 5.972e24; // earth mass in kg
@@ -51,43 +68,39 @@ function getEquatorialRadius(eccentricity) {
   return ret;
 }
 
-// if period is supplied, it will be used to calculate angular speed, otherwise eccentricity is used to calculate the period
+//----------------------------------------
+// Construct a simulation earth.
+// If period is supplied, it will be used to calculate angular speed, otherwise eccentricity is used to calculate the period
 // timePeriod => unit hrs
+//----------------------------------------
 var Earth = function(rotating=true, eccentricity = 0.08182, timePeriod = undefined) {
   this.rotating = rotating;
   this.e = eccentricity;
 
-  // R: earth's radius (assumed spherical) in meters
-  // T: earth's period of rotation (24 hours, stored in seconds)
-  // V: earth's tangential equatorial speed -- V = 2*PI*R/T
-  // this.a = 6378137; // equatorial radius in meters
-  // console.log('=========', getEquatorialRadius(eccentricity), this.a);
+  // a - equatorial radius in meters
+  this.a = getEquatorialRadius(this.e);
 
-  // Called a in the paper
-  this.a = getEquatorialRadius(eccentricity);
-  this.stableAngularSpeed = stableAngularSpeed(eccentricity)
+  this.stableAngularSpeed = stableAngularSpeed(this.e);
 
+  // tau - period of rotation in seconds (roughly 24*60*60 for our Earth)
   if (timePeriod == null) {
-    timePeriod = 2 * Math.PI / this.stableAngularSpeed
+    timePeriod = 2 * Math.PI / this.stableAngularSpeed;
   } else {
-    timePeriod *= 60 * 60
+    timePeriod *= 60 * 60;
   }
+  document.getElementById('time_period').value = "" + timePeriod / (60 * 60);
+  this._tau = timePeriod;
 
-  document.getElementById('time_period').value = "" + timePeriod / (60 * 60)
-
-  this.T = timePeriod
-  this.V = 2 * Math.PI * (this.a / this.T); // meters per second
-  // T_: the period of the puck
-  this.T_ = 16*60*60;
+  // V - earth's tangential equatorial speed
+  // this._V = 2 * Math.PI * (this.a / this._tau); // meters per second
 
   // Earth's angular velocity in rad/s
-  this.OMEGA = 2 * Math.PI / this.T; // 0.0000727;
-  // console.log("V = " + this.V);
+  this.OMEGA = 2 * Math.PI / this._tau; // 0.0000727;
 
   if (!rotating) {
-    this.T = Infinity; // in seconds
-    this.V = 0;
-    this.T_ = Infinity;
+    this._tau = Infinity; // in seconds
+    // this._V = 0;
+    // this.T_ = Infinity;
     this.OMEGA = 0;
   }
 
@@ -96,7 +109,7 @@ var Earth = function(rotating=true, eccentricity = 0.08182, timePeriod = undefin
   console.log('****************************************');
   console.log("OMEGA (angular speed)", this.OMEGA);
   console.log('eccentricity', this.e);
-  console.log('T (timePeriod)', this.T);
+  console.log('tau (timePeriod)', this._tau);
   console.log('stableAngularSpeed', this.stableAngularSpeed);
   console.log('a (equatorial radius)', this.a);
 }
@@ -114,14 +127,14 @@ Earth.prototype.earthRotation = function(t) {
     return 0;
   }
 
-  return (t/this.T)*2*Math.PI;
+  return (t/this._tau)*2*Math.PI;
 }
 
 // Reference earth
 // Simulation earth
 
-// // Simulation earth's time period
-// Earth.prototype.T = function() {
-//   return 2 * Math.PI / this.OMEGA; // 0.0000727;
-// }
+// Simulation earth's time period
+Earth.prototype.tau = function() {
+  return this._tau;//2 * Math.PI / this.OMEGA; // 0.0000727;
+}
 

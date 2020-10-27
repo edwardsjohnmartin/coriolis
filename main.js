@@ -381,17 +381,13 @@ function resetSim(dorender=true, launchNorth=null, launchEast=null) {
   const launchLatitude = +document.getElementById('lat0').value;
   const launchLongitude = +document.getElementById('lon0').value;
   if (launchNorth == null) {
-    launchNorth = +document.getElementById('north0').value * globalEarth.V;
+    launchNorth = +document.getElementById('north0').value;// * globalEarth._V;
   }
   if (launchEast == null) {
-    launchEast = +document.getElementById('east0').value * globalEarth.V
-      + globalEarth.V;
+    launchEast = +document.getElementById('east0').value;// * globalEarth._V
+      // + globalEarth._V;
   }
   const launchV = new Velocity(launchNorth, launchEast, 0);
-
-  // let sim = new CoriolisSim(radians(launchLongitude));
-  // let sim = new Coriolis(
-  //   radians(launchLatitude), radians(launchLongitude), launchV, earthType);
 
   time = time0;
   oldTime = -1;
@@ -811,7 +807,7 @@ function updateEarthGroup() {
     timeInc = time - oldTime;
   }
   oldTime = time;
-  const t = time;
+  // const t = time;
   // const phi = sim.phi(t);
   // const phi_ = sim.phi_(t);
   // debug.phi = phi;
@@ -820,8 +816,10 @@ function updateEarthGroup() {
   debug.theta = sim._theta;
   debug.phi = sim._phi;
   debug.T = sim.T
-  debug.theta_dot = sim.theta_dot(t);
-  debug.phi_dot = sim.phi_dot(t);
+  // debug.theta_dot = sim.theta_dot(t);
+  // debug.phi_dot = sim.phi_dot(t);
+  debug.theta_dot = sim.theta_dot(time);
+  debug.phi_dot = sim.phi_dot(time);
   debug.L0 = sim.L0;
   debug.T0 = sim.T0;
 
@@ -845,7 +843,8 @@ function updateEarthGroup() {
     occludeMaterial(materialOccluded);
     let sphere = new THREE.Mesh(sgeometry, material);
     sim.step(timeInc);
-    const p = sim.p(t);
+    // const p = sim.p(t);
+    const p = sim.p(time);
     sphere.translateOnAxis(p.cartesian, 1);
     sphere.renderOrder = vecRenderOrder;
     sphere.materialFront = material;
@@ -857,9 +856,11 @@ function updateEarthGroup() {
 
     let v;
     if (view == ROTATIONAL_VIEW) {
-      v = sim.vRotational(t);
+      // v = sim.vRotational(t);
+      v = sim.vRotational(time);
     } else {
-      v = sim.vFixed(t);
+      // v = sim.vFixed(t);
+      v = sim.vFixed(time);
     }
     let E = east(p.cartesian);
     let N = north(p.cartesian);
@@ -908,12 +909,13 @@ function updateEarthGroup() {
     // if (view == ROTATIONAL_VIEW) {
     // if (visiblePath == 0 || visiblePath == 1) {
     if (rotatingPathVisible) {
-      let path = getPuckPathRotating(t, rotatingPathColor);
+      // let path = getPuckPathRotating(t, rotatingPathColor);
+      let path = getPuckPathRotating(time, rotatingPathColor);
       earthGroup.add(path);
 
       // if (arrowsVisible % 2 == 0) {
       if (xVisible) {
-        let xpath = sim.pathRot(0, t);
+        let xpath = sim.pathRot(0, time);
         let xl = xpath.length;
         if (xl > 1) {
           let x0 = xpath[xl-2].cartesian;
@@ -940,7 +942,8 @@ function updateEarthGroup() {
       }
     }
     if (inertialPathVisible) {
-      let path = getPuckPathFixed(t, fixedPathColor);
+      // let path = getPuckPathFixed(t, fixedPathColor);
+      let path = getPuckPathFixed(time, fixedPathColor);
       fixedPathGroup.add(path);
     }
   }
