@@ -5,7 +5,7 @@
 // Reference earth constants
 //----------------------------------------
 // Angular speed in rad/s.
-const Omega_r = 7.292e-5;
+const OmegaR = 7.291967e-5;
 
 //----------------------------------------
 // Calculate the stable angular speed
@@ -96,7 +96,7 @@ var Earth = function(eccentricity = 0.08182, angularSpeedRatio = null) {
 
   // Earth's angular speed (rad/s)
   // this.Omega = 2 * Math.PI / this._tau; // 0.0000727;
-  this.Omega = angularSpeedRatio * Omega_r;
+  this.Omega = angularSpeedRatio * OmegaR;
 
   // if (!rotating) {
   //   // this._tau = Infinity; // in seconds

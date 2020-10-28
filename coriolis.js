@@ -119,15 +119,14 @@ const sqrt = (v) => {
 }
 
 Coriolis.prototype.L_momentum = function(phi_dot, theta) {
-  // if (this.earth.e == 0) {
-  //   return 0;
-  // }
-  const cos_sq = sq(Math.cos(theta))
+  const cos_sq = sq(Math.cos(theta));
   const res = cos_sq * (1 + phi_dot / this.earth.Omega) / (1 - sq(this.earth.e * Math.sin(theta)))
-  // console.log('L', { res, phi_dot, theta })
-  return res
+  // const res = cos_sq * ((this.earth.Omega + phi_dot) / OmegaR) / (1 - sq(this.earth.e * Math.sin(theta)))
+  // const res = (cos_sq / (1 - sq(this.earth.e * Math.sin(theta)))) * ((this.earth.Omega + phi_dot) / OmegaR);
+  return res;
 }
 
+// Dimensionless kinetic energy, rotating frame
 Coriolis.prototype.Kinetic = function(theta, dphi, dtheta) {
   const e = this.earth.e;
   const c = 1-sq(e) * sq(Math.sin(theta))
@@ -135,7 +134,9 @@ Coriolis.prototype.Kinetic = function(theta, dphi, dtheta) {
   const thetadot = dtheta;
   const Omega = this.earth.Omega;
   const T = sq(Math.cos(theta)) * sq(phidot / Omega) / c 
-    + sq(1-sq(e)) * sq(thetadot / Omega) / (c*c*c) // dimensionless kinetic energy, rotating frame
+    + sq(1-sq(e)) * sq(thetadot / Omega) / (c*c*c) 
+  // const T = sq(Math.cos(theta)) * sq(phidot / OmegaR) / c 
+  //   + sq(1-sq(e)) * sq(thetadot / OmegaR) / (c*c*c) 
   return T;
 }
 

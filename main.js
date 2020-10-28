@@ -302,7 +302,7 @@ function angularSpeedRatioChanged() {
 }
 
 function setToStableAngularSpeed() {
-  angularSpeedRatioInput.value = (globalEarth.OmegaS / Omega_r).toFixed(4);
+  angularSpeedRatioInput.value = (globalEarth.OmegaS / OmegaR).toFixed(4);
   angularSpeedRatioChanged();
 }
 
@@ -387,7 +387,7 @@ function init() {
 
   // rk4test1();
   // rk4test2();
-  // rk4test3();
+  rk4test3();
 
   document.getElementById('rotation').innerHTML =
     degrees(globalEarth.earthRotation(time)).toFixed(2);
