@@ -417,7 +417,8 @@ function stepRK4(c, h0, t, debug=false) {
   return t;
 }
 
-let pathInc = 1; // In degrees
+const PATH_INC_DEFAULT = 1;
+let pathInc = PATH_INC_DEFAULT; // In degrees
 Coriolis.prototype.step = function(h) {
   stepRK4(this, h, 0);
 

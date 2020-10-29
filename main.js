@@ -32,11 +32,6 @@ let arrowLen = 0.22;
 const headLen = 0.045;
 let starSize = 0.007;
 
-let visiblePath = 0;
-let rotatingPathVisible = false;
-let inertialPathVisible = false;
-updatePathVisibility();
-
 let starStreaks = false;
 let arrowsVisible = 1;
 let puckVisible = false;
@@ -79,6 +74,11 @@ const view0 = ROTATIONAL_VIEW;
 // const view0 = FIXED_VIEW;
 // const view0 = DEBUG_VIEW;
 let view = view0;
+
+let visiblePath = 0;
+let rotatingPathVisible = false;
+let inertialPathVisible = false;
+updatePathVisibility();
 
 let globalEarth = null;//new Earth(true, 0.08182)
 // let earthType = EARTH_SPHERE;
@@ -406,6 +406,7 @@ function init() {
 }
 
 function resetSim(dorender=true, launchNorth=null, launchEast=null) {
+  pathInc = PATH_INC_DEFAULT;
   const launchLatitude = +document.getElementById('lat0').value;
   const launchLongitude = +document.getElementById('lon0').value;
   if (launchNorth == null) {
@@ -487,9 +488,21 @@ function keydown(event) {
       document.getElementById('frame').innerHTML = 'Rotating'
     }
     localStorage.view = view;
+    updatePathVisibility();
     changed = true;
   } else if (key == 'p') {
-    visiblePath = (visiblePath+1)%4;
+    visiblePath = (visiblePath+1)%5;
+    if (visiblePath == 0) {
+      document.getElementById('path').innerHTML = 'Match frame';
+    } else if (visiblePath == 1) {
+      document.getElementById('path').innerHTML = 'All';
+    } else if (visiblePath == 2) {
+      document.getElementById('path').innerHTML = 'Rotating';
+    } else if (visiblePath == 3) {
+      document.getElementById('path').innerHTML = 'Inertial';
+    } else {
+      document.getElementById('path').innerHTML = 'None';
+    }
     updatePathVisibility();
     changed = true;
   } else if (key == 'P') {
@@ -535,8 +548,14 @@ function keydown(event) {
 }
 
 function updatePathVisibility() {
-  rotatingPathVisible = (visiblePath == 0 || visiblePath == 1);
-  inertialPathVisible = (visiblePath == 0 || visiblePath == 2);
+  if (visiblePath == 0) {
+    // matches frame
+    rotatingPathVisible = (view == ROTATIONAL_VIEW);
+    inertialPathVisible = (view == FIXED_VIEW);
+  } else {
+    rotatingPathVisible = (visiblePath == 1 || visiblePath == 2);
+    inertialPathVisible = (visiblePath == 1 || visiblePath == 3);
+  }
 }
 
 function updateArrowVisibility() {
