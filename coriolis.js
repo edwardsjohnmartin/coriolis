@@ -27,7 +27,7 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   this.speedFixed = Math.sqrt(sq(this.v0.east)+sq(this.v0.north));
 
   // this.alpha = Math.atan2(this.v0.north/this.earth._V, this.v0.east/this.earth._V);
-  this.speedFactor = 0.0005;
+  this.speedFactor = 0.3;
 
   // radians
   this.theta0 = this.p0.lat;
@@ -520,39 +520,27 @@ Coriolis.prototype.p = function(t) {
 //------------------------------------------------------------
 // v
 // Computes the time-dependent velocity vector of the puck.
-// WARNING: This function is wrong. I took out T_ and something's
-// wrong now. T_ was 16 hours (in seconds). The arrows are drawn
-// wrong when we divide by 24 hours.
 //------------------------------------------------------------
-Coriolis.prototype.vFixed = function(time) {
-  // let rad = this.v0.theta * Math.cos((t/this.earth.T_)*2*Math.PI);
-  // rad - position at time t
-  // let rad = this.v0.theta * Math.cos((time/this.earth.tau())*2*Math.PI);
-  // let v = velFromRadians(rad, this.speedFixed).cartesian(this.p(time));
-  let v = new Velocity(1, 1).cartesian(this.p(time));
+Coriolis.prototype.vInertial = function(time) {
+  const vphi = this.earth.rho(this._theta) * this.phi_dot_impl(this.getState())
+    + this.earth.Omega*this.earth.rho(this._theta);
+  const vtheta = this.earth.R(this._theta) * this.theta_dot_impl(this.getState());
+  let v = new Velocity(vtheta, vphi).cartesian(this.p(time));
   v = v.normalize();
-  // v = v.multiplyScalar(this.speedFactor*this.speedFixed);
+  v = v.multiplyScalar(this.speedFactor);
   return v;
 }
 
 //------------------------------------------------------------
 // v
 // Computes the time-dependent velocity vector of the puck.
-// WARNING: This function is wrong. I took out T_ and something's
-// wrong now. T_ was 16 hours (in seconds). The arrows are drawn
-// wrong when we divide by 24 hours.
 //------------------------------------------------------------
-Coriolis.prototype.vRotational = function(time) {
-  // let rad = this.v0.theta * Math.cos((t/this.earth.T_)*2*Math.PI);
-  // let rad = this.v0.theta * Math.cos((time/this.earth.tau())*2*Math.PI);
-  // let vLatLon = velFromRadians(rad, this.speedFixed);
-  // vLatLon = new Velocity(vLatLon.north, vLatLon.east - this.earth._V);
-  // return vLatLon.cartesian(this.p(t));
-  // return this.vNormalized(vLatLon.cartesian(this.p(t)));
-  // let v = vLatLon.cartesian(this.p(time));
-  let v = new Velocity(1, 1).cartesian(this.p(time));
+Coriolis.prototype.vRotating = function(time) {
+  const vphi = this.earth.rho(this._theta) * this.phi_dot_impl(this.getState());
+  const vtheta = this.earth.R(this._theta) * this.theta_dot_impl(this.getState());
+  let v = new Velocity(vtheta, vphi).cartesian(this.p(time));
   v = v.normalize();
-  // v = v.multiplyScalar(this.speedFactor*this.speedRotational);
+  v = v.multiplyScalar(this.speedFactor);
   return v;
 }
 

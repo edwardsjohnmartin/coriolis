@@ -118,14 +118,14 @@ Earth.prototype.R = function(theta) {
   return (1-sq(e))*this.a / Math.pow(1 - sq(e * Math.sin(theta)), 1.5);
 }
 
+Earth.prototype.rho = function(theta) {
+  return this.a * Math.cos(theta)
+    / Math.sqrt(1 - sq(this.e*Math.sin(theta)));
+}
+
 // returns the number of radians the earth has rotated after
 // time seconds
 Earth.prototype.earthRotation = function(t) {
-  // if (!this.rotating) {
-  //   return 0;
-  // }
-
-  // return (t/this._tau)*2*Math.PI;
   return t * this.Omega;
 }
 

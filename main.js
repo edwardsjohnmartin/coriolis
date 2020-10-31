@@ -75,11 +75,6 @@ const view0 = ROTATIONAL_VIEW;
 // const view0 = DEBUG_VIEW;
 let view = view0;
 
-let visiblePath = 0;
-let rotatingPathVisible = false;
-let inertialPathVisible = false;
-updatePathVisibility();
-
 let globalEarth = null;//new Earth(true, 0.08182)
 // let earthType = EARTH_SPHERE;
 // globalEarth.type = EARTH_SPHERE;
@@ -97,6 +92,11 @@ if (view == FIXED_VIEW) {
 } else if (view == DEBUG_VIEW) {
   document.getElementById('frame').innerHTML = 'debug'
 }
+
+let visiblePath = 0;
+let rotatingPathVisible = false;
+let inertialPathVisible = false;
+updatePathVisibility();
 
 document.getElementById('time').value = (time/(60*60)).toFixed(10);
 // document.getElementById('rotation').value =
@@ -905,10 +905,9 @@ function updateEarthGroup() {
     let v;
     if (view == ROTATIONAL_VIEW) {
       // v = sim.vRotational(t);
-      v = sim.vRotational(time);
+      v = sim.vRotating(time);
     } else {
-      // v = sim.vFixed(t);
-      v = sim.vFixed(time);
+      v = sim.vInertial(time);
     }
     let E = east(p.cartesian);
     let N = north(p.cartesian);
