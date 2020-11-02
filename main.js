@@ -38,7 +38,7 @@ let puckVisible = false;
 let northVisible = false;
 let eastVisible = false;
 let vVisible = false;
-let xVisible = false;
+// let xVisible = false;
 updateArrowVisibility();
 
 let map = new Map();
@@ -388,7 +388,7 @@ function init() {
   // rk4test1();
   // rk4test2();
   // rk4test3();
-  rk4test4();
+  // rk4test4();
 
   document.getElementById('rotation').innerHTML =
     degrees(globalEarth.earthRotation(time)).toFixed(2);
@@ -564,8 +564,8 @@ function updateArrowVisibility() {
                  arrowsVisible == 3);
   northVisible = (arrowsVisible < 2);
   eastVisible = (arrowsVisible < 2);
-  vVisible = (arrowsVisible < 2);
-  xVisible = (arrowsVisible == 0 || arrowsVisible == 2);
+  vVisible = (arrowsVisible < 3);
+  // xVisible = (arrowsVisible == 0 || arrowsVisible == 2);
 }
 
 function updateBackgroundStarsBox() {
@@ -962,32 +962,32 @@ function updateEarthGroup() {
       earthGroup.add(path);
 
       // if (arrowsVisible % 2 == 0) {
-      if (xVisible) {
-        let xpath = sim.pathRot(0, time);
-        let xl = xpath.length;
-        if (xl > 1) {
-          let x0 = xpath[xl-2].cartesian;
-          let x1 = xpath[xl-1].cartesian;
-          let xi = 3;
-          while (x0.equals(x1) && xi < xl) {
-            x0 = xpath[xl-xi].cartesian;
-            xi += 1;
-          }
-          let xv = x1.clone().sub(x0);
-          let xlength = 0.18;
-          let xdir = xv.normalize();
-          console.log('puck path x0', x0);
-          console.log('puck path x1', x1);
-          if (xdir.x == 0) {
-            console.log('puck path xdir', xdir);
-          }
-          let xorigin = x1;
-          let xarrowHelper = new ArrowHelper(xdir, xorigin, xlength, lineWidth,
-                                             vcolor, 20, headLen, 0.6*headLen);
-          prepArrowHelper(xarrowHelper, vecRenderOrder);
-          arrowsGroup.add(xarrowHelper);
-        }
-      }
+      // if (xVisible) {
+      //   let xpath = sim.pathRot(0, time);
+      //   let xl = xpath.length;
+      //   if (xl > 1) {
+      //     let x0 = xpath[xl-2].cartesian;
+      //     let x1 = xpath[xl-1].cartesian;
+      //     let xi = 3;
+      //     while (x0.equals(x1) && xi < xl) {
+      //       x0 = xpath[xl-xi].cartesian;
+      //       xi += 1;
+      //     }
+      //     let xv = x1.clone().sub(x0);
+      //     let xlength = 0.18;
+      //     let xdir = xv.normalize();
+      //     // console.log('puck path x0', x0);
+      //     // console.log('puck path x1', x1);
+      //     if (xdir.x == 0) {
+      //       console.log('puck path xdir', xdir);
+      //     }
+      //     let xorigin = x1;
+      //     let xarrowHelper = new ArrowHelper(xdir, xorigin, xlength, lineWidth,
+      //                                        vcolor, 20, headLen, 0.6*headLen);
+      //     prepArrowHelper(xarrowHelper, vecRenderOrder);
+      //     arrowsGroup.add(xarrowHelper);
+      //   }
+      // }
     }
     if (inertialPathVisible) {
       // let path = getPuckPathFixed(t, fixedPathColor);
@@ -1110,7 +1110,7 @@ function demoChanged() {
     northVisible = false;
     eastVisible = false;
     vVisible = false;
-    xVisible = false;
+    // xVisible = false;
 
     rotatingPathVisible = false;
     inertialPathVisible = false;
@@ -1126,7 +1126,7 @@ function demoChanged() {
     northVisible = false;
     eastVisible = false;
     vVisible = false;
-    xVisible = false;
+    // xVisible = false;
 
     rotatingPathVisible = false;
     inertialPathVisible = false;
@@ -1146,7 +1146,7 @@ function demoChanged() {
     northVisible = false;
     eastVisible = false;
     vVisible = false;
-    xVisible = false;
+    // xVisible = false;
 
     rotatingPathVisible = false;
     inertialPathVisible = true;
@@ -1168,7 +1168,7 @@ function demoChanged() {
     northVisible = false;
     eastVisible = false;
     vVisible = false;
-    xVisible = false;
+    // xVisible = false;
 
     rotatingPathVisible = true;
     inertialPathVisible = false;
