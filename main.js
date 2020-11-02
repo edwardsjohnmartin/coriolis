@@ -123,29 +123,17 @@ if (localStorage.east0) {
 // const timePeriodInput = document.getElementById('time_period')
 const angularSpeedRatioInput = document.getElementById('angular-speed-ratio')
 
-const resizeGlobe = (eccentricity) => {
-  // const Ro = 400 // in pixels
-  // const Ro = 4 // in pixels
-
-  document.getElementById('eccentricity-value').value = eccentricity
-
+function getEccentricityScale(eccentricity) {
   const sq_eccentricity = eccentricity * eccentricity
 
-  // const a = Ro * Math.pow(1 - sq_eccentricity, - 1 / 6)
-  // const b = Ro * Math.pow(1 - sq_eccentricity, 1 / 3)
-
-  // const scaleA = a / Ro
-  // const scaleB = b / Ro
-  let scaleA = Math.pow(1 - sq_eccentricity, - 1 / 6);
-  let scaleB = Math.pow(1 - sq_eccentricity, 1 / 3);
+  let scaleA = Math.pow(1 - sq_eccentricity, -1/6);
+  let scaleB = Math.pow(1 - sq_eccentricity, 1/3);
 
   // Keep the x-axis scale the same
   // scaleB = scaleB / scaleA;
   // scaleA = 1;
 
   const graphic = document.getElementById('graphic')
-  const svg = graphic.getElementsByTagName('svg')[0]
-  // svg.style.transform = `scale(${scaleA}, ${scaleB})`
 
   let target = new THREE.Vector3(0,0,0);
   let dir = camera.getWorldDirection(target).normalize();
@@ -175,6 +163,17 @@ const resizeGlobe = (eccentricity) => {
   //   scaleA = 1;
   //   scaleB = 1;
   // }
+
+  return [scaleA, scaleB];
+}
+
+const resizeGlobe = (eccentricity) => {
+  document.getElementById('eccentricity-value').value = eccentricity
+
+  const [scaleA, scaleB] = getEccentricityScale(eccentricity);
+
+  const svg = graphic.getElementsByTagName('svg')[0]
+  // svg.style.transform = `scale(${scaleA}, ${scaleB})`
   svg.style.transform = `scale(${scaleA}, ${scaleB})`
 }
 
@@ -382,6 +381,22 @@ function init() {
   // scene.add(getGlobe());
   // scene.add(getGreatCircle());
   // scene.add(getArrowsGroup());
+
+  // //----------------------------------------
+  // let svg = renderer.domElement;
+  // let g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  // while (svg.firstChild) {
+  //   g.appendChild(svg.firstChild);
+  // }
+
+  // const e = document.getElementById('eccentricity-value').value;
+  // const [scaleA, scaleB] = getEccentricityScale(e);
+  // g.setAttribute('transform', `scale(${scaleA}, ${scaleB})`);
+
+  // console.log(svg);
+  // console.log(g);
+  // svg.appendChild(g);
+  // //----------------------------------------
 
   rebuildGlobalEarth();
 
@@ -1195,8 +1210,24 @@ function demoChanged() {
 //----------------------------------------
 function snap() {
   console.log('Taking SVG snapshot');
+
+  let svg = renderer.domElement;
+  let g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  while (svg.firstChild) {
+    g.appendChild(svg.firstChild);
+  }
+
+  const e = document.getElementById('eccentricity-value').value;
+  const [scaleA, scaleB] = getEccentricityScale(e);
+  g.setAttribute('transform', `scale(${scaleA}, ${scaleB})`);
+
+  console.log(svg);
+  console.log(g);
+  svg.appendChild(g);
+
   XMLS = new XMLSerializer();
-  svgtext = XMLS.serializeToString(renderer.domElement);
+  // svgtext = XMLS.serializeToString(renderer.domElement);
+  svgtext = XMLS.serializeToString(svg);
 
   let textarea = document.getElementById("snapshot-output");
   // textarea.innerHTML = svgtext;
@@ -1211,6 +1242,11 @@ function snap() {
   // el.select();
   // document.execCommand('copy');
   // document.body.removeChild(el);
+
+  while (g.firstChild) {
+    svg.appendChild(g.firstChild);
+  }
+  svg.removeChild(g);
 }
 
 document.getElementById('reset-eccentricity').onclick = function() {
