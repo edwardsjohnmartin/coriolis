@@ -42,9 +42,12 @@ var Coriolis = function(lat0, lon0, v0, earth) {
 
   const rho = this.earth.a * Math.cos(this.theta0)
     / Math.sqrt(1 - sq(this.earth.e*Math.sin(this.theta0)));
+  // seconds
   this.phi_dot0 = this.vphi0 / rho;
   this._theta = this.theta0;
   this._phi = this.phi0;
+  // seconds
+  this.theta_dot0 = this.vtheta0 / this.earth.R(this.theta0);
 
   // Equation 66 of the paper
   const Omega = this.earth.Omega;
@@ -53,60 +56,24 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   const Fn = rho * Math.sin(this._theta)
     * (sq(Omega) - sq(OmegaS) + 2 * Omega * this.phi_dot0);
   // direction indicator if thetadot = Fn = 0
-  ind = -this._theta * this.phi_dot0; 
+  const ind = -this._theta * this.phi_dot0; 
   if (this.theta_dot0 != 0) {
     // some north/south motion
-    dir = this.theta_dot0 / Math.abs(this.theta_dot0);    
+    this.dir = this.theta_dot0 / Math.abs(this.theta_dot0);    
   } else if(Fn != 0) {
     // east/west motion with a north/south force
-    dir = Fn / Math.abs(Fn);
-    this.thetadot = dir * 1e-10;
+    this.dir = Fn / Math.abs(Fn);
+    this.theta_dot0 = this.dir * 1e-10;
   }
   else if (ind != 0) {
     // east/west motion with no force; e = OmegaS = Omega = 0
-    dir = ind / Math.abs(ind);
-    this.theta_dot0 = dir * 1e-10;
+    this.dir = ind / Math.abs(ind);
+    this.theta_dot0 = this.dir * 1e-10;
   }
   else {
     // east/west motion at the equator
-    dir = 0;
+    this.dir = 0;
   }
-
-  // // seconds
-  // this.theta_dot0 = this.vtheta0 / this.earth.R(this.theta0);
-  // if (this.theta_dot0 > 0) {
-  //   this.dir = 1; // thetadot is positive
-  // } else if(this.theta_dot0 < 0) {
-  //   this.dir = -1; // thetadot is negative
-  // } else if(this._theta == 0) {
-  //   this.dir = 0; // velocity east or west at equator
-  // } else if (Fn > 0) {
-  //   this.dir = 1; // net force has a northward component
-  //   this.theta_dot0 = 1e-10;
-  // } else if (Fn < 0) {
-  //   this.dir = -1; // net force has a southward component
-  //   this.theta_dot0 = -1e-10;
-  // } else {
-  //   this.dir = 0; // net force has no northward or southward component
-  // }
-
-// Fn = -rho*sin(theta)*(Omega**2 - OmegaS**2 + 2.d0*Omega*phidot) ! northward component of net force per unit mass
-// if (thetadot .gt. 0.d0) then
-//   dir = 1 ! velocity has a northward component
-// else if (thetadot.lt.0.d0) then
-//   dir = -1 ! velocity has a southward component
-// else if (theta .eq. 0.d0) then
-//   dir = 0 ! velocity east or west at the equator
-// else if (Fn .gt. 0.d0) then
-//   dir = 1 ! net force has a northward component
-//   thetadot = 1.d-10
-// else if (Fn .lt. 0.d0) then
-//   dir = -1 ! net force has a southward component
-//   thetadot = -1.d-10
-// endif
-
-  // seconds
-  // this.phi_dot0 = this.vphi0 / (this.earth.R(this.theta0) * Math.cos(this.theta0));
 
   this.L0 = this.L_momentum(this.phi_dot0, this.theta0)
   // Kinetic energy
@@ -373,6 +340,36 @@ function rk4test3(h0 = 1000) {
   // const V = new Velocity(v_theta, E, 0);
   const V = new Velocity(100, -700);
   c = new Coriolis(radians(10), radians(5), V, earth);
+  console.log('*******************************************');
+  console.log('       t (s)    phi    theta      K      K/K0   K_/K0_     h      ext');
+
+  t = 0;
+  if (debug) c.printValues(t, h0);
+  for (let i = 0; i < 70; i++) {
+    t = stepRK4(c, h0, t, true);
+  }
+  console.log('completed test');
+  console.log('*******************************************');
+}
+
+// series4.txt
+// e = 0  eccentricity
+// OmegaRat = 0  ratio of angular speed to reference angular speed
+// phi = 45 initial longitude (degrees)
+// theta = 30 initial latitude (degrees)
+// vphi = 500 initial eastward velocity (m/s)
+// vtheta = 0 initial northward velocity (m/s)
+// m = 70 number of integration steps
+// h = 1000 regular time step (s)
+function rk4test4(h0 = 1000) {
+  let earth = new Earth(0, 0)
+  // V is in m/s, so N is in m/s
+  // const v_theta = 0.1 * earth.a * earth.Omega;
+  // const E = -0.8 * earth.a * earth.Omega;// + earth._V;
+
+  // const V = new Velocity(v_theta, E, 0);
+  const V = new Velocity(0, 500);
+  c = new Coriolis(radians(30), radians(45), V, earth);
   console.log('*******************************************');
   console.log('       t (s)    phi    theta      K      K/K0   K_/K0_     h      ext');
 
