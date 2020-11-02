@@ -49,25 +49,46 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   // Equation 66 of the paper
   const Omega = this.earth.Omega;
   const OmegaS = this.earth.OmegaS;
+  // northward component of net force per unit mass
   const Fn = rho * Math.sin(this._theta)
     * (sq(Omega) - sq(OmegaS) + 2 * Omega * this.phi_dot0);
-  // seconds
-  this.theta_dot0 = this.vtheta0 / this.earth.R(this.theta0);
-  if (this.theta_dot0 > 0) {
-    this.dir = 1; // thetadot is positive
-  } else if(this.theta_dot0 < 0) {
-    this.dir = -1; // thetadot is negative
-  } else if(this._theta == 0) {
-    this.dir = 0; // velocity east or west at equator
-  } else if (Fn > 0) {
-    this.dir = 1; // net force has a northward component
-    this.theta_dot0 = 1e-10;
-  } else if (Fn < 0) {
-    this.dir = -1; // net force has a southward component
-    this.theta_dot0 = -1e-10;
-  } else {
-    this.dir = 0; // net force has no northward or southward component
+  // direction indicator if thetadot = Fn = 0
+  ind = -this._theta * this.phi_dot0; 
+  if (this.theta_dot0 != 0) {
+    // some north/south motion
+    dir = this.theta_dot0 / Math.abs(this.theta_dot0);    
+  } else if(Fn != 0) {
+    // east/west motion with a north/south force
+    dir = Fn / Math.abs(Fn);
+    this.thetadot = dir * 1e-10;
   }
+  else if (ind != 0) {
+    // east/west motion with no force; e = OmegaS = Omega = 0
+    dir = ind / Math.abs(ind);
+    this.theta_dot0 = dir * 1e-10;
+  }
+  else {
+    // east/west motion at the equator
+    dir = 0;
+  }
+
+  // // seconds
+  // this.theta_dot0 = this.vtheta0 / this.earth.R(this.theta0);
+  // if (this.theta_dot0 > 0) {
+  //   this.dir = 1; // thetadot is positive
+  // } else if(this.theta_dot0 < 0) {
+  //   this.dir = -1; // thetadot is negative
+  // } else if(this._theta == 0) {
+  //   this.dir = 0; // velocity east or west at equator
+  // } else if (Fn > 0) {
+  //   this.dir = 1; // net force has a northward component
+  //   this.theta_dot0 = 1e-10;
+  // } else if (Fn < 0) {
+  //   this.dir = -1; // net force has a southward component
+  //   this.theta_dot0 = -1e-10;
+  // } else {
+  //   this.dir = 0; // net force has no northward or southward component
+  // }
 
 // Fn = -rho*sin(theta)*(Omega**2 - OmegaS**2 + 2.d0*Omega*phidot) ! northward component of net force per unit mass
 // if (thetadot .gt. 0.d0) then
