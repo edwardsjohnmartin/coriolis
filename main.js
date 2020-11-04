@@ -27,6 +27,8 @@ const eccentricitySlider = document.getElementById('eccentricity-slider')
 const radius = 1;
 let radiusInWindow;
 
+let arrowScale = 0.002;
+
 let plane;//, arrows;
 let arrowLen = 0.22;
 const headLen = 0.045;
@@ -534,6 +536,12 @@ function keydown(event) {
     starSize *= 1.1;
     console.log('starSize', starSize);
     updateBackgroundStars();
+    changed = true;
+  } else if (key == 'u') {
+    arrowScale /= 1.1;
+    changed = true;
+  } else if (key == 'U') {
+    arrowScale *= 1.1;
     changed = true;
   } else if (key == 't') {
     if (animation) {

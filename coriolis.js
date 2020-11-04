@@ -26,9 +26,6 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   this.speedRotational = this.v0.north;
   this.speedFixed = Math.sqrt(sq(this.v0.east)+sq(this.v0.north));
 
-  // this.alpha = Math.atan2(this.v0.north/this.earth._V, this.v0.east/this.earth._V);
-  this.speedFactor = 0.002;
-
   // radians
   this.theta0 = this.p0.lat;
   // radians
@@ -547,7 +544,7 @@ Coriolis.prototype.vInertial = function(time) {
   let v = new Velocity(vtheta, vphi).cartesian(this.p(time));
   v = v.normalize();
   // console.log('length', v, v.length(), vtheta, vphi);
-  v = v.multiplyScalar(length * this.speedFactor);
+  v = v.multiplyScalar(length * arrowScale);
   return v;
 }
 
@@ -562,7 +559,7 @@ Coriolis.prototype.vRotating = function(time) {
   let v = new Velocity(vtheta, vphi).cartesian(this.p(time));
   v = v.normalize();
   // console.log('length', v, v.length(), vtheta, vphi);
-  v = v.multiplyScalar(length * this.speedFactor);
+  v = v.multiplyScalar(length * arrowScale);
   return v;
 }
 
