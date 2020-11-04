@@ -27,7 +27,7 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   this.speedFixed = Math.sqrt(sq(this.v0.east)+sq(this.v0.north));
 
   // this.alpha = Math.atan2(this.v0.north/this.earth._V, this.v0.east/this.earth._V);
-  this.speedFactor = 0.3;
+  this.speedFactor = 0.002;
 
   // radians
   this.theta0 = this.p0.lat;
@@ -543,9 +543,11 @@ Coriolis.prototype.vInertial = function(time) {
   const vphi = this.earth.rho(this._theta) * this.phi_dot_impl(this.getState())
     + this.earth.Omega*this.earth.rho(this._theta);
   const vtheta = this.earth.R(this._theta) * this.theta_dot_impl(this.getState());
+  const length = Math.sqrt(sq(vphi) + sq(vtheta));
   let v = new Velocity(vtheta, vphi).cartesian(this.p(time));
   v = v.normalize();
-  v = v.multiplyScalar(this.speedFactor);
+  // console.log('length', v, v.length(), vtheta, vphi);
+  v = v.multiplyScalar(length * this.speedFactor);
   return v;
 }
 
@@ -556,9 +558,11 @@ Coriolis.prototype.vInertial = function(time) {
 Coriolis.prototype.vRotating = function(time) {
   const vphi = this.earth.rho(this._theta) * this.phi_dot_impl(this.getState());
   const vtheta = this.earth.R(this._theta) * this.theta_dot_impl(this.getState());
+  const length = Math.sqrt(sq(vphi) + sq(vtheta));
   let v = new Velocity(vtheta, vphi).cartesian(this.p(time));
   v = v.normalize();
-  v = v.multiplyScalar(this.speedFactor);
+  // console.log('length', v, v.length(), vtheta, vphi);
+  v = v.multiplyScalar(length * this.speedFactor);
   return v;
 }
 
