@@ -100,7 +100,7 @@ let rotatingPathVisible = false;
 let inertialPathVisible = false;
 updatePathVisibility();
 
-document.getElementById('time').value = (time/(60*60)).toFixed(10);
+document.getElementById('time').value = (time/(60*60)).toFixed(DEBUG_DECIMALS);
 // document.getElementById('rotation').value =
 //   degrees(earthRotation(time)).toFixed(2);
 
@@ -188,7 +188,7 @@ const formatted = (v) => {
 
 function incTime(inc) {
   time += inc;
-  document.getElementById('time').value = (time/(60*60)).toFixed(10);
+  document.getElementById('time').value = (time/(60*60)).toFixed(DEBUG_DECIMALS);
   // document.getElementById('rotation').value =
   //   degrees(earthRotation(time)).toFixed(2);
   const clock = document.getElementById('clock')

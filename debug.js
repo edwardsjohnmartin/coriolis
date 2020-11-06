@@ -1,21 +1,23 @@
+const DEBUG_DECIMALS = 4;
+
 var debug = {
   set temp(v) {
     document.getElementById('temp').innerHTML = v;
   },
   set theta(v) {
-    document.getElementById('theta').innerHTML = degrees(v).toFixed(10);
+    document.getElementById('theta').innerHTML = degrees(v).toFixed(DEBUG_DECIMALS);
   },
   set phi(v) {
-    document.getElementById('phi').innerHTML = degrees(v).toFixed(10);
+    document.getElementById('phi').innerHTML = degrees(v).toFixed(DEBUG_DECIMALS);
   },
   set T(v) {
     document.getElementById('T').innerHTML = (v * 10000).toFixed(1);
   },
   set theta_dot(v) {
-    document.getElementById('theta_dot').innerHTML = (v*10000).toFixed(10);
+    document.getElementById('theta_dot').innerHTML = (v*10000).toFixed(DEBUG_DECIMALS);
   },
   set phi_dot(v) {
-    document.getElementById('phi_dot').innerHTML = (v*10000).toFixed(10);
+    document.getElementById('phi_dot').innerHTML = (v*10000).toFixed(DEBUG_DECIMALS);
   },
   set L0(v) {
     document.getElementById('L0').innerHTML = (v*10000).toFixed(1);
