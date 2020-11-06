@@ -78,3 +78,7 @@ td.right {
     margin: 2px;
     padding: 4px;
 }
+
+input[type=number]{
+    width: 80px;
+} 

@@ -1263,6 +1263,12 @@ document.getElementById('reset-eccentricity').onclick = function() {
   resetSim()
 }
 
+document.getElementById('reset-eccentricity-sphere').onclick = function() {
+  eccentricitySlider.value = "0"
+  rebuildGlobalEarth()
+  resetSim()
+}
+
 const rotateAtStableSpeed = document.getElementById('rotate-at-stable-speed')
 
 // const rebuildGlobalEarth = (forceStablePeriod = false) => {
