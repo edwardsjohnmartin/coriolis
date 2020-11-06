@@ -87,6 +87,10 @@ if (localStorage.view) {
   document.getElementById('frame').value = Number(localStorage.view);
 }
 
+if (localStorage.arrowScale) {
+  arrowScale = +localStorage.arrowScale;
+}
+
 if (view == FIXED_VIEW) {
   document.getElementById('frame').innerHTML = 'Inertial'
 } else if (view == ROTATIONAL_VIEW) {
@@ -539,9 +543,11 @@ function keydown(event) {
     changed = true;
   } else if (key == 'u') {
     arrowScale /= 1.1;
+    localStorage.arrowScale = arrowScale;
     changed = true;
   } else if (key == 'U') {
     arrowScale *= 1.1;
+    localStorage.arrowScale = arrowScale;
     changed = true;
   } else if (key == 't') {
     if (animation) {
