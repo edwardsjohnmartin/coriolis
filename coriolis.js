@@ -543,8 +543,16 @@ Coriolis.prototype.vInertial = function(time) {
   const length = Math.sqrt(sq(vphi) + sq(vtheta));
   let v = new Velocity(vtheta, vphi).cartesian(this.p(time));
   v = v.normalize();
-  // console.log('length', v, v.length(), vtheta, vphi);
   v = v.multiplyScalar(length * arrowScale);
+
+  let theta = ((degrees(this._theta) % 360) + 360) % 360;
+  if (theta > 270) {
+  } else if (theta > 180) {
+    v = v.multiplyScalar(-1);
+  } else if (theta > 90) {
+    v = v.multiplyScalar(-1);
+  }
+
   return v;
 }
 
@@ -558,8 +566,16 @@ Coriolis.prototype.vRotating = function(time) {
   const length = Math.sqrt(sq(vphi) + sq(vtheta));
   let v = new Velocity(vtheta, vphi).cartesian(this.p(time));
   v = v.normalize();
-  // console.log('length', v, v.length(), vtheta, vphi);
   v = v.multiplyScalar(length * arrowScale);
+
+  let theta = ((degrees(this._theta) % 360) + 360) % 360;
+  if (theta > 270) {
+  } else if (theta > 180) {
+    v = v.multiplyScalar(-1);
+  } else if (theta > 90) {
+    v = v.multiplyScalar(-1);
+  }
+
   return v;
 }
 

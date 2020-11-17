@@ -1,3 +1,6 @@
+var View = function() {
+}
+
 let camera;
 // The entire scene
 let scene = new THREE.Scene();
@@ -19,10 +22,9 @@ let animInc = animSpeed*5;
 if (localStorage.animInc) {
   animInc = Number(localStorage.animInc);
 }
-// document.getElementById('speed').value = animInc.toFixed(1);
 document.getElementById('speed').innerHTML = animInc.toFixed(1);
 
-const eccentricitySlider = document.getElementById('eccentricity-slider')
+// const eccentricitySlider = document.getElementById('eccentricity-slider')
 
 const radius = 1;
 let radiusInWindow;
@@ -40,7 +42,6 @@ let puckVisible = false;
 let northVisible = false;
 let eastVisible = false;
 let vVisible = false;
-// let xVisible = false;
 updateArrowVisibility();
 
 let map = new Map();
@@ -63,7 +64,7 @@ const globeRenderOrder = 0;
 // Number of degrees we rotate the fixed frame for the view
 const fixedViewRotation0 = radians(45);
 // Number of seconds the simulation has gone
-const time0 = 0;//.2*60*60;
+const time0 = 0;
 let time = time0;
 let oldTime = -1;
 // Number of seconds we've spent in geostationary orbit
@@ -73,14 +74,9 @@ const ROTATIONAL_VIEW = 0;
 const FIXED_VIEW = 1;
 const DEBUG_VIEW = 2;
 const view0 = ROTATIONAL_VIEW;
-// const view0 = FIXED_VIEW;
-// const view0 = DEBUG_VIEW;
 let view = view0;
 
-let globalEarth = null;//new Earth(true, 0.08182)
-// let earthType = EARTH_SPHERE;
-// globalEarth.type = EARTH_SPHERE;
-// let earthType = EARTH_ELLISPOID;
+let globalEarth = null;
 
 if (localStorage.view) {
   view = +localStorage.view;
@@ -105,8 +101,6 @@ let inertialPathVisible = false;
 updatePathVisibility();
 
 document.getElementById('time').value = (time/(60*60)).toFixed(DEBUG_DECIMALS);
-// document.getElementById('rotation').value =
-//   degrees(earthRotation(time)).toFixed(2);
 
 if (localStorage.lat0) {
   document.getElementById('lat0').value = Number(localStorage.lat0);
@@ -120,14 +114,10 @@ if (localStorage.north0) {
 if (localStorage.east0) {
   document.getElementById('east0').value = Number(localStorage.east0);
 }
-// if (localStorage.angularSpeedRatio) {
-//   document.getElementById('angular-speed-ratio').value = Number(localStorage.angularSpeedRatio);
-// } else {
-  document.getElementById('angular-speed-ratio').value = 1;
-// }
+document.getElementById('angular-speed-ratio').value = 1;
 
-// const timePeriodInput = document.getElementById('time_period')
 const angularSpeedRatioInput = document.getElementById('angular-speed-ratio')
+const eccentricityInput = document.getElementById('eccentricity-value')
 
 function getEccentricityScale(eccentricity) {
   const sq_eccentricity = eccentricity * eccentricity
@@ -317,7 +307,8 @@ function rotationChanged() {
 
 function rebuildGlobalEarth() {
   const angularSpeedRatio = +angularSpeedRatioInput.value;
-  globalEarth = new Earth(+eccentricitySlider.value, angularSpeedRatio);
+  // globalEarth = new Earth(+eccentricitySlider.value, angularSpeedRatio);
+  globalEarth = new Earth(+eccentricityInput.value, angularSpeedRatio);
   // const period = !forceStablePeriod && !rotateAtStableSpeed.checked ? +timePeriodInput.value : undefined
   // globalEarth = new Earth(true, +eccentricitySlider.value, period);
 }
@@ -370,7 +361,7 @@ function init() {
   controls.update();
   
   // Set the window sizes
-  let graphicParent = document.getElementById("graphic");
+  let graphicParent = document.getElementById('graphic');
   let w = graphicParent.clientWidth;
   if (graphicParent.clientHeight < w) {
     w = graphicParent.clientHeight;
@@ -594,7 +585,6 @@ function updateArrowVisibility() {
   northVisible = (arrowsVisible < 2);
   eastVisible = (arrowsVisible < 2);
   vVisible = (arrowsVisible < 3);
-  // xVisible = (arrowsVisible == 0 || arrowsVisible == 2);
 }
 
 function updateBackgroundStarsBox() {
@@ -934,11 +924,15 @@ function updateEarthGroup() {
 
     let v;
     if (view == ROTATIONAL_VIEW) {
-      // v = sim.vRotational(t);
       v = sim.vRotating(time);
     } else {
       v = sim.vInertial(time);
     }
+    // if (sim._theta > Math.PI/2 || sim._theta < -Math.PI/2) {
+    //   v = v.multiplyScalar(-1);
+    //   // E = E.multiplyScalar(-1);
+    //   // N = N.multiplyScalar(-1);
+    // }
     let E = east(p.cartesian);
     let N = north(p.cartesian);
     E = E.multiplyScalar(v.clone().dot(E));
@@ -990,36 +984,8 @@ function updateEarthGroup() {
       let path = getPuckPathRotating(time, rotatingPathColor);
       earthGroup.add(path);
 
-      // if (arrowsVisible % 2 == 0) {
-      // if (xVisible) {
-      //   let xpath = sim.pathRot(0, time);
-      //   let xl = xpath.length;
-      //   if (xl > 1) {
-      //     let x0 = xpath[xl-2].cartesian;
-      //     let x1 = xpath[xl-1].cartesian;
-      //     let xi = 3;
-      //     while (x0.equals(x1) && xi < xl) {
-      //       x0 = xpath[xl-xi].cartesian;
-      //       xi += 1;
-      //     }
-      //     let xv = x1.clone().sub(x0);
-      //     let xlength = 0.18;
-      //     let xdir = xv.normalize();
-      //     // console.log('puck path x0', x0);
-      //     // console.log('puck path x1', x1);
-      //     if (xdir.x == 0) {
-      //       console.log('puck path xdir', xdir);
-      //     }
-      //     let xorigin = x1;
-      //     let xarrowHelper = new ArrowHelper(xdir, xorigin, xlength, lineWidth,
-      //                                        vcolor, 20, headLen, 0.6*headLen);
-      //     prepArrowHelper(xarrowHelper, vecRenderOrder);
-      //     arrowsGroup.add(xarrowHelper);
-      //   }
-      // }
     }
     if (inertialPathVisible) {
-      // let path = getPuckPathFixed(t, fixedPathColor);
       let path = getPuckPathFixed(time, fixedPathColor);
       fixedPathGroup.add(path);
     }
@@ -1054,7 +1020,8 @@ function render() {
   map.draw();
   renderer.render(scene, camera);
 
-  resizeGlobe(+eccentricitySlider.value)
+  // resizeGlobe(+eccentricitySlider.value)
+  resizeGlobe(+eccentricityInput.value)
 }
 
 function updateAndRender() {
@@ -1264,13 +1231,15 @@ function snap() {
 }
 
 document.getElementById('reset-eccentricity').onclick = function() {
-  eccentricitySlider.value = "0.08182"
+  // eccentricitySlider.value = "0.08182"
+  eccentricityInput.value = "0.08182"
   rebuildGlobalEarth()
   resetSim()
 }
 
 document.getElementById('reset-eccentricity-sphere').onclick = function() {
-  eccentricitySlider.value = "0"
+  // eccentricitySlider.value = "0"
+  eccentricityInput.value = "0"
   rebuildGlobalEarth()
   resetSim()
 }
@@ -1282,13 +1251,13 @@ const rotateAtStableSpeed = document.getElementById('rotate-at-stable-speed')
 //   globalEarth = new Earth(true, +eccentricitySlider.value, period);
 // }
 
-eccentricitySlider.onchange = function(e) {
-  rebuildGlobalEarth()
-  resetSim()
-}
+// eccentricitySlider.onchange = function(e) {
+//   rebuildGlobalEarth()
+//   resetSim()
+// }
 
 document.getElementById('eccentricity-value').oninput = function(e) {
-  eccentricitySlider.value = e.target.value
+  // eccentricitySlider.value = e.target.value
   rebuildGlobalEarth()
   resetSim()
 }

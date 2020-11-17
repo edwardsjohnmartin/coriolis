@@ -52,14 +52,6 @@
             <td class="right">Earth's rotation:</td>
             <td><b id="rotation"></b>&nbsp;degrees</td>
           </tr>
-          <!-- Angular speed ratio -->
-          <tr>
-            <td>Angular speed ratio (&Omega;/&Omega;<sub>r</sub>):</td>
-            <td>
-              <input type="number" id="angular-speed-ratio"
-                     onchange="angularSpeedRatioChanged()">
-              <button onclick="setToStableAngularSpeed()">Stable</button>
-          </td>
           <!-- Eccentricity -->
           <tr>
             <td class="right">Eccentricity:</td>
@@ -69,12 +61,20 @@
               <button id="reset-eccentricity-sphere">Spherical</button>
             </td>
           </tr>
-          <tr>
+          <!--tr>
             <td></td>
             <td>
               <input id="eccentricity-slider" style="visibility:hidden" type="range" min="0" max="0.99" step="0.00001" value="0.08182"/>
           </td>
-          </tr>
+          </tr-->
+          <!-- Angular speed ratio -->
+          <tr>
+            <td>Angular speed (&Omega;/&Omega;<sub>r</sub>):</td>
+            <td>
+              <input type="number" id="angular-speed-ratio"
+                     onchange="angularSpeedRatioChanged()">
+              <button onclick="setToStableAngularSpeed()">Stable</button>
+          </td>
 
           <!-- debug -->
           <tr><td>&nbsp;</td></tr>
@@ -138,6 +138,9 @@
 
     <td class="vis">
       <div id="graphic"></div>
+    </td>
+    <td class="vis2">
+      <div id="graphic2"></div>
     </td>
   </tr>
 </table>
