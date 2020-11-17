@@ -30,6 +30,7 @@ const radius = 1;
 let radiusInWindow;
 
 let arrowScale = 0.002;
+let starStreakScale = 1;
 
 let plane;//, arrows;
 let arrowLen = 0.22;
@@ -85,6 +86,9 @@ if (localStorage.view) {
 
 if (localStorage.arrowScale) {
   arrowScale = +localStorage.arrowScale;
+}
+if (localStorage.starStreakScale) {
+  starStreakScale = +localStorage.starStreakScale;
 }
 
 if (view == FIXED_VIEW) {
@@ -540,6 +544,16 @@ function keydown(event) {
     arrowScale *= 1.1;
     localStorage.arrowScale = arrowScale;
     changed = true;
+  } else if (key == 'x') {
+    starStreakScale /= 1.1;
+    localStorage.starStreakScale = starStreakScale;
+    updateBackgroundStars();
+    changed = true;
+  } else if (key == 'X') {
+    starStreakScale *= 1.1;
+    localStorage.starStreakScale = starStreakScale;
+    updateBackgroundStars();
+    changed = true;
   } else if (key == 't') {
     if (animation) {
       starStreaks = false;
@@ -648,7 +662,6 @@ function updateBackgroundStars() {
   for (let i = streakSegs; i > 0; --i) {
     let m = new THREE.LineBasicMaterial( {
       color: new THREE.Color(i/streakSegs, i/streakSegs, i/streakSegs),
-      // linewidth: starSize*100,
       linewidth: starSize*200,
     } );
     streakMaterials.push(m);
@@ -714,7 +727,7 @@ function updateBackgroundStars() {
     //   }
     // }
     if (starStreaks && view == ROTATIONAL_VIEW) {
-      const length = 0.16;
+      const length = 0.16 * starStreakScale;
       const start = theta - length;
       const end = theta;
       const inc = (end-start)/streakSegs;
