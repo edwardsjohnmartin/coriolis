@@ -118,6 +118,9 @@ if (localStorage.north0) {
 if (localStorage.east0) {
   document.getElementById('east0').value = Number(localStorage.east0);
 }
+if (localStorage.eccentricity) {
+  document.getElementById('eccentricity-value').value = Number(localStorage.eccentricity);
+}
 document.getElementById('angular-speed-ratio').value = 1;
 
 const angularSpeedRatioInput = document.getElementById('angular-speed-ratio')
@@ -1246,6 +1249,7 @@ function snap() {
 document.getElementById('reset-eccentricity').onclick = function() {
   // eccentricitySlider.value = "0.08182"
   eccentricityInput.value = "0.08182"
+  localStorage.eccentricity = +eccentricityInput.value;
   rebuildGlobalEarth()
   resetSim()
 }
@@ -1253,6 +1257,7 @@ document.getElementById('reset-eccentricity').onclick = function() {
 document.getElementById('reset-eccentricity-sphere').onclick = function() {
   // eccentricitySlider.value = "0"
   eccentricityInput.value = "0"
+  localStorage.eccentricity = +eccentricityInput.value;
   rebuildGlobalEarth()
   resetSim()
 }
@@ -1271,6 +1276,9 @@ const rotateAtStableSpeed = document.getElementById('rotate-at-stable-speed')
 
 document.getElementById('eccentricity-value').oninput = function(e) {
   // eccentricitySlider.value = e.target.value
+  localStorage.eccentricity = +eccentricityInput.value;
+  console.log('*-**', localStorage.eccentricity);
+
   rebuildGlobalEarth()
   resetSim()
 }

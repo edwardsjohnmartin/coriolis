@@ -449,22 +449,49 @@ Coriolis.prototype.step = function(h) {
   if (this.lastInertialPoint == null ||
       this.lastInertialPoint.dist(newInertialPoint) > radians(pathInc)) {
     this.lastInertialPoint = newInertialPoint;
+    // if (typeof newInertialPoint == 'undefined') {
+    //   console.log('xxxx undefined');
+    // }
     this.inertialPath.push(newInertialPoint);
   }
 
-  // console.log('path length =', this.rotPath.length);
+  let newPathInc = pathInc;
+
   if (efficientPath && this.rotPath.length > maxPathSegments) {
     console.log('updating path - new pathInc =', pathInc*2);
     let newrp = [];
-    let newip = [];
+    // let newip = [];
     for (let i = 0; i < this.rotPath.length; i += 2) {
       newrp.push(this.rotPath[i]);
-      newip.push(this.inertialPath[i]);
+      // if (typeof this.inertialPath[i] == 'undefined') {
+      //   console.log('xxxx undefined', i, this.inertialPath.length);
+      // }
+      // newip.push(this.inertialPath[i]);
     }
     this.rotPath = newrp;
-    this.inertialPath = newip;
-    pathInc *= 2;
+    // this.inertialPath = newip;
+    // pathInc *= 2;
+    newPathInc = pathInc * 2;
   }
+
+  if (efficientPath && this.inertialPath.length > maxPathSegments) {
+    console.log('updating path - new pathInc =', pathInc*2);
+    // let newrp = [];
+    let newip = [];
+    for (let i = 0; i < this.inertialPath.length; i += 2) {
+      // newrp.push(this.rotPath[i]);
+      if (typeof this.inertialPath[i] == 'undefined') {
+        console.log('xxxx undefined', i, this.inertialPath.length);
+      }
+      newip.push(this.inertialPath[i]);
+    }
+    // this.rotPath = newrp;
+    this.inertialPath = newip;
+    // pathInc *= 2;
+    newPathInc = pathInc * 2;
+  }
+
+  pathInc = newPathInc;
 }
 
 //------------------------------------------------------------
@@ -636,6 +663,9 @@ Coriolis.prototype.pathFixed = function(t0, t1) {
 
   let points = [];
   this.inertialPath.forEach(p => {
+    if (typeof p == 'undefined') {
+      console.log('inertial path Undefined!');
+    }
     points.push(p);
   });
   points.push(new Position(this._theta,
