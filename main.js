@@ -1,6 +1,8 @@
 var View = function() {
 }
 
+let demos = [];
+
 let camera;
 // The entire scene
 let scene = new THREE.Scene();
@@ -327,6 +329,8 @@ function rebuildGlobalEarth() {
 function init() {
   document.onkeydown = keydown;
 
+  loadDemos();
+
   // camera = new THREE.PerspectiveCamera(
   //   33, window.innerWidth / window.innerHeight, 0.1, 100);
   let width = 2.5;
@@ -425,7 +429,7 @@ function init() {
   controls.addEventListener('change', render);
 }
 
-function resetSim(dorender=true, launchNorth=null, launchEast=null) {
+function resetSim(dorender=true, launchNorth=null, launchEast=null, newView=true) {
   pathInc = PATH_INC_DEFAULT;
   const launchLatitude = +document.getElementById('lat0').value;
   const launchLongitude = +document.getElementById('lon0').value;
@@ -441,11 +445,16 @@ function resetSim(dorender=true, launchNorth=null, launchEast=null) {
   time = time0;
   oldTime = -1;
   geoStationaryTime = 0;
-  view = view0;
-  if (localStorage.view) {
-    view = +localStorage.view;
-    document.getElementById('frame').value = Number(localStorage.view);
+
+  console.log('newView',newView);
+  if (newView) {
+    view = view0;
+    if (localStorage.view) {
+      view = +localStorage.view;
+      document.getElementById('frame').value = Number(localStorage.view);
+    }
   }
+  console.log(view, ROTATIONAL_VIEW);
 
   sim = new Coriolis(
       // radians(launchLatitude), radians(launchLongitude), launchV, globalEarth, +eccentricitySlider.value);
@@ -1103,98 +1112,69 @@ function snap() {
   // document.body.removeChild(el);
 }
 
+var Demo = function(msg, frame, lat, lon, north, east, simSpeed, ecc, ang) {
+  this.msg = msg;
+  this.frame = frame;
+  this.lat = lat;
+  this.lon = lon;
+  this.north = north;
+  this.east = east;
+  this.simSpeed = simSpeed;
+  this.ecc = ecc;
+  this.ang = ang;
+}
+
 //----------------------------------------
 // demoChanged
 //----------------------------------------
 function demoChanged() {
-  let demo = document.getElementById('demos').value;
-  console.log('demo: ', demo);
+  let demoName = document.getElementById('demos').value;
+  console.log('demo: ', demoName);
   instructions = document.getElementById('demoInstructions');
 
   animate = true;
-  if (demo == '') {
-    updateArrowVisibility();
-  } else if (demo == 'demo1') {
-    instructions.innerHTML = 'Press the "f" key to toggle between the inertial and rotating reference frames<br>Rotational - you are rotating with the earth<br>Inertial - you are fixed with the stars';
-    instructions.style.visibility = 'visible';
+  let demo = demos[demoName];
 
-    puckVisible = false;
-    northVisible = false;
-    eastVisible = false;
-    vVisible = false;
-    // xVisible = false;
+  instructions.style.visibility = 'visible';
 
-    rotatingPathVisible = false;
-    inertialPathVisible = false;
+  // puckVisible = true;
+  // northVisible = true;
+  // eastVisible = true;
+  // vVisible = true;
 
-    globalEarth = new Earth();
-    resetSim();
-    animate = true;
-  } else if (demo == 'demo2') {
-    instructions.innerHTML = 'Press the "f" key to toggle between the inertial and rotating reference frames.<br>Nothing changes between the frames! Because the earth is not rotating.<br>Rotational - you are rotating with the earth<br>Inertial - you are fixed with the stars';
-    instructions.style.visibility = 'visible';
+  // rotatingPathVisible = false;
+  // inertialPathVisible = false;
 
-    puckVisible = true;
-    northVisible = false;
-    eastVisible = false;
-    vVisible = false;
-    // xVisible = false;
+  console.log(demo);
 
-    rotatingPathVisible = false;
-    inertialPathVisible = false;
-
-    document.getElementById('north0').value = 0;
-    document.getElementById('east0').value = 0;
-    globalEarth = new Earth(false);
-
-    resetSim();
-    animate = false;
-    animation = false;
-  } else if (demo == 'demo3') {
-    instructions.innerHTML = 'Press the "f" key to toggle between the inertial and rotating reference frames.<br>Nothing changes between the frames! Because the earth is not rotating.<br>Rotational - you are rotating with the earth<br>Inertial - you are fixed with the stars';
-    instructions.style.visibility = 'visible';
-
-    puckVisible = true;
-    northVisible = false;
-    eastVisible = false;
-    vVisible = false;
-    // xVisible = false;
-
-    rotatingPathVisible = false;
-    inertialPathVisible = true;
-
-    globalEarth = new Earth(false);
-
-    animInc = 150;
-
-    speed = 500;
-    let north = Math.random()*speed;
-    let east = Math.sqrt(speed*speed - north*north);
-    resetSim(true, north, east);
-    animate = true;
-  } else if (demo == 'demo4') {
-    instructions.innerHTML = 'Press the "f" key to toggle between the inertial and rotating reference frames.<br>Nothing changes between the frames! Because the earth is not rotating.<br>Rotational - you are rotating with the earth<br>Inertial - you are fixed with the stars';
-    instructions.style.visibility = 'visible';
-
-    puckVisible = true;
-    northVisible = false;
-    eastVisible = false;
-    vVisible = false;
-    // xVisible = false;
-
-    rotatingPathVisible = true;
-    inertialPathVisible = false;
-
-    document.getElementById('lat0').value = 20;
-    document.getElementById('lon0').value = -75;
-
-    globalEarth = new Earth(true);
-
-    animInc = 150;
-
-    resetSim(true, 0, 0);
-    animate = true;
+  instructions.innerHTML = demo.msg;
+  if (demo.frame == "rotating") {
+    view = ROTATIONAL_VIEW;
+    document.getElementById('frame').innerHTML = 'Rotating'
+  } else {
+    view = FIXED_VIEW;
+    document.getElementById('frame').innerHTML = 'Inertial'
   }
+  updatePathVisibility();
+
+  document.getElementById('lat0').value = demo.lat;
+  document.getElementById('lon0').value = demo.lon;
+  document.getElementById('north0').value = demo.north;
+  document.getElementById('east0').value = demo.east;
+
+  animInc = demo.simSpeed;
+  document.getElementById('speed').innerHTML = animInc.toFixed(1);
+
+  document.getElementById('eccentricity-value').value = demo.ecc;
+  document.getElementById('angular-speed-ratio').value = demo.ang;
+
+  rebuildGlobalEarth();
+  // globalEarth = new Earth(false);
+
+  resetSim(true, null, null, false);
+  // animate = false;
+  // animation = false;
+
   updateAndRender();
   if (animate) {
     animation = true;
@@ -1288,3 +1268,118 @@ document.getElementById('eccentricity-value').oninput = function(e) {
 //   rebuildGlobalEarth()
 //   resetSim()
 // }
+
+function addDemo(name, r, theta, phi, pr, ptheta, pphi,
+                 gamma=0, gamma_star=0, eta=0, eta_star=0, mu_m=0, simSpeed=1,
+                 collisionType="elastic", updateP=true, updateM=true,
+                 showPath=true, zoom=0.5) {
+  // console.log("adding " + name);
+  demos[name] = { r:r,
+                  theta:theta,
+                  phi:phi,
+                  pr:pr,
+                  ptheta:ptheta,
+                  pphi:pphi,
+                  gamma:gamma,
+                  gamma_star:gamma_star,
+                  eta:eta,
+                  eta_star:eta_star,
+                  mu_m:mu_m,
+                  simSpeed:simSpeed,
+                  collisionType:collisionType,
+                  updateP:updateP,
+                  updateM:updateM,
+                  showPath:showPath,
+                  zoom:zoom,
+                };
+  // console.log(demos);
+}
+
+function updateDemos(data) {
+  var demoSelect = document.getElementById("demos");
+
+  var lines = data.split(/\r\n|\n|\r/);
+  var headers = lines[0].split(',');
+  for (var i = 1; i < lines.length; ++i) {
+    var tokens = lines[i].split(',');
+    if (tokens.length > 3) {
+      var j = 1;
+      var name = tokens[0];
+      var option = document.createElement("option");
+      option.text = name;
+      demoSelect.add(option);
+
+      // (msg, frame, lat, lon, north, east, simSpeed, ecc, ang)
+      demos[name] = new Demo(tokens[j++],
+                             tokens[j++], // frame
+                             Number(tokens[j++]),
+                             Number(tokens[j++]),
+                             Number(tokens[j++]),
+                             Number(tokens[j++]),
+                             Number(tokens[j++]),
+                             Number(tokens[j++]),
+                             Number(tokens[j++])
+                            );
+      // console.log(demos[name]);
+
+      // addDemo(name, 
+      //         Number(tokens[j++]),
+      //         Number(tokens[j++]),
+      //         Number(tokens[j++]),
+      //         Number(tokens[j++]),
+      //         Number(tokens[j++]),
+      //         Number(tokens[j++]),
+      //         Number(tokens[j++]),
+      //         Number(tokens[j++]),
+      //         Number(tokens[j++]),
+      //         Number(tokens[j++]),
+      //         Number(tokens[j++]),
+      //         Number(tokens[j++]),
+      //         tokens[j++],
+      //         (tokens[j++].toLowerCase() == "true"),
+      //         (tokens[j++].toLowerCase() == "true"),
+      //         (tokens[j++].toLowerCase() == "true"),
+      //         Number(tokens[j++])
+      //        );
+    }
+  }
+}
+
+function loadDemos() {
+  $.ajax({
+    async:true,
+    url: 'demos.csv',
+    dataType: 'text',
+    success: function(data) 
+    {
+      $('element').append(data);
+      console.log(data);
+      updateDemos(data);
+      
+    //   checkDemoCookie(demo);
+    //   demoChanged();
+
+    //   if (paramsString) {
+    //     let params = paramsString.split(',').map(x => +x);
+    //     addDemo("url", params[0], params[1], params[2],
+    //             params[3], params[4], params[5],
+    //             0, 0, 0, 0, 0, 1,
+    //              "elastic", true, true,
+    //              true, zoom);
+
+    //     var option = document.createElement("option");
+    //     option.text = "url";
+    //     document.getElementById('demos').add(option);
+
+    //     // console.log(demos);
+    //     demo = "url";
+    //     // console.log(params);
+    //     document.getElementById("demos").value = "url";
+    //     demoChanged();
+    //     toggleAnimate();
+
+    //     loadView();
+    //   }
+    }
+  });
+}
