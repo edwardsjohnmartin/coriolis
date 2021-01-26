@@ -1137,10 +1137,10 @@ function demoChanged() {
 
   instructions.style.visibility = 'visible';
 
-  // puckVisible = true;
-  // northVisible = true;
-  // eastVisible = true;
-  // vVisible = true;
+  puckVisible = true;
+  northVisible = false;
+  eastVisible = false;
+  vVisible = false;
 
   // rotatingPathVisible = false;
   // inertialPathVisible = false;
