@@ -194,24 +194,24 @@ function incTime(inc) {
   document.getElementById('time').value = (time/(60*60)).toFixed(DEBUG_DECIMALS);
   // document.getElementById('rotation').value =
   //   degrees(earthRotation(time)).toFixed(2);
-  const clock = document.getElementById('clock')
+  // const clock = document.getElementById('clock')
 
-  const dayItem = clock.getElementsByClassName('day')[0]
-  const hourItem = clock.getElementsByClassName('hour')[0]
-  const minItem = clock.getElementsByClassName('min')[0]
-  const secItem = clock.getElementsByClassName('sec')[0]
+  // const dayItem = clock.getElementsByClassName('day')[0]
+  // const hourItem = clock.getElementsByClassName('hour')[0]
+  // const minItem = clock.getElementsByClassName('min')[0]
+  // const secItem = clock.getElementsByClassName('sec')[0]
 
-  let seconds = Math.floor(time)
-  dayItem.innerHTML = formatted(Math.floor(seconds / 86400));
-  seconds %= 86400;
+  // let seconds = Math.floor(time)
+  // dayItem.innerHTML = formatted(Math.floor(seconds / 86400));
+  // seconds %= 86400;
 
-  hourItem.innerHTML = formatted(Math.floor(seconds / 3600));
-  seconds = seconds % 3600;
+  // hourItem.innerHTML = formatted(Math.floor(seconds / 3600));
+  // seconds = seconds % 3600;
 
-  minItem.innerHTML = formatted(Math.floor(seconds / 60));
+  // minItem.innerHTML = formatted(Math.floor(seconds / 60));
 
-  seconds %= 60;
-  secItem.innerHTML = formatted(Math.floor(seconds));
+  // seconds %= 60;
+  // secItem.innerHTML = formatted(Math.floor(seconds));
 
   document.getElementById('rotation').innerHTML =
     degrees(globalEarth.earthRotation(time)).toFixed(2);
@@ -583,11 +583,12 @@ function keydown(event) {
     resetSim();
     changed = true;
   } else if (key == ' ') {
-    animation = !animation;
-    if (animation) {
-      starStreaks = false;
-      tick();
-    }
+    toggleAnimate();
+    // animation = !animation;
+    // if (animation) {
+    //   starStreaks = false;
+    //   tick();
+    // }
   }
   if (changed) {
     updateAndRender();
@@ -1382,4 +1383,25 @@ function loadDemos() {
     //   }
     }
   });
+}
+
+function removeFocus() {
+  document.activeElement.blur();
+}
+
+function toggleAnimate() {
+  animation = !animation;
+  if (animation) {
+    starStreaks = false;
+    tick();
+  }
+
+  if (animation) {
+    document.getElementById("play").innerHTML =
+      "<font size=\"6\"><i class=\"fa fa-pause\"></i>";
+    tick();
+  } else {
+    document.getElementById("play").innerHTML =
+      "<font size=\"6\"><i class=\"fa fa-play\"></i>";
+  }
 }

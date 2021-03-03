@@ -79,6 +79,15 @@ td.right {
     padding: 4px;
 }
 
+.center {
+  text-align: center;
+/*  border: 3px solid green;*/
+}
+
+.right {
+  text-align: right;
+}
+
 input[type=number]{
     width: 80px;
 } 

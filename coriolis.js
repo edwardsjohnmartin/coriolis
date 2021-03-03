@@ -269,7 +269,7 @@ Coriolis.prototype.T_dot = function() {
 // Vphi = 0
 // Vtheta = 0.1 v
 
-// The code integrates forward with a regular time step of h = 1000 s until one of these time steps is invalid (that is, when one of the four radicands is negative).  Then the code integrates forward with a time step of h/2 until one of these time steps is invalid, then with h/4, etc., with the smallest time step being h/1024.  The code declares the last valid result at this time step to be the extremum.  The attached file shows all valid time steps.  Note that, for the two theta extrema found by the code, neither is within its original invalid time step of 1000 s.  The last column of the file says “theta” when the code is searching for a theta extremum, and “phi” for a phi extremum.  The second-to-last column gives the time step used for the previous step. 
+// The code integrates forward with a regular time step of h = 1000 s until one of these time steps is invalid (that is, when one of the four radicands is negative).  Then the code integrates forward with a time step of h/2 until one of these time steps is invalid, then with h/4, etc., with the smallest time step being h/1024.  The code declares the last valid result at this time step to be the extremum.  The attached file shows all valid time steps.  Note that, for the two theta extrema found by the code, neither is within its original invalid time step of 1000 s.  The last column of the file says “theta” when the code is searching for a theta extremum, and "phi" for a phi extremum.  The second-to-last column gives the time step used for the previous step. 
 function rk4test1(h0 = 1000) {
   // V is in m/s, so N is in m/s
   const v_theta = 0.1 * globalEarth.a * globalEarth.Omega;
