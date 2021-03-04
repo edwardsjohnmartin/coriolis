@@ -37,9 +37,9 @@ const q = (e) => {
 }
 
 const stableAngularSpeed = (e) => {
-  // if (e == 0) {
-  //   return 0;
-  // }
+  if (e == 0) {
+    return 0;
+  }
   // const determinant = 15.0 / 4.0 * q(e) * (1.0 - 3.0 * F(e) / 5.0)
 
   const G = 6.674e-11; // Newton's universal gravitational constant G (N m^2/kg^2)
