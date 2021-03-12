@@ -64,14 +64,22 @@ const stableAngularSpeed = (e) => {
 // eccentricity
 //----------------------------------------
 
-function getEquatorialRadius(eccentricity) {
-  const G = 6.674e-11; // Newton's universal gravitational constant G (N m^2/kg^2)
-  const M = 5.972e24; // earth mass in kg
-  const r0 = 6371001; // spherical earth radius (m)
-  const g0 = G*M/sq(r0); // acceleration scale (m/s^2)
-  const v0 = Math.sqrt(r0*g0); // velocity scale (m/s)
-  const omega0 = Math.sqrt(g0/r0); // angular speed scale (rad/s)
-  const ret = r0*Math.pow(1-sq(eccentricity), -1/6); // earth's equatorial radius (m)
+// function getEquatorialRadius(eccentricity) {
+//   const G = 6.674e-11; // Newton's universal gravitational constant G (N m^2/kg^2)
+//   const M = 5.972e24; // earth mass in kg
+//   const r0 = 6371001; // spherical earth radius (m)
+//   const g0 = G*M/sq(r0); // acceleration scale (m/s^2)
+//   const v0 = Math.sqrt(r0*g0); // velocity scale (m/s)
+//   const omega0 = Math.sqrt(g0/r0); // angular speed scale (rad/s)
+//   const ret = r0*Math.pow(1-sq(eccentricity), -1/6); // earth's equatorial radius (m)
+//   return ret;
+// }
+
+// e - eccentricity
+function getEquatorialRadius(e) {
+  const er = 0.08182; // Reference eccentricity
+  const ar = 6378137; // Reference equatorial radius
+  const ret = ar * Math.pow((1 - er*er)/(1 - e*e), 1/6);
   return ret;
 }
 
