@@ -80,7 +80,6 @@ function getEquatorialRadius(e) {
   const er = 0.08182; // Reference eccentricity
   const ar = 6378137; // Reference equatorial radius
   const ret = ar * Math.pow((1 - er*er)/(1 - e*e), 1/6);
-  console.log('updated');
   return ret;
 }
 
