@@ -909,9 +909,9 @@ function updateEarthGroup() {
 
   debug.theta = sim._theta;
   debug.phi = sim._phi;
-  debug.T = sim.T
-  // debug.theta_dot = sim.theta_dot(t);
-  // debug.phi_dot = sim.phi_dot(t);
+  debug.T = sim.T;
+  debug.v = Math.sqrt(sim.T) * globalEarth.a * globalEarth.Omega;
+  debug.v0 = Math.sqrt(sim.T0) * globalEarth.a * globalEarth.Omega;
   debug.theta_dot = sim.theta_dot(time);
   debug.phi_dot = sim.phi_dot(time);
   debug.L0 = sim.L0;

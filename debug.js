@@ -13,6 +13,12 @@ var debug = {
   set T(v) {
     document.getElementById('T').innerHTML = (v * 10000).toFixed(1);
   },
+  set v(a) {
+    document.getElementById('v').innerHTML = a.toFixed(DEBUG_DECIMALS);
+  },
+  set v0(a) {
+    document.getElementById('v0').innerHTML = a.toFixed(DEBUG_DECIMALS);
+  },
   set theta_dot(v) {
     document.getElementById('theta_dot').innerHTML = (v*10000).toFixed(DEBUG_DECIMALS);
   },
@@ -25,9 +31,9 @@ var debug = {
   set T0(v) {
     document.getElementById('T0').innerHTML = (v*10000).toFixed(1);
   },
-  set fps(v) {
-    document.getElementById('fps').innerHTML = v.toFixed(0);
-  },
+  // set fps(v) {
+  //   document.getElementById('fps').innerHTML = v.toFixed(0);
+  // },
   // set phi(v) {
   //   this._phi = v;
   //   document.getElementById('phi').innerHTML = v.toFixed(1);
