@@ -74,7 +74,8 @@ var Coriolis = function(lat0, lon0, v0, earth) {
 
   this.L0 = this.L_momentum(this.phi_dot0, this.theta0)
   // Kinetic energy
-  this.T = this.T0 = this.Kinetic(this.theta0, this.phi_dot0, this.theta_dot0)
+  // this.T = this.T0 = this.Kinetic(this.theta0, this.phi_dot0, this.theta_dot0)
+  this.T = this.Kinetic(this.theta0, this.phi_dot0, this.theta_dot0)
 
   this.rotPath = [];
   this.inertialPath = [];
@@ -135,6 +136,19 @@ Coriolis.prototype.Kinetic = function(theta, dphi, dtheta) {
       + sq(1-sq(e)) * sq(thetadot / OmegaR) / (c*c*c) 
   }
   return T;
+}
+
+// Dimensionless kinetic energy, rotating frame
+Coriolis.prototype.T0 = function(theta, dphi, dtheta) {
+  const e = this.earth.e;
+  const c = 1-sq(e) * sq(Math.sin(theta))
+  const phidot = dphi;
+  const thetadot = dtheta;
+  const Omega = this.earth.Omega;
+  let T0;
+  T0 = sq(Math.cos(theta)) * sq(phidot + Omega) / (c*sq(OmegaR)) 
+    + sq(1-sq(e)) * sq(thetadot / OmegaR) / (c*c*c) 
+  return T0;
 }
 
 //------------------------------------------------------------

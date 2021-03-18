@@ -907,15 +907,18 @@ function updateEarthGroup() {
   // debug.phi = phi;
   // debug.phi_ = phi_;
 
+  let T0 = sim.T0(sim._theta, sim.phi_dot(time), sim.theta_dot(time));
+
   debug.theta = sim._theta;
   debug.phi = sim._phi;
   debug.T = sim.T;
   debug.v = Math.sqrt(sim.T) * globalEarth.a * globalEarth.Omega;
-  debug.v0 = Math.sqrt(sim.T0) * globalEarth.a * globalEarth.Omega;
+  // debug.v0 = Math.sqrt(sim.T0) * globalEarth.a * globalEarth.Omega;
+  debug.v0 = Math.sqrt(T0) * globalEarth.a * globalEarth.Omega;
   debug.theta_dot = sim.theta_dot(time);
   debug.phi_dot = sim.phi_dot(time);
   debug.L0 = sim.L0;
-  debug.T0 = sim.T0;
+  debug.T0 = T0;//sim.T0;
 
   // const colorL = sq(0.9-hours/12);
   const colorL = 0.4;
