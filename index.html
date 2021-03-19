@@ -8,7 +8,9 @@
   <link rel="stylesheet" href="style.css?1"/>
 </head>
 <body>
-<p id="demoInstructions">Instructions</p>
+  <div id="logo" class="logo">
+    &nbsp;<i>CorioVis</i>&nbsp;
+  </div>
 <table>
   <tr>
     <td class="info">
@@ -18,7 +20,7 @@
             <td class="right">
               <label for="demos">Demos:</label>
             </td><td>
-            <select id="demos" onchange="demoChanged()">
+            &nbsp;<select id="demos" onchange="demoChanged()">
               <option value="none"></option>
             </select>
           </tr>
@@ -26,7 +28,7 @@
           <tr>
             <td class="right">Eccentricity:</td>
             <td>
-              <input id="eccentricity-value" type="number" step="0.1" value="0.08182"/>
+              &nbsp;<input id="eccentricity-value" type="number" step="0.1" value="0.08182"/>
               <button id="reset-eccentricity">Reference</button>
               <button id="reset-eccentricity-sphere">Spherical</button>
             </td>
@@ -39,17 +41,18 @@
           </tr-->
           <!-- Angular speed ratio -->
           <tr>
-            <td>Angular speed (&Omega;/&Omega;<sub>r</sub>):</td>
+            <!--td>Angular speed (&Omega;/&Omega;<sub>r</sub>):</td-->
+            <td class="right">Angular speed:</td>
             <td>
-              <input type="number" id="angular-speed-ratio"
-                     onchange="angularSpeedRatioChanged()">
+              &nbsp;<input type="number" id="angular-speed-ratio"
+                     onchange="angularSpeedRatioChanged()"> (deg/hr)
               <button onclick="setToStableAngularSpeed()">Stable</button>
           </td>
           <tr>
-            <td class="right">Initial position:</td><td>&nbsp;<input type="text" id="lat0" size=5 onchange="lat0Changed()" value="0"></input>,<input type="text" id="lon0" size=5 onchange="lon0Changed()" value="-75"></input>&nbsp;(lat,lon)</td>
+            <td class="right">Initial position:</td><td>&nbsp;<input type="text" id="lat0" size=7 onchange="lat0Changed()" value="0"></input>&nbsp;&deg;,&nbsp;&nbsp;<input type="text" id="lon0" size=7 onchange="lon0Changed()" value="-75"></input>&nbsp;&deg;&nbsp;(lat, lon)</td>
           </tr>
           <tr>
-            <td class="right">Initial velocity:</td><td>&nbsp;<input type="text" id="north0" size=5 onchange="north0Changed()" value="1.12"></input><code>(m/s)</code>,&nbsp;<input type="text" id="east0" size=5 onchange="east0Changed()" value="0"></input><code>(m/s)</code>&nbsp;(north,east)</td>
+            <td class="right">Initial velocity:</td><td>&nbsp;<input type="text" id="north0" size=7 onchange="north0Changed()" value="1.12"></input>&nbsp;(m/s),&nbsp;&nbsp;<input type="text" id="east0" size=7 onchange="east0Changed()" value="0"></input>&nbsp;(m/s)&nbsp;(north, east)</td>
           </tr>
           <tr>
             <td class="right">Simulation speed (&uarr;&darr;):</td>
@@ -73,7 +76,7 @@
           </tr-->
           <tr>
             <td class="right">Time:</td>
-            <td><b id="time"></b>&nbsp;hours</td>
+            <td><b id="time"></b>&nbsp;hr</td>
           </tr>
           <tr>
             <td class="right">Earth's rotation:</td>
@@ -89,33 +92,33 @@
           </tr>
           <tr>
             <td class="right">theta_dot:</td>
-            <td><b id="theta_dot"></b> rad/hr</td>
+            <td><b id="theta_dot"></b> deg/hr</td>
           </tr>
           <tr>
             <td class="right">phi_dot:</td>
-            <td><b id="phi_dot"></b> rad/hr</td>
+            <td><b id="phi_dot"></b> deg/hr</td>
           </tr>
           <tr>
-            <td class="right">v:</td>
+            <td class="right">Relative speed:</td>
             <td><b id="v"></b> m/s</td>
           </tr>
           <tr>
-            <td class="right">v<sub>0</sub>:</td>
+            <td class="right">Absolute speed:</td>
             <td><b id="v0"></b> m/s</td>
           </tr>
           <tr>
             <!--td class="right">Tx10<sup>4</sup>:</td-->
-            <td class="right">T:</td>
+            <td class="right">Rel. kinetic energy:</td>
             <td><b id="T"></b></td>
           </tr>
           <tr>
             <!--td class="right">T<sub>0</sub>x10<sup>4</sup>:</td-->
-            <td class="right">T<sub>0</sub>:</td>
+            <td class="right">Abs. kinetic energy:</td>
             <td><b id="T0"></b></td>
           </tr>
           <tr>
             <!--td class="right">L<sub>0</sub>x10<sup>4</sup>:</td-->
-            <td class="right">L<sub>0</sub>:</td>
+            <td class="right">Abs. ang. momentum:</td>
             <td><b id="L0"></b></td>
           </tr>
           <!--tr>
@@ -147,7 +150,11 @@
         </div>
       </div-->
       <!--button onclick="playButton()">Play</button-->
-      <div class="right">
+    </td>
+
+    <td class="vis">
+      <div id="graphic"></div><br>
+      <div id="playdiv" class="right">
         <button
            type="button"
            class="cbutton"
@@ -157,10 +164,7 @@
            title="play/pause animation (spacebar)">
           <font size="6"><i class="fas fa-play"></i></font></button>
       </div>
-    </td>
-
-    <td class="vis">
-      <div id="graphic"></div>
+      <p id="demoInstructions">Instructions</p>
     </td>
     <td class="vis2">
       <div id="graphic2"></div>

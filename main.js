@@ -124,7 +124,8 @@ if (localStorage.east0) {
 if (localStorage.eccentricity) {
   document.getElementById('eccentricity-value').value = Number(localStorage.eccentricity);
 }
-document.getElementById('angular-speed-ratio').value = 1;
+// document.getElementById('angular-speed-ratio').value = 1;
+document.getElementById('angular-speed-ratio').value = angSpeedRatio2DegPerHr(1).toFixed(4);
 
 const angularSpeedRatioInput = document.getElementById('angular-speed-ratio')
 const eccentricityInput = document.getElementById('eccentricity-value')
@@ -217,7 +218,7 @@ function incTime(inc) {
   // secItem.innerHTML = formatted(Math.floor(seconds));
 
   document.getElementById('rotation').innerHTML =
-    degrees(globalEarth.earthRotation(time)).toFixed(2);
+    degrees(globalEarth.earthRotation(time)).toFixed(4);
 
   if (view == ROTATIONAL_VIEW) {
     geoStationaryTime += inc;
@@ -303,13 +304,13 @@ function east0Changed() {
 // }
 
 function angularSpeedRatioChanged() {
-  localStorage.angularSpeedRatio = +angularSpeedRatioInput.value;
+  localStorage.angularSpeedRatio = degPerHr2AngSpeedRatio(+angularSpeedRatioInput.value).toFixed(4);
   rebuildGlobalEarth();//forceStablePeriod)
   resetSim();
 }
 
 function setToStableAngularSpeed() {
-  angularSpeedRatioInput.value = (globalEarth.OmegaS / OmegaR).toFixed(4);
+  angularSpeedRatioInput.value = angSpeedRatio2DegPerHr((globalEarth.OmegaS / OmegaR)).toFixed(4);
   angularSpeedRatioChanged();
 }
 
@@ -318,7 +319,7 @@ function rotationChanged() {
 }
 
 function rebuildGlobalEarth() {
-  const angularSpeedRatio = +angularSpeedRatioInput.value;
+  const angularSpeedRatio = degPerHr2AngSpeedRatio(+angularSpeedRatioInput.value).toFixed(4);
   // globalEarth = new Earth(+eccentricitySlider.value, angularSpeedRatio);
   globalEarth = new Earth(+eccentricityInput.value, angularSpeedRatio);
   // const period = !forceStablePeriod && !rotateAtStableSpeed.checked ? +timePeriodInput.value : undefined
@@ -1175,7 +1176,9 @@ function demoChanged() {
   document.getElementById('speed').innerHTML = animInc.toFixed(1);
 
   document.getElementById('eccentricity-value').value = demo.ecc;
-  document.getElementById('angular-speed-ratio').value = demo.ang;
+  // document.getElementById('angular-speed-ratio').value = demo.ang;
+  document.getElementById('angular-speed-ratio').value = 
+    angSpeedRatio2DegPerHr(demo.ang).toFixed(4);
 
   rebuildGlobalEarth();
   // globalEarth = new Earth(false);

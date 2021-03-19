@@ -151,6 +151,14 @@ Coriolis.prototype.T0 = function(theta, dphi, dtheta) {
   return T0;
 }
 
+function angSpeedRatio2DegPerHr(ratio) {
+  return degrees(ratio * OmegaR) * 3600;
+}
+
+function degPerHr2AngSpeedRatio(degPerHr) {
+  return radians(degPerHr / 3600) / OmegaR;
+}
+
 //------------------------------------------------------------
 // An object that stores phi, theta, and T
 var PhiThetaT = function(phi, theta, T) {
