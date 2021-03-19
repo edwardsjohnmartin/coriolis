@@ -22,33 +22,6 @@
               <option value="none"></option>
             </select>
           </tr>
-          <tr>
-            <td class="right">Frame (f):</td><td>&nbsp;<b id="frame">Inertial</b></td>
-          </tr>
-          <tr>
-            <td class="right">Path (p):</td><td>&nbsp;<b id="path">Match frame</b></td>
-          </tr>
-          <tr>
-            <td class="right">Path drawing (P):</td><td>&nbsp;<b id="path-draw">Efficient</b></td>
-          </tr>
-          <tr>
-            <td class="right">p0:</td><td>&nbsp;<input type="text" id="lat0" size=5 onchange="lat0Changed()" value="0"></input>,<input type="text" id="lon0" size=5 onchange="lon0Changed()" value="-75"></input>&nbsp;(lat,lon)</td>
-          </tr>
-          <tr>
-            <td class="right">v0:</td><td>&nbsp;<input type="text" id="north0" size=5 onchange="north0Changed()" value="1.12"></input><code>(m/s)</code>,&nbsp;<input type="text" id="east0" size=5 onchange="east0Changed()" value="0"></input><code>(m/s)</code>&nbsp;(north,east)</td>
-          </tr>
-          <tr>
-            <td class="right">Simulation speed (&uarr;&darr;):</td>
-            <td>&nbsp;<b id="speed"></b></td>
-          </tr>
-          <tr>
-            <td class="right">Time  (&larr;&rarr;):</td>
-            <td><input type="text" id="time" size=12 onchange="timeChanged()" value="0"></input>&nbsp;hours</td>
-          </tr>
-          <tr>
-            <td class="right">Earth's rotation:</td>
-            <td><b id="rotation"></b>&nbsp;degrees</td>
-          </tr>
           <!-- Eccentricity -->
           <tr>
             <td class="right">Eccentricity:</td>
@@ -72,43 +45,77 @@
                      onchange="angularSpeedRatioChanged()">
               <button onclick="setToStableAngularSpeed()">Stable</button>
           </td>
+          <tr>
+            <td class="right">Initial position:</td><td>&nbsp;<input type="text" id="lat0" size=5 onchange="lat0Changed()" value="0"></input>,<input type="text" id="lon0" size=5 onchange="lon0Changed()" value="-75"></input>&nbsp;(lat,lon)</td>
+          </tr>
+          <tr>
+            <td class="right">Initial velocity:</td><td>&nbsp;<input type="text" id="north0" size=5 onchange="north0Changed()" value="1.12"></input><code>(m/s)</code>,&nbsp;<input type="text" id="east0" size=5 onchange="east0Changed()" value="0"></input><code>(m/s)</code>&nbsp;(north,east)</td>
+          </tr>
+          <tr>
+            <td class="right">Simulation speed (&uarr;&darr;):</td>
+            <td>&nbsp;<b id="speed"></b></td>
+          </tr>
+          <tr>
+            <td class="right">Frame (f):</td><td>&nbsp;<b id="frame">Inertial</b></td>
+          </tr>
+          <tr>
+            <td class="right">Path (p):</td><td>&nbsp;<b id="path">Match frame</b></td>
+          </tr>
+          <tr>
+            <td class="right">Path drawing (P):</td><td>&nbsp;<b id="path-draw">Efficient</b></td>
+          </tr>
 
           <!-- debug -->
           <tr><td>&nbsp;</td></tr>
+          <!--tr>
+            <td class="right">Time  (&larr;&rarr;):</td>
+            <td><input type="text" id="time" size=12 onchange="timeChanged()" value="0"></input>&nbsp;hours</td>
+          </tr-->
           <tr>
-            <td class="right">theta:</td>
-            <td><b id="theta"></b></td>
+            <td class="right">Time:</td>
+            <td><b id="time"></b>&nbsp;hours</td>
           </tr>
           <tr>
-            <td class="right">phi:</td>
-            <td><b id="phi"></b></td>
+            <td class="right">Earth's rotation:</td>
+            <td><b id="rotation"></b>&deg;</td>
+          </tr>
+          <tr>
+            <td class="right">theta (lat):</td>
+            <td><b id="theta"></b>&deg;</td>
+          </tr>
+          <tr>
+            <td class="right">phi (lon):</td>
+            <td><b id="phi"></b>&deg;</td>
           </tr>
           <tr>
             <td class="right">theta_dot:</td>
-            <td><b id="theta_dot"></b></td>
+            <td><b id="theta_dot"></b> rad/hr</td>
           </tr>
           <tr>
             <td class="right">phi_dot:</td>
-            <td><b id="phi_dot"></b></td>
+            <td><b id="phi_dot"></b> rad/hr</td>
           </tr>
           <tr>
-            <td class="right">v (m/s):</td>
-            <td><b id="v"></b></td>
+            <td class="right">v:</td>
+            <td><b id="v"></b> m/s</td>
           </tr>
           <tr>
-            <td class="right">v<sub>0</sub> (m/s):</td>
-            <td><b id="v0"></b></td>
+            <td class="right">v<sub>0</sub>:</td>
+            <td><b id="v0"></b> m/s</td>
           </tr>
           <tr>
-            <td class="right">Tx10<sup>4</sup>:</td>
+            <!--td class="right">Tx10<sup>4</sup>:</td-->
+            <td class="right">T:</td>
             <td><b id="T"></b></td>
           </tr>
           <tr>
-            <td class="right">T<sub>0</sub>x10<sup>4</sup>:</td>
+            <!--td class="right">T<sub>0</sub>x10<sup>4</sup>:</td-->
+            <td class="right">T<sub>0</sub>:</td>
             <td><b id="T0"></b></td>
           </tr>
           <tr>
-            <td class="right">L<sub>0</sub>x10<sup>4</sup>:</td>
+            <!--td class="right">L<sub>0</sub>x10<sup>4</sup>:</td-->
+            <td class="right">L<sub>0</sub>:</td>
             <td><b id="L0"></b></td>
           </tr>
           <!--tr>

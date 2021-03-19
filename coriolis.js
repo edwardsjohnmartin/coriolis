@@ -94,7 +94,7 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   console.log('theta_dot0', this.theta_dot0);
   // console.log('Omega', this.earth.Omega);
   console.log('L0', this.L0);
-  console.log('T0', this.T);
+  // console.log('T0', this.T);
   // console.log('eccentricity', this.earth.e)
   console.log('rho', rho)
 }

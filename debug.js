@@ -1,5 +1,8 @@
 const DEBUG_DECIMALS = 4;
 
+// const FACTOR = 10000;
+const FACTOR = 1;
+
 var debug = {
   set temp(v) {
     document.getElementById('temp').innerHTML = v;
@@ -11,7 +14,7 @@ var debug = {
     document.getElementById('phi').innerHTML = degrees(v).toFixed(DEBUG_DECIMALS);
   },
   set T(v) {
-    document.getElementById('T').innerHTML = (v * 10000).toFixed(1);
+    document.getElementById('T').innerHTML = (v * FACTOR).toFixed(DEBUG_DECIMALS);
   },
   set v(a) {
     document.getElementById('v').innerHTML = a.toFixed(DEBUG_DECIMALS);
@@ -20,16 +23,16 @@ var debug = {
     document.getElementById('v0').innerHTML = a.toFixed(DEBUG_DECIMALS);
   },
   set theta_dot(v) {
-    document.getElementById('theta_dot').innerHTML = (v*10000).toFixed(DEBUG_DECIMALS);
+    document.getElementById('theta_dot').innerHTML = (v*FACTOR*3600).toFixed(DEBUG_DECIMALS);
   },
   set phi_dot(v) {
-    document.getElementById('phi_dot').innerHTML = (v*10000).toFixed(DEBUG_DECIMALS);
+    document.getElementById('phi_dot').innerHTML = (v*FACTOR*3600).toFixed(DEBUG_DECIMALS);
   },
   set L0(v) {
-    document.getElementById('L0').innerHTML = (v*10000).toFixed(1);
+    document.getElementById('L0').innerHTML = (v*FACTOR).toFixed(DEBUG_DECIMALS);
   },
   set T0(v) {
-    document.getElementById('T0').innerHTML = (v*10000).toFixed(1);
+    document.getElementById('T0').innerHTML = (v*FACTOR).toFixed(DEBUG_DECIMALS);
   },
   // set fps(v) {
   //   document.getElementById('fps').innerHTML = v.toFixed(0);

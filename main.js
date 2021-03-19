@@ -106,7 +106,8 @@ let rotatingPathVisible = false;
 let inertialPathVisible = false;
 updatePathVisibility();
 
-document.getElementById('time').value = (time/(60*60)).toFixed(DEBUG_DECIMALS);
+// document.getElementById('time').value = (time/(60*60)).toFixed(DEBUG_DECIMALS);
+document.getElementById('time').innerHTML = (time/(60*60)).toFixed(DEBUG_DECIMALS);
 
 if (localStorage.lat0) {
   document.getElementById('lat0').value = Number(localStorage.lat0);
@@ -191,7 +192,9 @@ const formatted = (v) => {
 
 function incTime(inc) {
   time += inc;
-  document.getElementById('time').value = (time/(60*60)).toFixed(DEBUG_DECIMALS);
+
+  document.getElementById('time').innerHTML = (time/(60*60)).toFixed(DEBUG_DECIMALS);
+  // document.getElementById('time').value = (time/(60*60)).toFixed(DEBUG_DECIMALS);
   // document.getElementById('rotation').value =
   //   degrees(earthRotation(time)).toFixed(2);
   // const clock = document.getElementById('clock')
@@ -912,9 +915,11 @@ function updateEarthGroup() {
   debug.theta = sim._theta;
   debug.phi = sim._phi;
   debug.T = sim.T;
-  debug.v = Math.sqrt(sim.T) * globalEarth.a * globalEarth.Omega;
+  // debug.v = Math.sqrt(sim.T) * globalEarth.a * globalEarth.Omega;
+  debug.v = Math.sqrt(sim.T) * globalEarth.a * OmegaR;
   // debug.v0 = Math.sqrt(sim.T0) * globalEarth.a * globalEarth.Omega;
-  debug.v0 = Math.sqrt(T0) * globalEarth.a * globalEarth.Omega;
+  // debug.v0 = Math.sqrt(T0) * globalEarth.a * globalEarth.Omega;
+  debug.v0 = Math.sqrt(T0) * globalEarth.a * OmegaR;
   debug.theta_dot = sim.theta_dot(time);
   debug.phi_dot = sim.phi_dot(time);
   debug.L0 = sim.L0;
@@ -1180,10 +1185,11 @@ function demoChanged() {
   // animation = false;
 
   updateAndRender();
-  if (animate) {
-    animation = true;
-    tick();
-  }
+  // if (animate && !animation) {
+  //   // animation = true;
+  //   // tick();
+  //   toggleAnimate();
+  // }
 }
 
 //----------------------------------------
