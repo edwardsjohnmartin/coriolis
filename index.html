@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Coriolis - SVG</title>
+  <title>CorioVis</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
@@ -122,30 +122,16 @@
             <td><b id="fps"></b></td>
           </tr-->
           <tr>
-            <td class="right"></td><td><b id="temp"></b></td>
+            <td class="right">&nbsp;</td><td><b id="temp"></b></td>
+          </tr>
+          <tr>
+            <td class="center"><a href="./hotkeys.html" target="hotkeys">Hotkeys</a></td>
+          </tr>
+          <tr>
+            <!--td class="center"><a style="cursor:pointer" onclick="snap()">Copy SVG</a></td><td><textarea id="snapshot-output" hidden></textarea></td-->
+            <td class="center"><button onclick="snap()">SVG</button></td><td><!--textarea id="snapshot-output"></textarea--></td>
           </tr>
         </table>
-      <!--div id="clock">
-        <div>
-          <div>
-            <span>days</span>
-            <span class="numeric day">00</span>
-          </div>
-          <div>
-            <span>hours</span>
-            <span class="numeric hour">00</span>
-          </div>
-          <div>
-            <span>mins</span>
-            <span class="numeric min">00</span>
-          </div>
-          <div>
-            <span>secs</span>
-            <span class="numeric sec">00</span>
-          </div>
-        </div>
-      </div-->
-      <!--button onclick="playButton()">Play</button-->
     </td>
 
     <td class="vis">
@@ -170,48 +156,17 @@
       </div>
       <p id="demoInstructions">Instructions</p>
     </td>
-    <td class="vis2">
+    <!--td class="vis2">
       <div id="graphic2"></div>
-    </td>
+    </td-->
   </tr>
 </table>
 
-<hr>
-
-<!-- Keystrokes -->
-<div class="instructions">
-  Press spacebar to toggle animation.
+<!--div id="snapshot">
+  <a style="cursor:pointer" onclick="snap()">Copy SVG</a>
   <br>
-  Press up/down arrows to adjust simulation speed.
-  <br>
-  Press right/left arrows to go forward/backward in the animation.
-  <br>
-  Press 'p' to toggle paths on/off.
-  <br>
-  Press 'P' to toggle efficient path trace on/off.
-  <br>
-  Press S/s to increase/decrease star size.
-  <br>
-  Press X/x to increase/decrease star streak length.
-  <br>
-  Press U/u to increase/decrease arrow scale.
-  <br>
-  Press 'f' to toggle between inertial and rotating frames.
-  <br>
-  Press 't' to toggle star streaks.
-  <br>
-  Press 'a' to toggle arrows.
-  <br>
-  Press 'r' to reset simulation.
-  <br>
-  <br>
-  <div id="snapshot">
-    <!--a style="cursor:pointer" onclick="snap()">SVG snapshot</a-->
-    <a style="cursor:pointer" onclick="snap()">Copy SVG</a>
-    <br>
-    <textarea id="snapshot-output"></textarea>
-  </div>
-</div>
+  <textarea id="snapshot-output"></textarea>
+</div-->
 
 
 <script src="jquery.min.js"></script>

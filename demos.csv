@@ -1,8 +1,8 @@
-﻿Demo,Title,frame,latitude,longitude,v_north,v_east,sim speed,eccentricity,ang. speed ratio
-1,rotating sphere; northward relative initial velocity,inertial,40,-10,50,0,203.5,0,1
-2,stably rotating spheroid; northward relative initial velocity,rotating,40,-10,50,0,203.5,0.08182,1
-3,rotating sphere; near equator,rotating,0,-15,30,-40,203.5,0,1
-4,stably rotating spheroid; near equator,rotating,0,-15,30,-40,203.5,0.08182,1
+﻿Demo,Title,frame,latitude,longitude,v_north,v_east,sim speed,eccentricity,ang. speed x 10^5 rad/s
+1,rotating sphere; northward relative initial velocity,inertial,40,-10,50,0,203.5,0,7.292423
+2,stably rotating spheroid; northward relative initial velocity,rotating,40,-10,50,0,203.5,0.08182,7.292423
+3,rotating sphere; near equator,rotating,0,-15,30,-40,203.5,0,7.292423
+4,stably rotating spheroid; near equator,rotating,0,-15,30,-40,203.5,0.08182,7.292423
 5,non-rotating spheroid; northward initial velocity,inertial,30,0,250,0,48.7,0.6,0
-6,stably rotating spheroid; northward relative initial velocity,rotating,30,0,250,0,48.7,0.6,7.5065
-7,super-stably rotating spheroid; northward relative initial velocity,rotating,30,0,250,0,48.7,0.6,15.013
+6,stably rotating spheroid; northward relative initial velocity,rotating,30,0,250,0,48.7,0.6,54.73731
+7,super-stably rotating spheroid; northward relative initial velocity,rotating,30,0,250,0,48.7,0.6,109.4746

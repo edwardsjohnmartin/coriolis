@@ -1102,25 +1102,37 @@ function tick() {
 //----------------------------------------
 // snap
 //----------------------------------------
-function snap() {
-  console.log('Taking SVG snapshot');
-  XMLS = new XMLSerializer();
-  svgtext = XMLS.serializeToString(renderer.domElement);
+// function snap() {
+//   console.log('Taking SVG snapshot');
+//   XMLS = new XMLSerializer();
+//   svgtext = XMLS.serializeToString(renderer.domElement);
 
-  let textarea = document.getElementById("snapshot-output");
-  // textarea.innerHTML = svgtext;
-  textarea.value = svgtext;
+//   // let textarea = document.getElementById("snapshot-output");
+//   // // textarea.innerHTML = svgtext;
+//   // textarea.value = svgtext;
 
-  textarea.select();
-  document.execCommand('copy');
+//   // textarea.select();
+//   // document.execCommand('copy');
 
-  // const el = document.createElement('textarea');
-  // el.value = svgtext;
-  // document.body.appendChild(el);
-  // el.select();
-  // document.execCommand('copy');
-  // document.body.removeChild(el);
-}
+//   // const el = document.createElement('textarea');
+//   // el.value = svgtext;
+//   // document.body.appendChild(el);
+//   // el.select();
+//   // document.execCommand('copy');
+//   // document.body.removeChild(el);
+
+//   let filename = 'corio.svg';
+//   var element = document.createElement('a');
+//   element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(svgtext));
+//   element.setAttribute('download', filename);
+
+//   element.style.display = 'none';
+//   document.body.appendChild(element);
+
+//   element.click();
+
+//   document.body.removeChild(element);
+// }
 
 var Demo = function(msg, frame, lat, lon, north, east, simSpeed, ecc, ang) {
   this.msg = msg;
@@ -1179,8 +1191,10 @@ function demoChanged() {
   // document.getElementById('angular-speed-ratio').value = demo.ang;
   // document.getElementById('angular-speed-ratio').value = 
   //   angSpeedRatio2DegPerHr(demo.ang).toFixed(4);
+  // document.getElementById('angular-speed-ratio').value = 
+  //   angSpeedRatio2RadPerSec(demo.ang).toFixed(4);
   document.getElementById('angular-speed-ratio').value = 
-    angSpeedRatio2RadPerSec(demo.ang).toFixed(4);
+    demo.ang.toFixed(4);
 
   rebuildGlobalEarth();
   // globalEarth = new Earth(false);
@@ -1221,12 +1235,25 @@ function snap() {
   // svgtext = XMLS.serializeToString(renderer.domElement);
   svgtext = XMLS.serializeToString(svg);
 
-  let textarea = document.getElementById("snapshot-output");
-  // textarea.innerHTML = svgtext;
-  textarea.value = svgtext;
+  // let textarea = document.getElementById("snapshot-output");
+  // // textarea.innerHTML = svgtext;
+  // textarea.value = svgtext;
 
-  textarea.select();
-  document.execCommand('copy');
+  // textarea.select();
+  // document.execCommand('copy');
+
+
+  let filename = 'CorioVis.svg';
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(svgtext));
+  element.setAttribute('download', filename);
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
 
   // const el = document.createElement('textarea');
   // el.value = svgtext;
