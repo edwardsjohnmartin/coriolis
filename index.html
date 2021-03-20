@@ -30,7 +30,7 @@
           <tr>
             <td class="right">Eccentricity:</td>
             <td>
-              &nbsp;<input id="eccentricity-value" type="text" size=7 value="0.08182"/>
+              &nbsp;<input id="eccentricity-value" type="text" size=8 value="0.08182"/>
               <button id="reset-eccentricity">Reference</button>
               <button id="reset-eccentricity-sphere">Spherical</button>
             </td>
@@ -40,15 +40,15 @@
             <!--td>Angular speed (&Omega;/&Omega;<sub>r</sub>):</td-->
             <td class="right">Angular speed:</td>
             <td>
-              &nbsp;<input type="text" id="angular-speed-ratio" size=7
+              &nbsp;<input type="text" id="angular-speed-ratio" size=8
                      onchange="angularSpeedRatioChanged()"> x10<sup>&minus;5</sup> rad/s
               <button onclick="setToStableAngularSpeed()">Stable</button>
           </td>
           <tr>
-            <td class="right">Initial position:</td><td>&nbsp;<input type="text" id="lat0" size=7 onchange="lat0Changed()" value="0"></input>&nbsp;&deg;,&nbsp;&nbsp;<input type="text" id="lon0" size=7 onchange="lon0Changed()" value="-75"></input>&nbsp;&deg;&nbsp;(lat, lon)</td>
+            <td class="right">Initial position:</td><td>&nbsp;<input type="text" id="lat0" size=8 onchange="lat0Changed()" value="0"></input>&nbsp;&deg;,&nbsp;&nbsp;<input type="text" id="lon0" size=8 onchange="lon0Changed()" value="-75"></input>&nbsp;&deg;&nbsp;(lat, lon)</td>
           </tr>
           <tr>
-            <td class="right">Initial velocity:</td><td>&nbsp;<input type="text" id="north0" size=7 onchange="north0Changed()" value="1.12"></input>&nbsp;m/s,&nbsp;&nbsp;<input type="text" id="east0" size=7 onchange="east0Changed()" value="0"></input>&nbsp;m/s&nbsp;(north, east)</td>
+            <td class="right">Initial velocity:</td><td>&nbsp;<input type="text" id="north0" size=8 onchange="north0Changed()" value="1.12"></input>&nbsp;m/s,&nbsp;&nbsp;<input type="text" id="east0" size=8 onchange="east0Changed()" value="0"></input>&nbsp;m/s&nbsp;(north, east)</td>
           </tr>
           <tr>
             <td class="right">Simulation speed (&uarr;&darr;):</td>
