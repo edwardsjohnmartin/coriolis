@@ -1195,7 +1195,7 @@ function demoChanged() {
   // document.getElementById('angular-speed-ratio').value = 
   //   angSpeedRatio2RadPerSec(demo.ang).toFixed(4);
   document.getElementById('angular-speed-ratio').value = 
-    demo.ang.toFixed(4);
+    demo.ang;//.toFixed(4);
 
   rebuildGlobalEarth();
   // globalEarth = new Earth(false);
