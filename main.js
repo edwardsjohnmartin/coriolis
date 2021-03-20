@@ -16,7 +16,8 @@ let efficientPath = true;
 // turning transparency off improves the FPS only a little -- from ~25
 // to ~30.
 let transparency = true;
-const maxPathSegments = 300;
+// const maxPathSegments = 300;
+const maxPathSegments = 600;
 
 // Between 1 and 10-ish
 let animSpeed = 5;

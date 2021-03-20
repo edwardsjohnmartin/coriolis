@@ -462,6 +462,7 @@ function stepRK4(c, h0, t, debug=false) {
   return t;
 }
 
+// const PATH_INC_DEFAULT = 1;
 const PATH_INC_DEFAULT = 1;
 let pathInc = PATH_INC_DEFAULT; // In degrees
 Coriolis.prototype.step = function(h) {
@@ -488,37 +489,28 @@ Coriolis.prototype.step = function(h) {
   let newPathInc = pathInc;
 
   if (efficientPath && this.rotPath.length > maxPathSegments) {
-    console.log('updating path - new pathInc =', pathInc*2);
-    let newrp = [];
-    // let newip = [];
-    for (let i = 0; i < this.rotPath.length; i += 2) {
-      newrp.push(this.rotPath[i]);
-      // if (typeof this.inertialPath[i] == 'undefined') {
-      //   console.log('xxxx undefined', i, this.inertialPath.length);
-      // }
-      // newip.push(this.inertialPath[i]);
-    }
-    this.rotPath = newrp;
-    // this.inertialPath = newip;
-    // pathInc *= 2;
-    newPathInc = pathInc * 2;
+    this.rotPath.shift();
+    // console.log('updating path - new pathInc =', pathInc*2);
+    // let newrp = [];
+    // for (let i = 0; i < this.rotPath.length; i += 2) {
+    //   newrp.push(this.rotPath[i]);
+    // }
+    // this.rotPath = newrp;
+    // newPathInc = pathInc * 2;
   }
 
   if (efficientPath && this.inertialPath.length > maxPathSegments) {
-    console.log('updating path - new pathInc =', pathInc*2);
-    // let newrp = [];
-    let newip = [];
-    for (let i = 0; i < this.inertialPath.length; i += 2) {
-      // newrp.push(this.rotPath[i]);
-      if (typeof this.inertialPath[i] == 'undefined') {
-        console.log('xxxx undefined', i, this.inertialPath.length);
-      }
-      newip.push(this.inertialPath[i]);
-    }
-    // this.rotPath = newrp;
-    this.inertialPath = newip;
-    // pathInc *= 2;
-    newPathInc = pathInc * 2;
+    this.inertialPath.shift();
+    // console.log('updating path - new pathInc =', pathInc*2);
+    // let newip = [];
+    // for (let i = 0; i < this.inertialPath.length; i += 2) {
+    //   if (typeof this.inertialPath[i] == 'undefined') {
+    //     console.log('xxxx undefined', i, this.inertialPath.length);
+    //   }
+    //   newip.push(this.inertialPath[i]);
+    // }
+    // this.inertialPath = newip;
+    // newPathInc = pathInc * 2;
   }
 
   pathInc = newPathInc;
