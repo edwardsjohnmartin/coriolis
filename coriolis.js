@@ -155,8 +155,16 @@ function angSpeedRatio2DegPerHr(ratio) {
   return degrees(ratio * OmegaR) * 3600;
 }
 
+function angSpeedRatio2RadPerSec(ratio) {
+  return ratio * OmegaR * 1e5;
+}
+
 function degPerHr2AngSpeedRatio(degPerHr) {
   return radians(degPerHr / 3600) / OmegaR;
+}
+
+function radPerSec2AngSpeedRatio(radPerSec) {
+  return (radPerSec/1e5) / OmegaR;
 }
 
 //------------------------------------------------------------

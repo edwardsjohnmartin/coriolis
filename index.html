@@ -8,9 +8,11 @@
   <link rel="stylesheet" href="style.css?1"/>
 </head>
 <body>
+  <table><tr><td class="info center">
   <div id="logo" class="logo">
     &nbsp;<i>CorioVis</i>&nbsp;
   </div>
+  </td><td class="vis"></td></tr></table>
 <table>
   <tr>
     <td class="info">
@@ -28,31 +30,25 @@
           <tr>
             <td class="right">Eccentricity:</td>
             <td>
-              &nbsp;<input id="eccentricity-value" type="number" step="0.1" value="0.08182"/>
+              &nbsp;<input id="eccentricity-value" type="text" size=7 value="0.08182"/>
               <button id="reset-eccentricity">Reference</button>
               <button id="reset-eccentricity-sphere">Spherical</button>
             </td>
           </tr>
-          <!--tr>
-            <td></td>
-            <td>
-              <input id="eccentricity-slider" style="visibility:hidden" type="range" min="0" max="0.99" step="0.00001" value="0.08182"/>
-          </td>
-          </tr-->
           <!-- Angular speed ratio -->
           <tr>
             <!--td>Angular speed (&Omega;/&Omega;<sub>r</sub>):</td-->
             <td class="right">Angular speed:</td>
             <td>
-              &nbsp;<input type="number" id="angular-speed-ratio"
-                     onchange="angularSpeedRatioChanged()"> (deg/hr)
+              &nbsp;<input type="text" id="angular-speed-ratio" size=7
+                     onchange="angularSpeedRatioChanged()"> x10<sup>&minus;5</sup> rad/s
               <button onclick="setToStableAngularSpeed()">Stable</button>
           </td>
           <tr>
             <td class="right">Initial position:</td><td>&nbsp;<input type="text" id="lat0" size=7 onchange="lat0Changed()" value="0"></input>&nbsp;&deg;,&nbsp;&nbsp;<input type="text" id="lon0" size=7 onchange="lon0Changed()" value="-75"></input>&nbsp;&deg;&nbsp;(lat, lon)</td>
           </tr>
           <tr>
-            <td class="right">Initial velocity:</td><td>&nbsp;<input type="text" id="north0" size=7 onchange="north0Changed()" value="1.12"></input>&nbsp;(m/s),&nbsp;&nbsp;<input type="text" id="east0" size=7 onchange="east0Changed()" value="0"></input>&nbsp;(m/s)&nbsp;(north, east)</td>
+            <td class="right">Initial velocity:</td><td>&nbsp;<input type="text" id="north0" size=7 onchange="north0Changed()" value="1.12"></input>&nbsp;m/s,&nbsp;&nbsp;<input type="text" id="east0" size=7 onchange="east0Changed()" value="0"></input>&nbsp;m/s&nbsp;(north, east)</td>
           </tr>
           <tr>
             <td class="right">Simulation speed (&uarr;&darr;):</td>
@@ -92,11 +88,11 @@
           </tr>
           <tr>
             <td class="right">theta_dot:</td>
-            <td><b id="theta_dot"></b> deg/hr</td>
+            <td><b id="theta_dot"></b> x10<sup>&minus;5</sup> rad/sec</td>
           </tr>
           <tr>
             <td class="right">phi_dot:</td>
-            <td><b id="phi_dot"></b> deg/hr</td>
+            <td><b id="phi_dot"></b> x10<sup>&minus;5</sup> rad/sec</td>
           </tr>
           <tr>
             <td class="right">Relative speed:</td>
@@ -163,6 +159,14 @@
            onfocus="removeFocus()"
            title="play/pause animation (spacebar)">
           <font size="6"><i class="fas fa-play"></i></font></button>
+        <button
+           type="button"
+           class="cbutton"
+           id="reset"
+           onclick="resetSim()"
+           onfocus="removeFocus()"
+           title="reset (r)">
+          <font size="6"><i class="fas fa-redo"></i></font></button>
       </div>
       <p id="demoInstructions">Instructions</p>
     </td>

@@ -40,18 +40,9 @@ const stableAngularSpeed = (e) => {
   if (e == 0) {
     return 0;
   }
-  // const determinant = 15.0 / 4.0 * q(e) * (1.0 - 3.0 * F(e) / 5.0)
 
-  const G = 6.674e-11; // Newton's universal gravitational constant G (N m^2/kg^2)
-  // const M = 5.972e24; // earth mass in kg
-  // const r0 = 6371001; //! spherical earth radius (m)
-  // const g0 = G*M/sq(r0); // acceleration scale (m/s^2)
-  // const v0 = Math.sqrt(r0*g0); // velocity scale (m/s)
-  // const w0 = Math.sqrt(g0/r0); // angular speed scale (rad/s)
-  // // const w0 = 1.242 * 1e-3
-  // const result = w0 * Math.sqrt(determinant)
-  // // console.log('stableAngularSpeed', { result })
-  // return result
+  // Newton's universal gravitational constant G (N m^2/kg^2)
+  const G = 6.674e-11; 
 
   const num = (Math.sqrt(1-e*e)/(e*e*e)) * (3-2*e*e) * Math.asin(e) -
     (3/(e*e))*(1-e*e);

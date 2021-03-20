@@ -28,11 +28,17 @@ var debug = {
   // set phi_dot(v) {
   //   document.getElementById('phi_dot').innerHTML = (v*FACTOR*3600).toFixed(DEBUG_DECIMALS);
   // },
+  // set theta_dot(v) {
+  //   document.getElementById('theta_dot').innerHTML = (degrees(v)*FACTOR*3600).toFixed(DEBUG_DECIMALS);
+  // },
+  // set phi_dot(v) {
+  //   document.getElementById('phi_dot').innerHTML = (degrees(v)*FACTOR*3600).toFixed(DEBUG_DECIMALS);
+  // },
   set theta_dot(v) {
-    document.getElementById('theta_dot').innerHTML = (degrees(v)*FACTOR*3600).toFixed(DEBUG_DECIMALS);
+    document.getElementById('theta_dot').innerHTML = (v*1e5).toFixed(DEBUG_DECIMALS);
   },
   set phi_dot(v) {
-    document.getElementById('phi_dot').innerHTML = (degrees(v)*FACTOR*3600).toFixed(DEBUG_DECIMALS);
+    document.getElementById('phi_dot').innerHTML = (v*1e5).toFixed(DEBUG_DECIMALS);
   },
   set L0(v) {
     document.getElementById('L0').innerHTML = (v*FACTOR).toFixed(DEBUG_DECIMALS);

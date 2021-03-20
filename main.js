@@ -125,7 +125,7 @@ if (localStorage.eccentricity) {
   document.getElementById('eccentricity-value').value = Number(localStorage.eccentricity);
 }
 // document.getElementById('angular-speed-ratio').value = 1;
-document.getElementById('angular-speed-ratio').value = angSpeedRatio2DegPerHr(1).toFixed(4);
+document.getElementById('angular-speed-ratio').value = angSpeedRatio2RadPerSec(1).toFixed(4);
 
 const angularSpeedRatioInput = document.getElementById('angular-speed-ratio')
 const eccentricityInput = document.getElementById('eccentricity-value')
@@ -275,7 +275,7 @@ function timeChanged() {
   }
   time = newTime;
   document.getElementById('rotation').value =
-    degrees(globalEarth.earthRotation(time)).toFixed(2);
+    degrees(globalEarth.earthRotation(time)).toFixed(4);
   updateBackgroundStars();
   updateAndRender();
 }
@@ -304,13 +304,13 @@ function east0Changed() {
 // }
 
 function angularSpeedRatioChanged() {
-  localStorage.angularSpeedRatio = degPerHr2AngSpeedRatio(+angularSpeedRatioInput.value).toFixed(4);
+  localStorage.angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value).toFixed(4);
   rebuildGlobalEarth();//forceStablePeriod)
   resetSim();
 }
 
 function setToStableAngularSpeed() {
-  angularSpeedRatioInput.value = angSpeedRatio2DegPerHr((globalEarth.OmegaS / OmegaR)).toFixed(4);
+  angularSpeedRatioInput.value = angSpeedRatio2RadPerSec((globalEarth.OmegaS / OmegaR)).toFixed(4);
   angularSpeedRatioChanged();
 }
 
@@ -319,7 +319,7 @@ function rotationChanged() {
 }
 
 function rebuildGlobalEarth() {
-  const angularSpeedRatio = degPerHr2AngSpeedRatio(+angularSpeedRatioInput.value).toFixed(4);
+  const angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value).toFixed(4);
   // globalEarth = new Earth(+eccentricitySlider.value, angularSpeedRatio);
   globalEarth = new Earth(+eccentricityInput.value, angularSpeedRatio);
   // const period = !forceStablePeriod && !rotateAtStableSpeed.checked ? +timePeriodInput.value : undefined
@@ -418,7 +418,7 @@ function init() {
   // rk4test4();
 
   document.getElementById('rotation').innerHTML =
-    degrees(globalEarth.earthRotation(time)).toFixed(2);
+    degrees(globalEarth.earthRotation(time)).toFixed(4);
   resetSim(false);
 
 
@@ -1177,8 +1177,10 @@ function demoChanged() {
 
   document.getElementById('eccentricity-value').value = demo.ecc;
   // document.getElementById('angular-speed-ratio').value = demo.ang;
+  // document.getElementById('angular-speed-ratio').value = 
+  //   angSpeedRatio2DegPerHr(demo.ang).toFixed(4);
   document.getElementById('angular-speed-ratio').value = 
-    angSpeedRatio2DegPerHr(demo.ang).toFixed(4);
+    angSpeedRatio2RadPerSec(demo.ang).toFixed(4);
 
   rebuildGlobalEarth();
   // globalEarth = new Earth(false);
@@ -1417,3 +1419,6 @@ function toggleAnimate() {
       "<font size=\"6\"><i class=\"fa fa-play\"></i>";
   }
 }
+
+
+// console.log('****** ', stableAngularSpeed(0.08182));
