@@ -305,13 +305,15 @@ function east0Changed() {
 // }
 
 function angularSpeedRatioChanged() {
-  localStorage.angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value).toFixed(4);
+  // localStorage.angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value).toFixed(4);
+  localStorage.angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value).toPrecision(7);
   rebuildGlobalEarth();//forceStablePeriod)
   resetSim();
 }
 
 function setToStableAngularSpeed() {
-  angularSpeedRatioInput.value = angSpeedRatio2RadPerSec((globalEarth.OmegaS / OmegaR)).toFixed(4);
+  // angularSpeedRatioInput.value = angSpeedRatio2RadPerSec((globalEarth.OmegaS / OmegaR)).toFixed(5);
+  angularSpeedRatioInput.value = angSpeedRatio2RadPerSec((globalEarth.OmegaS / OmegaR)).toPrecision(7);
   angularSpeedRatioChanged();
 }
 
@@ -320,7 +322,8 @@ function rotationChanged() {
 }
 
 function rebuildGlobalEarth() {
-  const angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value).toFixed(4);
+  // const angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value).toFixed(4);
+  const angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value).toPrecision(7);
   // globalEarth = new Earth(+eccentricitySlider.value, angularSpeedRatio);
   globalEarth = new Earth(+eccentricityInput.value, angularSpeedRatio);
   // const period = !forceStablePeriod && !rotateAtStableSpeed.checked ? +timePeriodInput.value : undefined
@@ -485,14 +488,14 @@ function keydown(event) {
     localStorage.setItem("animInc", animInc);
     // document.getElementById('speed').value = animInc.toFixed(1);
     document.getElementById('speed').innerHTML = animInc.toFixed(1);
-    changed = true;
+    // changed = true;
   } else if (x == 38 || key == "k" || key == "K") {
     // Up arrow
     animInc *= 1.1;
     localStorage.setItem("animInc", animInc);
     // document.getElementById('speed').value = animInc.toFixed(1);
     document.getElementById('speed').innerHTML = animInc.toFixed(1);
-    changed = true;
+    // changed = true;
   } else if (x == 39) {
     // Right arrow
     // earthRotation += animInc*2;
