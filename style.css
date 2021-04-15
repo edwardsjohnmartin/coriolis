@@ -75,6 +75,7 @@ td.vis {
     overflow: hidden;
     border-style: solid;
     border-width: 1px;
+    background-color: #ffffff;
 }
 
 #frame {

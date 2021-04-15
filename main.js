@@ -1,6 +1,16 @@
 var View = function() {
 }
 
+let stars = true;
+let expandAnim = false;
+let puck = true;
+if (expandAnim) {
+  stars = false;
+  puck = false;
+}
+let expandRot = 0;
+let expandReverse = 0;
+
 let demos = [];
 
 let camera;
@@ -176,7 +186,7 @@ function getEccentricityScale(eccentricity) {
 }
 
 const resizeGlobe = (eccentricity) => {
-  document.getElementById('eccentricity-value').value = eccentricity
+  // document.getElementById('eccentricity-value').value = eccentricity
 
   const [scaleA, scaleB] = getEccentricityScale(eccentricity);
 
@@ -236,6 +246,9 @@ function rotDelta() {
     delta = -sim.p(time).lon - globalEarth.earthRotation(time) -
       globalEarth.earthRotation(-geoStationaryTime) - fixedViewRotation0;
   }
+  if (expandAnim) {
+    delta = expandRot;
+  }
   return delta;
 }
 
@@ -246,18 +259,23 @@ function viewRotationEarthMap() {
 }
 
 function viewRotationEarth() {
+  let expandOffset = 0;
   const d = rotDelta();
-  return globalEarth.earthRotation(time) + d;
+  return globalEarth.earthRotation(time) + d + expandOffset;
 }
 
 const skyRotationFactor = 0.7;
 function viewRotationSky() {
-  const d = rotDelta();
+  let d = rotDelta();
+  if (expandAnim) {
+    d = 0;
+  }
   return -globalEarth.earthRotation(-geoStationaryTime)*skyRotationFactor - d;
 }
 
 function viewRotationScene() {
-  return globalEarth.earthRotation(-geoStationaryTime) + fixedViewRotation0;
+  let expandOffset = 0;
+  return globalEarth.earthRotation(-geoStationaryTime) + fixedViewRotation0 + expandOffset;
 }
 
 runTests();
@@ -431,7 +449,9 @@ function init() {
   scene.add(fixedPathGroup);
 
   updateBackgroundStars();
-  scene.add(starGroup);
+  if (stars) {
+    scene.add(starGroup);
+  }
 
   window.addEventListener('resize', onWindowResize, false);
   controls.addEventListener('change', render);
@@ -454,7 +474,7 @@ function resetSim(dorender=true, launchNorth=null, launchEast=null, newView=true
   oldTime = -1;
   geoStationaryTime = 0;
 
-  console.log('newView',newView);
+  // console.log('newView',newView);
   if (newView) {
     view = view0;
     if (localStorage.view) {
@@ -462,7 +482,7 @@ function resetSim(dorender=true, launchNorth=null, launchEast=null, newView=true
       document.getElementById('frame').value = Number(localStorage.view);
     }
   }
-  console.log(view, ROTATIONAL_VIEW);
+  // console.log(view, ROTATIONAL_VIEW);
 
   sim = new Coriolis(
       // radians(launchLatitude), radians(launchLongitude), launchV, globalEarth, +eccentricitySlider.value);
@@ -1071,21 +1091,12 @@ function updateAndRender() {
 //----------------------------------------
 // animate
 //----------------------------------------
-// var prevTime = null;
+let expandAnimFac = 1.01;
+let expandAnimInc = 0.001;
 const times = [];
 let fps;
 function tick() {
   if (!animation) return;
-  // if (time > T_/2) {
-  //   animation = false;
-  //   return;
-  // }
-
-  // var time = performance.now() * (animSpeed/1000);
-  // if (prevTime) {
-  //   earthRotation += (time-prevTime)*2;
-  // }
-  // prevTime = time;
 
   // update fps
   const now = performance.now();
@@ -1096,7 +1107,48 @@ function tick() {
   fps = times.length;
   debug.fps = fps;
 
-  incTime(animInc);
+  if (!puck) {
+    rotatingPathVisible = false;
+    inertialPathVisible = false;
+    puckVisible = false;
+    northVisible = false;
+    eastVisible = false;
+    vVisible = false;
+  }
+
+  if (expandAnim) {    
+    let e = +eccentricityInput.value;
+    if (e > 0.8127 && expandReverse > -1) {
+        if (expandReverse < 100) {
+          expandReverse++;
+        } else {
+          expandReverse = -1;
+          expandAnimInc = -expandAnimInc;
+          expandAnimFac = 1/expandAnimFac;
+        }
+    } else {
+      if (e == 0) {
+        e += 0.01;
+      } else if (e < 0.01) {
+        e = 0;
+        expandAnim = false;
+      } else {
+        e += expandAnimInc;
+        // e *= expandAnimFac;
+      }
+    }
+    eccentricityInput.value = e.toFixed(3);
+    rebuildGlobalEarth()
+    angularSpeedRatioInput.value = angSpeedRatio2RadPerSec((globalEarth.OmegaS / OmegaR)).toFixed(1);
+    time = animInc;
+    // expandRot = viewRotationEarth();
+
+    expandRot += globalEarth.earthRotation(animInc);
+
+    // console.log(expandRot);
+  } else {
+    incTime(animInc);
+  }
 
   updateAndRender();
 
@@ -1155,7 +1207,7 @@ var Demo = function(msg, frame, lat, lon, north, east, simSpeed, ecc, ang) {
 //----------------------------------------
 function demoChanged() {
   let demoName = document.getElementById('demos').value;
-  console.log('demo: ', demoName);
+  // console.log('demo: ', demoName);
   instructions = document.getElementById('demoInstructions');
 
   animate = true;
@@ -1171,7 +1223,7 @@ function demoChanged() {
   // rotatingPathVisible = false;
   // inertialPathVisible = false;
 
-  console.log(demo);
+  // console.log(demo);
 
   instructions.innerHTML = demo.msg;
   if (demo.frame == "rotating") {
@@ -1213,6 +1265,14 @@ function demoChanged() {
   //   // tick();
   //   toggleAnimate();
   // }
+  localStorage.lat0 = +document.getElementById('lat0').value;
+  localStorage.lon0 = +document.getElementById('lon0').value;
+  localStorage.north0 = +document.getElementById('north0').value;
+  localStorage.east0 = +document.getElementById('east0').value;
+  localStorage.angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value).toPrecision(7);
+  localStorage.eccentricity = +eccentricityInput.value;
+  localStorage.setItem("animInc", animInc);
+  localStorage.view = view;
 }
 
 //----------------------------------------
@@ -1300,13 +1360,24 @@ const rotateAtStableSpeed = document.getElementById('rotate-at-stable-speed')
 //   resetSim()
 // }
 
-document.getElementById('eccentricity-value').oninput = function(e) {
-  // eccentricitySlider.value = e.target.value
-  localStorage.eccentricity = +eccentricityInput.value;
-  console.log('*-**', localStorage.eccentricity);
+function isNumeric(str) {
+  // we only process strings!
+  if (typeof str != "string") return false; 
 
-  rebuildGlobalEarth()
-  resetSim()
+  // use type coercion to parse the _entirety_ of the string
+  // (`parseFloat` alone does not do this)...
+  // ...and ensure strings of whitespace fail
+  return !isNaN(str) && 
+         !isNaN(parseFloat(str))
+}
+
+document.getElementById('eccentricity-value').oninput = function(e) {
+  if (isNumeric(eccentricityInput.value)) {
+    // console.log("*******", +eccentricityInput.value);
+    localStorage.eccentricity = +eccentricityInput.value;
+    rebuildGlobalEarth()
+    resetSim()
+  }
 }
 
 // rotateAtStableSpeed.onchange = function(e) {
@@ -1399,7 +1470,7 @@ function loadDemos() {
     success: function(data) 
     {
       $('element').append(data);
-      console.log(data);
+      // console.log(data);
       updateDemos(data);
       
     //   checkDemoCookie(demo);

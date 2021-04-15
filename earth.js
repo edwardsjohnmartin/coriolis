@@ -110,13 +110,16 @@ var Earth = function(eccentricity = 0.08182, angularSpeedRatio = null) {
   //   this.Omega = 0;
   // }
 
-  console.log('****************************************');
-  console.log('Earth parameters');
-  console.log('****************************************');
-  console.log("Omega (angular speed)", this.Omega);
-  console.log('e (eccentricity)', this.e);
-  console.log('OmegaS (stable angular speed)', this.OmegaS);
-  console.log('a (equatorial radius)', this.a);
+  let debugOutput = false;
+  if (debugOutput) {
+    console.log('****************************************');
+    console.log('Earth parameters');
+    console.log('****************************************');
+    console.log("Omega (angular speed)", this.Omega);
+    console.log('e (eccentricity)', this.e);
+    console.log('OmegaS (stable angular speed)', this.OmegaS);
+    console.log('a (equatorial radius)', this.a);
+  }
 }
 
 // Earth's meridional radius of curvature

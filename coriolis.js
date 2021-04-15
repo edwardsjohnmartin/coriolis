@@ -82,21 +82,24 @@ var Coriolis = function(lat0, lon0, v0, earth) {
   this.lastRotPoint = null;
   this.lastInertialPoint = null;
 
-  console.log('****************************************');
-  console.log('Coriolis parameters');
-  console.log('****************************************');
-  console.log('R', this.earth.R(this.theta0));
-  console.log('v0', v0);
-  // console.log('vtheta0', this.vtheta0);
-  console.log('phi0', this.phi0);
-  console.log('theta0', this.theta0);
-  console.log('phi_dot0', this.phi_dot0);
-  console.log('theta_dot0', this.theta_dot0);
-  // console.log('Omega', this.earth.Omega);
-  console.log('L0', this.L0);
-  // console.log('T0', this.T);
-  // console.log('eccentricity', this.earth.e)
-  console.log('rho', rho)
+  let debugOutput = false;
+  if (debugOutput) {
+    console.log('****************************************');
+    console.log('Coriolis parameters');
+    console.log('****************************************');
+    console.log('R', this.earth.R(this.theta0));
+    console.log('v0', v0);
+    // console.log('vtheta0', this.vtheta0);
+    console.log('phi0', this.phi0);
+    console.log('theta0', this.theta0);
+    console.log('phi_dot0', this.phi_dot0);
+    console.log('theta_dot0', this.theta_dot0);
+    // console.log('Omega', this.earth.Omega);
+    console.log('L0', this.L0);
+    // console.log('T0', this.T);
+    // console.log('eccentricity', this.earth.e)
+    console.log('rho', rho)
+  }
 }
 
 const sqrt = (v) => {
