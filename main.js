@@ -438,6 +438,7 @@ function init() {
   // rk4test2();
   // rk4test3();
   // rk4test4();
+  rk4test5();
 
   document.getElementById('rotation').innerHTML =
     degrees(globalEarth.earthRotation(time)).toFixed(4);

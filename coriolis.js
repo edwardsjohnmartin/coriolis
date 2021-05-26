@@ -412,6 +412,50 @@ function rk4test4(h0 = 1000) {
   console.log('*******************************************');
 }
 
+// series4.txt
+// e = 0  eccentricity
+// OmegaRat = 0  ratio of angular speed to reference angular speed
+// phi = 45 initial longitude (degrees)
+// theta = 30 initial latitude (degrees)
+// vphi = 500 initial eastward velocity (m/s)
+// vtheta = 0 initial northward velocity (m/s)
+// m = 70 number of integration steps
+// h = 1000 regular time step (s)
+function rk4test5(h0 = 1000) {
+  let earth = new Earth(0.08182, 1);
+  // V is in m/s, so N is in m/s
+  // const v_theta = 0.1 * earth.a * earth.Omega;
+  // const E = -0.8 * earth.a * earth.Omega;// + earth._V;
+
+  // const V = new Velocity(v_theta, E, 0);
+  const V = new Velocity(0, -404);
+  c = new Coriolis(radians(30), radians(0), V, earth);
+  console.log('*******************************************');
+  console.log('       t (s)    phi    theta      K      K/K0   K_/K0_     h      ext');
+
+  t = 0;
+  if (debug) c.printValues(t, h0);
+  for (let i = 0; i < 200; i++) {
+    // Modify h0 to fix pole bug
+    // h0 = abs(phidot_e/phidot) * h0
+    // phidot_e = omegaR*L-omega
+
+    // console.log(earth);
+    // console.log(OmegaR, c.earth.Omega);
+    let phidot_e = OmegaR * c.L0 - c.earth.Omega;
+    let h0_ = h0;
+    // if (Math.abs(c.phi_dot()) > Math.abs(phidot_e)) {
+    //   h0_ = Math.abs(phidot_e / c.phi_dot()) * h0_;
+    // }
+    // console.log(phidot_e / c.phi_dot());
+    // console.log(h0);
+
+    t = stepRK4(c, h0, t, c.phi_dot(), phidot_e, true);
+  }
+  console.log('completed test');
+  console.log('*******************************************');
+}
+
 Coriolis.prototype.printValues = function(t, h) {
   // Succeeded, so print out values
   const phi = degrees(this._phi).toFixed(5).padStart(6, ' ');
@@ -430,15 +474,20 @@ Coriolis.prototype.getState = function() {
 // stepRK4
 // If we tread into illegal territory (theta exceeds/falls below theta_max/theta_min)
 // then cut the step in half and go as far as you can. Then cut the step in half again...
-function stepRK4(c, h0, t, debug=false) {
+function stepRK4(c, h0, t, phi_dot, phi_dot_e, debug=false) {
   try {
-    const p = rk4(h0, c.getState(), c._dot.bind(c));
+    let h0_ = h0;
+    if (Math.abs(phi_dot) > Math.abs(phi_dot_e)) {
+      h0_ = Math.abs(phi_dot_e / phi_dot) * h0_;
+    }
+
+    const p = rk4(h0_, c.getState(), c._dot.bind(c));
 
     c._theta = p.theta;
     c._phi = p.phi;
     c.T = p.T;
-    t += h0;
-    if (debug) c.printValues(t, h0);
+    t += h0_;
+    if (debug) c.printValues(t, h0_);
   } catch(e) {
     if (e != 'negative radicand') throw e;
     // We went into illegal territory, so do the modified binary search:
@@ -469,7 +518,9 @@ function stepRK4(c, h0, t, debug=false) {
 const PATH_INC_DEFAULT = 1;
 let pathInc = PATH_INC_DEFAULT; // In degrees
 Coriolis.prototype.step = function(h) {
-  stepRK4(this, h, 0);
+  let phi_dot_e = OmegaR * this.L0 - this.earth.Omega;
+  // let h0_ = h;
+  stepRK4(this, h, 0, this.phi_dot(), phi_dot_e);
 
   const newRotPoint = new Position(this._theta, this._phi);
   if (this.lastRotPoint == null ||
