@@ -84,10 +84,10 @@ let oldTime = -1;
 // Number of seconds we've spent in geostationary orbit
 let geoStationaryTime = 0;
 
-const ROTATIONAL_VIEW = 0;
-const FIXED_VIEW = 1;
-const DEBUG_VIEW = 2;
-const view0 = ROTATIONAL_VIEW;
+const ROTATING_FRAME = 0;
+const INERTIAL_FRAME = 1;
+const DEBUG_FRAME = 2;
+const view0 = ROTATING_FRAME;
 let view = view0;
 
 let globalEarth = null;
@@ -104,11 +104,11 @@ if (localStorage.starStreakScale) {
   starStreakScale = +localStorage.starStreakScale;
 }
 
-if (view == FIXED_VIEW) {
+if (view == INERTIAL_FRAME) {
   document.getElementById('frame').innerHTML = 'Inertial'
-} else if (view == ROTATIONAL_VIEW) {
+} else if (view == ROTATING_FRAME) {
   document.getElementById('frame').innerHTML = 'Rotating'
-} else if (view == DEBUG_VIEW) {
+} else if (view == DEBUG_FRAME) {
   document.getElementById('frame').innerHTML = 'debug'
 }
 
@@ -231,7 +231,7 @@ function incTime(inc) {
   document.getElementById('rotation').innerHTML =
     degrees(globalEarth.earthRotation(time)).toFixed(4);
 
-  if (view == ROTATIONAL_VIEW) {
+  if (view == ROTATING_FRAME) {
     geoStationaryTime += inc;
   }
 
@@ -242,7 +242,7 @@ function incTime(inc) {
 
 function rotDelta() {
   let delta = 0;
-  if (view == DEBUG_VIEW) {
+  if (view == DEBUG_FRAME) {
     delta = -sim.p(time).lon - globalEarth.earthRotation(time) -
       globalEarth.earthRotation(-geoStationaryTime) - fixedViewRotation0;
   }
@@ -289,7 +289,7 @@ tick();
 function timeChanged() {
   const newTime = Number(document.getElementById("time").value)*60*60;
   const diff = newTime - time;
-  if (view == ROTATIONAL_VIEW) {
+  if (view == ROTATING_FRAME) {
     geoStationaryTime += diff;
   }
   time = newTime;
@@ -385,7 +385,7 @@ function init() {
 
   camera.position.z = zPosition;
 
-  // if (view == ROTATIONAL_VIEW) {
+  // if (view == ROTATING_FRAME) {
   //   const theta = radians(rotationalViewLon);
   //   camera.position.x = 10 * Math.sin(theta);
   //   camera.position.z = 10 * Math.cos(theta);
@@ -438,7 +438,7 @@ function init() {
   // rk4test2();
   // rk4test3();
   // rk4test4();
-  rk4test5();
+  // rk4test5();
 
   document.getElementById('rotation').innerHTML =
     degrees(globalEarth.earthRotation(time)).toFixed(4);
@@ -483,7 +483,7 @@ function resetSim(dorender=true, launchNorth=null, launchEast=null, newView=true
       document.getElementById('frame').value = Number(localStorage.view);
     }
   }
-  // console.log(view, ROTATIONAL_VIEW);
+  // console.log(view, ROTATING_FRAME);
 
   sim = new Coriolis(
       // radians(launchLatitude), radians(launchLongitude), launchV, globalEarth, +eccentricitySlider.value);
@@ -532,17 +532,17 @@ function keydown(event) {
   //   changed = true;
   } else if (key == 'f') {
     console.log('view', view);
-    if (view == FIXED_VIEW) {
-      view = ROTATIONAL_VIEW;
+    if (view == INERTIAL_FRAME) {
+      view = ROTATING_FRAME;
       document.getElementById('frame').innerHTML = 'Rotating'
-    } else if (view == ROTATIONAL_VIEW) {
-    //   view = DEBUG_VIEW;
+    } else if (view == ROTATING_FRAME) {
+    //   view = DEBUG_FRAME;
     //   document.getElementById('frame').innerHTML = 'debug'
-    // } else if (view == DEBUG_VIEW) {
-      view = FIXED_VIEW;
+    // } else if (view == DEBUG_FRAME) {
+      view = INERTIAL_FRAME;
       document.getElementById('frame').innerHTML = 'Inertial'
     } else {
-      view = ROTATIONAL_VIEW;
+      view = ROTATING_FRAME;
       document.getElementById('frame').innerHTML = 'Rotating'
     }
     localStorage.view = view;
@@ -627,8 +627,8 @@ function keydown(event) {
 function updatePathVisibility() {
   if (visiblePath == 0) {
     // matches frame
-    rotatingPathVisible = (view == ROTATIONAL_VIEW);
-    inertialPathVisible = (view == FIXED_VIEW);
+    rotatingPathVisible = (view == ROTATING_FRAME);
+    inertialPathVisible = (view == INERTIAL_FRAME);
   } else {
     rotatingPathVisible = (visiblePath == 1 || visiblePath == 2);
     inertialPathVisible = (visiblePath == 1 || visiblePath == 3);
@@ -748,7 +748,7 @@ function updateBackgroundStars() {
     path.simType = 'star';
     starGroup.add(path);
 
-    // if (starStreaks && view == ROTATIONAL_VIEW && k > -0.00001) {
+    // if (starStreaks && view == ROTATING_FRAME && k > -0.00001) {
     //   // const start = theta - k - .02;
     //   const start = theta - .08;
     //   const end = theta;
@@ -768,7 +768,7 @@ function updateBackgroundStars() {
     //     starGroup.add(path);
     //   }
     // }
-    if (starStreaks && view == ROTATIONAL_VIEW) {
+    if (starStreaks && view == ROTATING_FRAME) {
       const length = 0.16 * starStreakScale;
       const start = theta - length;
       const end = theta;
@@ -984,7 +984,7 @@ function updateEarthGroup() {
     }
 
     let v;
-    if (view == ROTATIONAL_VIEW) {
+    if (view == ROTATING_FRAME) {
       v = sim.vRotating(time);
     } else {
       v = sim.vInertial(time);
@@ -1038,7 +1038,7 @@ function updateEarthGroup() {
     }
     // }
     // puck's path
-    // if (view == ROTATIONAL_VIEW) {
+    // if (view == ROTATING_FRAME) {
     // if (visiblePath == 0 || visiblePath == 1) {
     if (rotatingPathVisible) {
       // let path = getPuckPathRotating(t, rotatingPathColor);
@@ -1162,7 +1162,7 @@ function tick() {
 
   actualTimeInc = updateAndRender();
   if (!timeIncremented) {
-    console.log(animInc, actualTimeInc);
+    // console.log(animInc, actualTimeInc);
     // if (actualTimeInc > 0) {
     //   incTime(actualTimeInc);
     // } else {
@@ -1246,10 +1246,10 @@ function demoChanged() {
 
   instructions.innerHTML = demo.msg;
   if (demo.frame == "rotating") {
-    view = ROTATIONAL_VIEW;
+    view = ROTATING_FRAME;
     document.getElementById('frame').innerHTML = 'Rotating'
   } else {
-    view = FIXED_VIEW;
+    view = INERTIAL_FRAME;
     document.getElementById('frame').innerHTML = 'Inertial'
   }
   updatePathVisibility();
