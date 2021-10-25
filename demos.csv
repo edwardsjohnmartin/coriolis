@@ -6,3 +6,7 @@
 5,non-rotating spheroid; northward initial velocity,inertial,30,0,250,0,48.7,0.6,0
 6,stably rotating spheroid; northward relative initial velocity,rotating,30,0,250,0,48.7,0.6,54.73731
 7,super-stably rotating spheroid; northward relative initial velocity,rotating,30,0,250,0,48.7,0.6,109.4746
+8,earth; nonpolar circles (region A),rotating,30,0,0,-200,203.5,0.08182,7.292423
+9,earth; nonpolar waves (region B),rotating,0,0,100,-173.2051,203.5,0.08182,7.292423
+10,earth; circumpolar circles (region C),rotating,30,0,0,-500,203.5,0.08182,7.292423
+11,earth; circumpolar waves (region D),rotating,0,0,300,-519.615,203.5,0.08182,7.292423

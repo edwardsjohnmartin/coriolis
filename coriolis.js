@@ -316,7 +316,7 @@ function rk4test1(h0 = 1000) {
   t = 0;
   if (debug) c.printValues(t, h0);
   for (let i = 0; i < 80; i++) {
-    t = stepRK4(c, h0, t, true);
+    t += stepRK4(c, h0, t, true);
   }
   console.log('completed test');
   console.log('*******************************************');
@@ -346,7 +346,7 @@ function rk4test2(h0 = 1000) {
   t = 0;
   if (debug) c.printValues(t, h0);
   for (let i = 0; i < 80; i++) {
-    t = stepRK4(c, h0, t, true);
+    t += stepRK4(c, h0, t, true);
   }
   console.log('completed test');
   console.log('*******************************************');
@@ -376,7 +376,7 @@ function rk4test3(h0 = 1000) {
   t = 0;
   if (debug) c.printValues(t, h0);
   for (let i = 0; i < 70; i++) {
-    t = stepRK4(c, h0, t, true);
+    t += stepRK4(c, h0, t, true);
   }
   console.log('completed test');
   console.log('*******************************************');
@@ -406,7 +406,7 @@ function rk4test4(h0 = 1000) {
   t = 0;
   if (debug) c.printValues(t, h0);
   for (let i = 0; i < 70; i++) {
-    t = stepRK4(c, h0, t, true);
+    t += stepRK4(c, h0, t, true);
   }
   console.log('completed test');
   console.log('*******************************************');
@@ -450,7 +450,7 @@ function rk4test5(h0 = 1000) {
     // console.log(phidot_e / c.phi_dot());
     // console.log(h0);
 
-    t = stepRK4(c, h0, t, c.phi_dot(), phidot_e, true);
+    t += stepRK4(c, h0, t, c.phi_dot(), phidot_e, true);
   }
   console.log('completed test');
   console.log('*******************************************');
@@ -475,6 +475,7 @@ Coriolis.prototype.getState = function() {
 // If we tread into illegal territory (theta exceeds/falls below theta_max/theta_min)
 // then cut the step in half and go as far as you can. Then cut the step in half again...
 function stepRK4(c, h0, t, phi_dot, phi_dot_e, debug=false) {
+  let actualTimeInc = 0;
   try {
     let h0_ = h0;
     if (Math.abs(phi_dot) > Math.abs(phi_dot_e)) {
@@ -487,6 +488,7 @@ function stepRK4(c, h0, t, phi_dot, phi_dot_e, debug=false) {
     c._phi = p.phi;
     c.T = p.T;
     t += h0_;
+    actualTimeInc = h0_;
     if (debug) c.printValues(t, h0_);
   } catch(e) {
     if (e != 'negative radicand') throw e;
@@ -502,6 +504,7 @@ function stepRK4(c, h0, t, phi_dot, phi_dot_e, debug=false) {
           c._phi = p.phi;
           c.T = p.T;
           t += h;
+          actualTimeInc += h;
           if (debug) c.printValues(t, h);
         }
       } catch(e) {
@@ -511,7 +514,8 @@ function stepRK4(c, h0, t, phi_dot, phi_dot_e, debug=false) {
     }
     c.dir = -c.dir;
   }
-  return t;
+  // return t;
+  return actualTimeInc;
 }
 
 // const PATH_INC_DEFAULT = 1;
@@ -520,7 +524,7 @@ let pathInc = PATH_INC_DEFAULT; // In degrees
 Coriolis.prototype.step = function(h) {
   let phi_dot_e = OmegaR * this.L0 - this.earth.Omega;
   // let h0_ = h;
-  stepRK4(this, h, 0, this.phi_dot(), phi_dot_e);
+  let actualTimeInc = stepRK4(this, h, 0, this.phi_dot(), phi_dot_e);
 
   const newRotPoint = new Position(this._theta, this._phi);
   if (this.lastRotPoint == null ||
@@ -568,6 +572,8 @@ Coriolis.prototype.step = function(h) {
   }
 
   pathInc = newPathInc;
+
+  return actualTimeInc;
 }
 
 //------------------------------------------------------------

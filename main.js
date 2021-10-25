@@ -960,6 +960,7 @@ function updateEarthGroup() {
   const fixedPathColor = new THREE.Color().setHSL(0.45, 1, colorL);
   const green = new THREE.Color(0, 1, 0);
 
+  let actualTimeInc = timeInc;
   {
     // puck
     let pradius = 0.02;
@@ -970,7 +971,7 @@ function updateEarthGroup() {
     let materialOccluded = new THREE.MeshBasicMaterial({color: vcolor});
     occludeMaterial(materialOccluded);
     let sphere = new THREE.Mesh(sgeometry, material);
-    sim.step(timeInc);
+    actualTimeInc = sim.step(timeInc);
     // const p = sim.p(t);
     const p = sim.p(time);
     sphere.translateOnAxis(p.cartesian, 1);
@@ -1051,6 +1052,8 @@ function updateEarthGroup() {
     }
   }
   earthGroup.add(arrowsGroup);
+
+  return actualTimeInc;
 }
 
 //----------------------------------------
@@ -1069,7 +1072,7 @@ function render() {
     plane.rotation.z = camera.rotation.z;
   }
 
-  updateEarthGroup();
+  let actualTimeInc = updateEarthGroup();
 
   earthGroup.rotation.y = viewRotationEarth();
   starGroup.rotation.y = viewRotationSky();
@@ -1082,11 +1085,14 @@ function render() {
 
   // resizeGlobe(+eccentricitySlider.value)
   resizeGlobe(+eccentricityInput.value)
+
+  return actualTimeInc;
 }
 
 function updateAndRender() {
   controls.update();
-  render();
+  let actualTimeInc = render();
+  return actualTimeInc;
 }
 
 //----------------------------------------
@@ -1098,6 +1104,8 @@ const times = [];
 let fps;
 function tick() {
   if (!animation) return;
+
+  let timeIncremented = false;
 
   // update fps
   const now = performance.now();
@@ -1142,16 +1150,26 @@ function tick() {
     rebuildGlobalEarth()
     angularSpeedRatioInput.value = angSpeedRatio2RadPerSec((globalEarth.OmegaS / OmegaR)).toFixed(1);
     time = animInc;
+    timeIncremented = true;
     // expandRot = viewRotationEarth();
 
     expandRot += globalEarth.earthRotation(animInc);
 
     // console.log(expandRot);
   } else {
-    incTime(animInc);
+    // incTime(animInc);
   }
 
-  updateAndRender();
+  actualTimeInc = updateAndRender();
+  if (!timeIncremented) {
+    console.log(animInc, actualTimeInc);
+    // if (actualTimeInc > 0) {
+    //   incTime(actualTimeInc);
+    // } else {
+      // Hack -- not sure why zero is returned
+      incTime(animInc);//actualTimeInc);
+    // }
+  }
 
   requestAnimationFrame(tick);
 }
@@ -1468,6 +1486,7 @@ function loadDemos() {
     async:true,
     url: 'demos.csv',
     dataType: 'text',
+    cache : false,
     success: function(data) 
     {
       $('element').append(data);
