@@ -139,7 +139,10 @@ if (localStorage.eccentricity) {
   document.getElementById('eccentricity-value').value = Number(localStorage.eccentricity);
 }
 // document.getElementById('angular-speed-ratio').value = 1;
-document.getElementById('angular-speed-ratio').value = angSpeedRatio2RadPerSec(1).toFixed(4);
+if (localStorage.angularSpeed) {
+  document.getElementById('angular-speed-ratio').value = Number(localStorage.angularSpeed);
+}
+// document.getElementById('angular-speed-ratio').value = angSpeedRatio2RadPerSec(1).toFixed(4);
 
 const angularSpeedRatioInput = document.getElementById('angular-speed-ratio')
 const eccentricityInput = document.getElementById('eccentricity-value')
@@ -330,8 +333,9 @@ function east0Changed() {
 // }
 
 function angularSpeedRatioChanged() {
-  // localStorage.angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value).toFixed(4);
-  localStorage.angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value).toPrecision(7);
+  // localStorage.angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value);//.toPrecision(7);
+  localStorage.angularSpeed = +angularSpeedRatioInput.value;
+  // console.log('1:',localStorage.angularSpeedRatio);
   rebuildGlobalEarth();//forceStablePeriod)
   resetSim();
 }
@@ -348,7 +352,7 @@ function rotationChanged() {
 
 function rebuildGlobalEarth() {
   // const angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value).toFixed(4);
-  const angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value).toPrecision(7);
+  const angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value);//.toPrecision(7);
   // globalEarth = new Earth(+eccentricitySlider.value, angularSpeedRatio);
   globalEarth = new Earth(+eccentricityInput.value, angularSpeedRatio);
   // const period = !forceStablePeriod && !rotateAtStableSpeed.checked ? +timePeriodInput.value : undefined
@@ -943,7 +947,14 @@ function updateEarthGroup() {
   // debug.phi = phi;
   // debug.phi_ = phi_;
 
-  let T0 = sim.T0(sim._theta, sim.phi_dot(time), sim.theta_dot(time));
+  // Boyd's bug: with the initialization conditions we're barely in an illegal state
+  // (f4 is just less than zero causing sqrt(f4) in f2 to fail). How is he handling it?
+  // I had fixed it by just fixing v to 0 in sqrt(v) if v was very close to zero, but
+  // that causes problems when the puck enters into illegal territory when it's 
+  // changing directions in theta.
+  // console.log("sim:",sim);
+  let theta_dot = sim.theta_dot(time);
+  let T0 = sim.T0(sim._theta, sim.phi_dot(time), theta_dot);
 
   debug.theta = sim._theta;
   debug.phi = sim._phi;
@@ -1297,7 +1308,9 @@ function demoChanged() {
   localStorage.lon0 = +document.getElementById('lon0').value;
   localStorage.north0 = +document.getElementById('north0').value;
   localStorage.east0 = +document.getElementById('east0').value;
-  localStorage.angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value).toPrecision(7);
+  // localStorage.angularSpeedRatio = radPerSec2AngSpeedRatio(+angularSpeedRatioInput.value);//.toPrecision(7);
+  localStorage.angularSpeed = +angularSpeedRatioInput.value;
+  // console.log('2:',localStorage.angularSpeedRatio);
   localStorage.eccentricity = +eccentricityInput.value;
   localStorage.setItem("animInc", animInc);
   localStorage.view = view;

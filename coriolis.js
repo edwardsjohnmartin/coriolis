@@ -103,11 +103,12 @@ var Coriolis = function(lat0, lon0, v0, earth) {
 }
 
 const sqrt = (v) => {
-  if (v < 0 && v > -1e14) {
-    v = 0;
-  }
+  // if (v < 0 && v > -1e14) {
+  //   v = 0;
+  // }
   if (v < 0) {
-    console.log('negative sqrt of ', v)
+    // console.log('negative sqrt of ', v)
+    // console.trace();
     throw "negative radicand"
   }
   return Math.sqrt(v)
@@ -210,6 +211,7 @@ Coriolis.prototype.f1 = function(state) {
 Coriolis.prototype.f2 = function (state) {
   const c1 = 1 - sq(this.earth.e) * sq(Math.sin(state.theta));
   const c2 = 1 - sq(this.earth.e);
+  // console.log("f2 state:", state);
   let res =  this.dir*Math.pow(c1, 1.5) * sqrt(this.f4(state)) / c2;
   return res;
 }
@@ -233,6 +235,7 @@ Coriolis.prototype.f3 = function (state) {
 Coriolis.prototype.f4 = function(state) {
   const c1 = 1 - sq(this.earth.e) * sq(Math.sin(state.theta));
   const res = state.T - sq(this.f1(state) * Math.cos(state.theta)) / c1;
+  // console.log("f4 state:", state.T, sq(this.f1(state)), Math.cos(state.theta), res);
   return res;
 }
 
@@ -495,6 +498,7 @@ function stepRK4(c, h0, t, phi_dot, phi_dot_e, debug=false) {
     if (debug) c.printValues(t, h0_);
   } catch(e) {
     if (e != 'negative radicand') throw e;
+    // console.log(e);
     // We went into illegal territory, so do the modified binary search:
     // console.log('illegal', e);
     h = h0/2;
