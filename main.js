@@ -87,6 +87,7 @@ let geoStationaryTime = 0;
 const ROTATING_FRAME = 0;
 const INERTIAL_FRAME = 1;
 const DEBUG_FRAME = 2;
+const COUNTER_FRAME = 3;
 const view0 = ROTATING_FRAME;
 let view = view0;
 
@@ -110,6 +111,8 @@ if (view == INERTIAL_FRAME) {
   document.getElementById('frame').innerHTML = 'Rotating'
 } else if (view == DEBUG_FRAME) {
   document.getElementById('frame').innerHTML = 'debug'
+} else if (view == COUNTER_FRAME) {
+  document.getElementById('frame').innerHTML = 'Counter-rotating'
 }
 
 let visiblePath = 0;
@@ -233,6 +236,8 @@ function incTime(inc) {
 
   if (view == ROTATING_FRAME) {
     geoStationaryTime += inc;
+  } else if (view == COUNTER_FRAME) {
+    geoStationaryTime -= inc;
   }
 
   if (starStreaks) {
@@ -291,6 +296,8 @@ function timeChanged() {
   const diff = newTime - time;
   if (view == ROTATING_FRAME) {
     geoStationaryTime += diff;
+  } else if (view == COUNTER_FRAME) {
+    geoStationaryTime -= diff;
   }
   time = newTime;
   document.getElementById('rotation').value =
@@ -531,14 +538,14 @@ function keydown(event) {
   //   incTime(-2*animInc);
   //   changed = true;
   } else if (key == 'f') {
-    console.log('view', view);
+    // console.log('view', view);
     if (view == INERTIAL_FRAME) {
+      view = COUNTER_FRAME;
+      document.getElementById('frame').innerHTML = 'Counter-rotating'
+    } else if (view == COUNTER_FRAME) {
       view = ROTATING_FRAME;
       document.getElementById('frame').innerHTML = 'Rotating'
     } else if (view == ROTATING_FRAME) {
-    //   view = DEBUG_FRAME;
-    //   document.getElementById('frame').innerHTML = 'debug'
-    // } else if (view == DEBUG_FRAME) {
       view = INERTIAL_FRAME;
       document.getElementById('frame').innerHTML = 'Inertial'
     } else {
@@ -627,7 +634,7 @@ function keydown(event) {
 function updatePathVisibility() {
   if (visiblePath == 0) {
     // matches frame
-    rotatingPathVisible = (view == ROTATING_FRAME);
+    rotatingPathVisible = (view == ROTATING_FRAME || view == COUNTER_FRAME);
     inertialPathVisible = (view == INERTIAL_FRAME);
   } else {
     rotatingPathVisible = (visiblePath == 1 || visiblePath == 2);
@@ -768,7 +775,7 @@ function updateBackgroundStars() {
     //     starGroup.add(path);
     //   }
     // }
-    if (starStreaks && view == ROTATING_FRAME) {
+    if (starStreaks && (view == ROTATING_FRAME || view == COUNTER_FRAME)) {
       const length = 0.16 * starStreakScale;
       const start = theta - length;
       const end = theta;
@@ -985,6 +992,8 @@ function updateEarthGroup() {
 
     let v;
     if (view == ROTATING_FRAME) {
+      v = sim.vRotating(time);
+    } else if (view == COUNTER_FRAME) {
       v = sim.vRotating(time);
     } else {
       v = sim.vInertial(time);

@@ -103,8 +103,11 @@ var Coriolis = function(lat0, lon0, v0, earth) {
 }
 
 const sqrt = (v) => {
+  if (v < 0 && v > -1e14) {
+    v = 0;
+  }
   if (v < 0) {
-    // console.log('negative sqrt of ', v)
+    console.log('negative sqrt of ', v)
     throw "negative radicand"
   }
   return Math.sqrt(v)
