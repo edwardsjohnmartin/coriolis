@@ -79,8 +79,10 @@ var Coriolis = function(lat0, lon0, v0, earth) {
 
   this.rotPath = [];
   this.inertialPath = [];
+  this.crotPath = []; // counter-rotating path
   this.lastRotPoint = null;
   this.lastInertialPoint = null;
+  this.lastCRotPoint = null; // counter-rotating path
 
   let debugOutput = false;
   if (debugOutput) {
@@ -551,37 +553,27 @@ Coriolis.prototype.step = function(h) {
   if (this.lastInertialPoint == null ||
       this.lastInertialPoint.dist(newInertialPoint) > radians(pathInc)) {
     this.lastInertialPoint = newInertialPoint;
-    // if (typeof newInertialPoint == 'undefined') {
-    //   console.log('xxxx undefined');
-    // }
     this.inertialPath.push(newInertialPoint);
+  }
+
+  const newCRotPoint = 
+    new Position(this._theta, this._phi+2*this.earth.earthRotation(time));
+  if (this.lastCRotPoint == null ||
+      this.lastCRotPoint.dist(newCRotPoint) > radians(pathInc)) {
+    this.lastCRotPoint = newCRotPoint;
+    this.crotPath.push(newCRotPoint);
   }
 
   let newPathInc = pathInc;
 
   if (efficientPath && this.rotPath.length > maxPathSegments) {
     this.rotPath.shift();
-    // console.log('updating path - new pathInc =', pathInc*2);
-    // let newrp = [];
-    // for (let i = 0; i < this.rotPath.length; i += 2) {
-    //   newrp.push(this.rotPath[i]);
-    // }
-    // this.rotPath = newrp;
-    // newPathInc = pathInc * 2;
   }
-
   if (efficientPath && this.inertialPath.length > maxPathSegments) {
     this.inertialPath.shift();
-    // console.log('updating path - new pathInc =', pathInc*2);
-    // let newip = [];
-    // for (let i = 0; i < this.inertialPath.length; i += 2) {
-    //   if (typeof this.inertialPath[i] == 'undefined') {
-    //     console.log('xxxx undefined', i, this.inertialPath.length);
-    //   }
-    //   newip.push(this.inertialPath[i]);
-    // }
-    // this.inertialPath = newip;
-    // newPathInc = pathInc * 2;
+  }
+  if (efficientPath && this.crotPath.length > maxPathSegments) {
+    this.crotPath.shift();
   }
 
   pathInc = newPathInc;
@@ -715,17 +707,6 @@ const cPathInc = 10*60;
 Coriolis.prototype.pathRot = function(t0, t1) {
   if (t0 == t1) return [];
 
-  // // const inc = (t1-t0)/divisions;
-  // const inc = cPathInc;
-  // let points = [];
-  // for (let t = t0; t < t1; t += inc) {
-  //   points.push(this.p(t));
-  // }
-  // // Catch the last point
-  // points.push(this.p(t1));
-
-  // return points;
-
   let points = [];
   this.rotPath.forEach(p => {
     points.push(p);
@@ -742,19 +723,8 @@ Coriolis.prototype.pathRot = function(t0, t1) {
 // is the number of pieces to divide the curve into. Coordinates
 // returned in fixed-frame cartesian coordinates.
 //------------------------------------------------------------
-Coriolis.prototype.pathFixed = function(t0, t1) {
+Coriolis.prototype.pathInertial = function(t0, t1) {
   if (t0 == t1) return [];
-
-  // // const inc = (t1-t0)/divisions;
-  // const inc = cPathInc;
-  // let points = [];
-  // for (let t = t0; t < t1; t += inc) {
-  //   pp = new Position(this.theta_(t), this.phi_(t));
-  //   points.push(pp);
-  // }
-  // // Catch the last point
-  // pp = new Position(this.theta_(t1), this.phi_(t1));
-  // points.push(pp);
 
   let points = [];
   this.inertialPath.forEach(p => {
@@ -765,6 +735,18 @@ Coriolis.prototype.pathFixed = function(t0, t1) {
   });
   points.push(new Position(this._theta,
                            this._phi+this.earth.earthRotation(time)));
+
+  return points;
+}
+
+Coriolis.prototype.pathCRot = function(t0, t1) {
+  if (t0 == t1) return [];
+
+  let points = [];
+  this.crotPath.forEach(p => {
+    points.push(p);
+  });
+  points.push(new Position(this._theta, this._phi+2*this.earth.earthRotation(time)));
 
   return points;
 }

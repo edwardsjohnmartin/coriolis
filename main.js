@@ -19,6 +19,7 @@ let scene = new THREE.Scene();
 // The scene with everything in the earth's rotational frame.
 let earthGroup = new THREE.Group();
 let fixedPathGroup = new THREE.Group();
+let counterPathGroup = new THREE.Group(); // Counter-rotating frame
 let starGroup = new THREE.Group();
 let renderer;
 let controls;
@@ -27,7 +28,7 @@ let efficientPath = true;
 // to ~30.
 let transparency = true;
 // const maxPathSegments = 300;
-const maxPathSegments = 600;
+let maxPathSegments = 600;
 
 // Between 1 and 10-ish
 let animSpeed = 5;
@@ -118,6 +119,7 @@ if (view == INERTIAL_FRAME) {
 let visiblePath = 0;
 let rotatingPathVisible = false;
 let inertialPathVisible = false;
+let counterRotatingPathVisible = false;
 updatePathVisibility();
 
 // document.getElementById('time').value = (time/(60*60)).toFixed(DEBUG_DECIMALS);
@@ -212,28 +214,6 @@ function incTime(inc) {
   time += inc;
 
   document.getElementById('time').innerHTML = (time/(60*60)).toFixed(DEBUG_DECIMALS);
-  // document.getElementById('time').value = (time/(60*60)).toFixed(DEBUG_DECIMALS);
-  // document.getElementById('rotation').value =
-  //   degrees(earthRotation(time)).toFixed(2);
-  // const clock = document.getElementById('clock')
-
-  // const dayItem = clock.getElementsByClassName('day')[0]
-  // const hourItem = clock.getElementsByClassName('hour')[0]
-  // const minItem = clock.getElementsByClassName('min')[0]
-  // const secItem = clock.getElementsByClassName('sec')[0]
-
-  // let seconds = Math.floor(time)
-  // dayItem.innerHTML = formatted(Math.floor(seconds / 86400));
-  // seconds %= 86400;
-
-  // hourItem.innerHTML = formatted(Math.floor(seconds / 3600));
-  // seconds = seconds % 3600;
-
-  // minItem.innerHTML = formatted(Math.floor(seconds / 60));
-
-  // seconds %= 60;
-  // secItem.innerHTML = formatted(Math.floor(seconds));
-
   document.getElementById('rotation').innerHTML =
     degrees(globalEarth.earthRotation(time)).toFixed(4);
 
@@ -459,6 +439,7 @@ function init() {
   updateEarthGroup();
   scene.add(earthGroup);
   scene.add(fixedPathGroup);
+  scene.add(counterPathGroup);
 
   updateBackgroundStars();
   if (stars) {
@@ -606,6 +587,9 @@ function keydown(event) {
     localStorage.starStreakScale = starStreakScale;
     updateBackgroundStars();
     changed = true;
+  } else if (key == 'm') {
+    maxPathSegments *= 2;
+  } else if (key == 'M') {
   } else if (key == 't') {
     if (animation) {
       starStreaks = false;
@@ -638,8 +622,9 @@ function keydown(event) {
 function updatePathVisibility() {
   if (visiblePath == 0) {
     // matches frame
-    rotatingPathVisible = (view == ROTATING_FRAME || view == COUNTER_FRAME);
+    rotatingPathVisible = (view == ROTATING_FRAME);
     inertialPathVisible = (view == INERTIAL_FRAME);
+    counterRotatingPathVisible = (view == COUNTER_FRAME);
   } else {
     rotatingPathVisible = (visiblePath == 1 || visiblePath == 2);
     inertialPathVisible = (visiblePath == 1 || visiblePath == 3);
@@ -863,10 +848,14 @@ function getPuckPathRotating(t, color) {
 }
 
 //----------------------------------------
-// getPuckPathFixed
+// getPuckPathInertial
 //----------------------------------------
-function getPuckPathFixed(t, color) {
-  return getPuckPath(sim.pathFixed(0, t), color);
+function getPuckPathInertial(t, color) {
+  return getPuckPath(sim.pathInertial(0, t), color);
+}
+
+function getPuckPathCounterRotating(t, color) {
+  return getPuckPath(sim.pathCRot(0, t), color);
 }
 
 //----------------------------------------
@@ -934,6 +923,7 @@ function updateEarthGroup() {
   let arrowsGroup = new THREE.Group();
   earthGroup.children = [];
   fixedPathGroup.children = [];
+  counterPathGroup.children = [];
 
   const hours = time / (60*60);
   let timeInc = 0;
@@ -980,6 +970,7 @@ function updateEarthGroup() {
   const necolor = new THREE.Color().setHSL(0.7, 1, colorL);
   const rotatingPathColor = new THREE.Color().setHSL(0.15, 1, colorL);
   const fixedPathColor = new THREE.Color().setHSL(0.45, 1, colorL);
+  const counterRotatingPathColor = new THREE.Color().setHSL(0.85, 1, colorL);
   const green = new THREE.Color(0, 1, 0);
 
   let actualTimeInc = timeInc;
@@ -1068,14 +1059,16 @@ function updateEarthGroup() {
       // if (view == ROTATING_FRAME) {
       // if (visiblePath == 0 || visiblePath == 1) {
       if (rotatingPathVisible) {
-        // let path = getPuckPathRotating(t, rotatingPathColor);
         let path = getPuckPathRotating(time, rotatingPathColor);
         earthGroup.add(path);
-
       }
       if (inertialPathVisible) {
-        let path = getPuckPathFixed(time, fixedPathColor);
+        let path = getPuckPathInertial(time, fixedPathColor);
         fixedPathGroup.add(path);
+      }
+      if (counterRotatingPathVisible) {
+        let path = getPuckPathCounterRotating(time, counterRotatingPathColor);
+        counterPathGroup.add(path);
       }
     } catch(e) {
       console.log('caught', e);
@@ -1107,6 +1100,7 @@ function render() {
   earthGroup.rotation.y = viewRotationEarth();
   starGroup.rotation.y = viewRotationSky();
   fixedPathGroup.rotation.y = rotDelta();
+  counterPathGroup.rotation.y = -viewRotationEarth();
   scene.rotation.y = viewRotationScene();
 
   renderer.clear();
@@ -1149,6 +1143,7 @@ function tick() {
   if (!puck) {
     rotatingPathVisible = false;
     inertialPathVisible = false;
+    counterRotatingPathVisible = false;
     puckVisible = false;
     northVisible = false;
     eastVisible = false;
