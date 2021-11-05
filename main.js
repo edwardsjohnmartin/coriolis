@@ -953,21 +953,25 @@ function updateEarthGroup() {
   // that causes problems when the puck enters into illegal territory when it's 
   // changing directions in theta.
   // console.log("sim:",sim);
-  let theta_dot = sim.theta_dot(time);
-  let T0 = sim.T0(sim._theta, sim.phi_dot(time), theta_dot);
+  try {
+    let theta_dot = sim.theta_dot(time);
+    let T0 = sim.T0(sim._theta, sim.phi_dot(time), theta_dot);
 
-  debug.theta = sim._theta;
-  debug.phi = sim._phi;
-  debug.T = sim.T;
-  // debug.v = Math.sqrt(sim.T) * globalEarth.a * globalEarth.Omega;
-  debug.v = Math.sqrt(sim.T) * globalEarth.a * OmegaR;
-  // debug.v0 = Math.sqrt(sim.T0) * globalEarth.a * globalEarth.Omega;
-  // debug.v0 = Math.sqrt(T0) * globalEarth.a * globalEarth.Omega;
-  debug.v0 = Math.sqrt(T0) * globalEarth.a * OmegaR;
-  debug.theta_dot = sim.theta_dot(time);
-  debug.phi_dot = sim.phi_dot(time);
-  debug.L0 = sim.L0;
-  debug.T0 = T0;//sim.T0;
+    debug.theta = sim._theta;
+    debug.phi = sim._phi;
+    debug.T = sim.T;
+    // debug.v = Math.sqrt(sim.T) * globalEarth.a * globalEarth.Omega;
+    debug.v = Math.sqrt(sim.T) * globalEarth.a * OmegaR;
+    // debug.v0 = Math.sqrt(sim.T0) * globalEarth.a * globalEarth.Omega;
+    // debug.v0 = Math.sqrt(T0) * globalEarth.a * globalEarth.Omega;
+    debug.v0 = Math.sqrt(T0) * globalEarth.a * OmegaR;
+    debug.theta_dot = sim.theta_dot(time);
+    debug.phi_dot = sim.phi_dot(time);
+    debug.L0 = sim.L0;
+    debug.T0 = T0;//sim.T0;
+  } catch(e) {
+    console.log('caught', e);
+  }
 
   // const colorL = sq(0.9-hours/12);
   const colorL = 0.4;
@@ -1001,74 +1005,80 @@ function updateEarthGroup() {
       earthGroup.add(sphere);
     }
 
-    let v;
-    if (view == ROTATING_FRAME) {
-      v = sim.vRotating(time);
-    } else if (view == COUNTER_FRAME) {
-      v = sim.vRotating(time);
-    } else {
-      v = sim.vInertial(time);
-    }
-    // if (sim._theta > Math.PI/2 || sim._theta < -Math.PI/2) {
-    //   v = v.multiplyScalar(-1);
-    //   // E = E.multiplyScalar(-1);
-    //   // N = N.multiplyScalar(-1);
-    // }
-    let E = east(p.cartesian);
-    let N = north(p.cartesian);
-    E = E.multiplyScalar(v.clone().dot(E));
-    N = N.multiplyScalar(v.clone().dot(N));
-    // debug.temp = v.x + " " + v.y;
+    // console.log(time);
+    try {
+      let v;
+      if (view == ROTATING_FRAME) {
+        v = sim.vRotating(time);
+      } else if (view == COUNTER_FRAME) {
+        v = sim.vRotating(time);
+      } else {
+        v = sim.vInertial(time);
+      }
 
-    // if (arrowsVisible < 2) {
-    if (vVisible) {
-      // v
-      let length = v.length();
-      let dir = v.normalize();
-      let origin = p.cartesian;
+      // if (sim._theta > Math.PI/2 || sim._theta < -Math.PI/2) {
+      //   v = v.multiplyScalar(-1);
+      //   // E = E.multiplyScalar(-1);
+      //   // N = N.multiplyScalar(-1);
+      // }
+      let E = east(p.cartesian);
+      let N = north(p.cartesian);
+      E = E.multiplyScalar(v.clone().dot(E));
+      N = N.multiplyScalar(v.clone().dot(N));
+      // debug.temp = v.x + " " + v.y;
 
-      let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                        vcolor, 20, headLen, 0.6*headLen);
-      prepArrowHelper(arrowHelper, vecRenderOrder);
-      arrowsGroup.add(arrowHelper);
-    }
-    if (eastVisible) {
-      // east
-      let length = E.length();
-      if (length > headLen) {
-        let dir = E.normalize();
+      // if (arrowsVisible < 2) {
+      if (vVisible) {
+        // v
+        let length = v.length();
+        let dir = v.normalize();
         let origin = p.cartesian;
+
         let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                          necolor, 20, headLen, 0.6*headLen);
-        prepArrowHelper(arrowHelper, eastRenderOrder);
+                                          vcolor, 20, headLen, 0.6*headLen);
+        prepArrowHelper(arrowHelper, vecRenderOrder);
         arrowsGroup.add(arrowHelper);
       }
-    }
-    if (northVisible) {
-      // north
-      let length = N.length();
-      if (length > headLen) {
-        let dir = N.normalize();
-        let origin = p.cartesian;
-        let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
-                                          necolor, 20, headLen, 0.6*headLen);
-        prepArrowHelper(arrowHelper, northRenderOrder);
-        arrowsGroup.add(arrowHelper);
+      if (eastVisible) {
+        // east
+        let length = E.length();
+        if (length > headLen) {
+          let dir = E.normalize();
+          let origin = p.cartesian;
+          let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+                                            necolor, 20, headLen, 0.6*headLen);
+          prepArrowHelper(arrowHelper, eastRenderOrder);
+          arrowsGroup.add(arrowHelper);
+        }
       }
-    }
-    // }
-    // puck's path
-    // if (view == ROTATING_FRAME) {
-    // if (visiblePath == 0 || visiblePath == 1) {
-    if (rotatingPathVisible) {
-      // let path = getPuckPathRotating(t, rotatingPathColor);
-      let path = getPuckPathRotating(time, rotatingPathColor);
-      earthGroup.add(path);
+      if (northVisible) {
+        // north
+        let length = N.length();
+        if (length > headLen) {
+          let dir = N.normalize();
+          let origin = p.cartesian;
+          let arrowHelper = new ArrowHelper(dir, origin, length, lineWidth,
+                                            necolor, 20, headLen, 0.6*headLen);
+          prepArrowHelper(arrowHelper, northRenderOrder);
+          arrowsGroup.add(arrowHelper);
+        }
+      }
+      // }
+      // puck's path
+      // if (view == ROTATING_FRAME) {
+      // if (visiblePath == 0 || visiblePath == 1) {
+      if (rotatingPathVisible) {
+        // let path = getPuckPathRotating(t, rotatingPathColor);
+        let path = getPuckPathRotating(time, rotatingPathColor);
+        earthGroup.add(path);
 
-    }
-    if (inertialPathVisible) {
-      let path = getPuckPathFixed(time, fixedPathColor);
-      fixedPathGroup.add(path);
+      }
+      if (inertialPathVisible) {
+        let path = getPuckPathFixed(time, fixedPathColor);
+        fixedPathGroup.add(path);
+      }
+    } catch(e) {
+      console.log('caught', e);
     }
   }
   earthGroup.add(arrowsGroup);

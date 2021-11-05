@@ -489,6 +489,7 @@ function stepRK4(c, h0, t, phi_dot, phi_dot_e, debug=false) {
     }
 
     const p = rk4(h0_, c.getState(), c._dot.bind(c));
+    // console.log('succeeded');
 
     c._theta = p.theta;
     c._phi = p.phi;
@@ -505,8 +506,12 @@ function stepRK4(c, h0, t, phi_dot, phi_dot_e, debug=false) {
     while (h > h0/2048) {
       try {
         // Go as far as we can with this step size
-        while(true) {
+        let inner = 0;
+        // while(true) {
+        while(inner < 3) {
+          inner++;
           const p = rk4(h, c.getState(), c._dot.bind(c));
+          // console.log('succeeded2');
           c._theta = p.theta;
           c._phi = p.phi;
           c.T = p.T;
@@ -514,6 +519,7 @@ function stepRK4(c, h0, t, phi_dot, phi_dot_e, debug=false) {
           actualTimeInc += h;
           if (debug) c.printValues(t, h);
         }
+        h /= 2;
       } catch(e) {
         if (e != 'negative radicand') throw e;
         h /= 2;
