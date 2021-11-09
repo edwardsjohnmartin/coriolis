@@ -10,3 +10,5 @@
 9,earth; nonpolar waves (region B),rotating,0,0,100,-173.2051,203.5,0.08182,7.292423
 10,earth; circumpolar circles (region C),rotating,30,0,0,-500,203.5,0.08182,7.292423
 11,earth; circumpolar waves (region D),rotating,0,0,300,-519.615,203.5,0.08182,7.292423
+12 A Nonpolar circles,earth; nonpolar circles (region A),rotating,30,0,0,-188.4937,203.5,0.08182,7.292423
+13 A' Circumpolar circles,earth; circumpolar circles (region A'),rotating,30,40,0,-617.7941,203.5,0.08182,7.292423

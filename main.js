@@ -242,8 +242,10 @@ function rotDelta() {
 
 function viewRotationEarthMap() {
   const d = rotDelta();
+  let f = 1;
+  if (view == COUNTER_FRAME) f = -1;
   return globalEarth.earthRotation(-geoStationaryTime) +
-    globalEarth.earthRotation(time) + fixedViewRotation0 + d;
+    f*globalEarth.earthRotation(time) + fixedViewRotation0 + d;
 }
 
 function viewRotationEarth() {
@@ -537,6 +539,18 @@ function keydown(event) {
       view = ROTATING_FRAME;
       document.getElementById('frame').innerHTML = 'Rotating'
     }
+    localStorage.view = view;
+    updatePathVisibility();
+    changed = true;
+  } else if (key == ',') {
+    view = ROTATING_FRAME;
+    document.getElementById('frame').innerHTML = 'Rotating'
+    localStorage.view = view;
+    updatePathVisibility();
+    changed = true;
+  } else if (key == '.') {
+    view = COUNTER_FRAME;
+    document.getElementById('frame').innerHTML = 'Counter-rotating'
     localStorage.view = view;
     updatePathVisibility();
     changed = true;
