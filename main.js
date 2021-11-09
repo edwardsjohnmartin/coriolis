@@ -1472,13 +1472,36 @@ function addDemo(name, r, theta, phi, pr, ptheta, pphi,
   // console.log(demos);
 }
 
+// Return array of string values, or NULL if CSV string not well formed.
+function CSVtoArray(text) {
+    var re_valid = /^\s*(?:'[^'\\]*(?:\\[\S\s][^'\\]*)*'|"[^"\\]*(?:\\[\S\s][^"\\]*)*"|[^,'"\s\\]*(?:\s+[^,'"\s\\]+)*)\s*(?:,\s*(?:'[^'\\]*(?:\\[\S\s][^'\\]*)*'|"[^"\\]*(?:\\[\S\s][^"\\]*)*"|[^,'"\s\\]*(?:\s+[^,'"\s\\]+)*)\s*)*$/;
+    var re_value = /(?!\s*$)\s*(?:'([^'\\]*(?:\\[\S\s][^'\\]*)*)'|"([^"\\]*(?:\\[\S\s][^"\\]*)*)"|([^,'"\s\\]*(?:\s+[^,'"\s\\]+)*))\s*(?:,|$)/g;
+    // Return NULL if input string is not well formed CSV string.
+    if (!re_valid.test(text)) return null;
+    var a = [];                     // Initialize array to receive values.
+    text.replace(re_value, // "Walk" the string using replace with callback.
+        function(m0, m1, m2, m3) {
+            // Remove backslash from \' in single quoted values.
+            if      (m1 !== undefined) a.push(m1.replace(/\\'/g, "'"));
+            // Remove backslash from \" in double quoted values.
+            else if (m2 !== undefined) a.push(m2.replace(/\\"/g, '"'));
+            else if (m3 !== undefined) a.push(m3);
+            return ''; // Return empty string.
+        });
+    // Handle special case of empty last value.
+    if (/,\s*$/.test(text)) a.push('');
+    return a;
+}
+
 function updateDemos(data) {
   var demoSelect = document.getElementById("demos");
 
   var lines = data.split(/\r\n|\n|\r/);
-  var headers = lines[0].split(',');
+  // var headers = lines[0].split(',');
+  var headers = CSVtoArray(lines[0]);
   for (var i = 1; i < lines.length; ++i) {
-    var tokens = lines[i].split(',');
+    // var tokens = lines[i].split(',');
+    var tokens = CSVtoArray(lines[i]);
     if (tokens.length > 3) {
       var j = 1;
       var name = tokens[0];
@@ -1521,6 +1544,7 @@ function updateDemos(data) {
     }
   }
 }
+
 
 function loadDemos() {
   $.ajax({
