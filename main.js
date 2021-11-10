@@ -940,11 +940,13 @@ function updateEarthGroup() {
   counterPathGroup.children = [];
 
   const hours = time / (60*60);
-  let timeInc = 0;
-  if (oldTime > 0) {
-    timeInc = time - oldTime;
-  }
-  oldTime = time;
+  let timeInc = animInc;
+  // if (oldTime > 0) {
+  //   timeInc = time - oldTime;
+  //   console.log('timeInc:', timeInc);
+  // }
+  // oldTime = time;
+
   // const t = time;
   // const phi = sim.phi(t);
   // const phi_ = sim.phi_(t);
@@ -1090,6 +1092,14 @@ function updateEarthGroup() {
   }
   earthGroup.add(arrowsGroup);
 
+  // if (actualTimeInc != timeInc) {
+  //   console.log('actualTimeInc different from timeInc', actualTimeInc, timeInc);
+  // } else {
+  //   console.log('matches');
+  // }
+  if (actualTimeInc == 0) {
+    console.log('*** actualTimeInc == 0');
+  }
   return actualTimeInc;
 }
 
@@ -1201,12 +1211,14 @@ function tick() {
 
   actualTimeInc = updateAndRender();
   if (!timeIncremented) {
+    incTime(actualTimeInc);
+    // console.log('xxx',actualTimeInc);
     // console.log(animInc, actualTimeInc);
     // if (actualTimeInc > 0) {
     //   incTime(actualTimeInc);
     // } else {
-      // Hack -- not sure why zero is returned
-      incTime(animInc);//actualTimeInc);
+    //   // Hack -- not sure why zero is returned
+    //   incTime(animInc);//actualTimeInc);
     // }
   }
 

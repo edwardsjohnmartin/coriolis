@@ -488,6 +488,7 @@ function stepRK4(c, h0, t, phi_dot, phi_dot_e, debug=false) {
     let h0_ = h0;
     if (Math.abs(phi_dot) > Math.abs(phi_dot_e)) {
       h0_ = Math.abs(phi_dot_e / phi_dot) * h0_;
+      // console.log('Updating step size because phi_dot > phi_dot_e:',h0,h0_);
     }
 
     const p = rk4(h0_, c.getState(), c._dot.bind(c));
