@@ -563,6 +563,7 @@ Coriolis.prototype.step = function(h) {
       this.lastCRotPoint.dist(newCRotPoint) > radians(pathInc)) {
     this.lastCRotPoint = newCRotPoint;
     this.crotPath.push(newCRotPoint);
+    // console.trace();
   }
 
   let newPathInc = pathInc;
@@ -694,6 +695,31 @@ Coriolis.prototype.vRotating = function(time) {
   return v;
 }
 
+//------------------------------------------------------------
+// v
+// Computes the time-dependent velocity vector of the puck.
+//------------------------------------------------------------
+Coriolis.prototype.vCounterRotating = function(time) {
+  // const vphi = this.earth.rho(this._theta) * this.phi_dot_impl(this.getState());
+  const vphi = this.earth.rho(this._theta) * (
+      this.phi_dot_impl(this.getState()) + 2*this.earth.Omega);
+  const vtheta = this.earth.R(this._theta) * this.theta_dot_impl(this.getState());
+  const length = Math.sqrt(sq(vphi) + sq(vtheta));
+  let v = new Velocity(vtheta, vphi).cartesian(this.p(time));
+  v = v.normalize();
+  v = v.multiplyScalar(length * arrowScale);
+
+  let theta = ((degrees(this._theta) % 360) + 360) % 360;
+  if (theta > 270) {
+  } else if (theta > 180) {
+    v = v.multiplyScalar(-1);
+  } else if (theta > 90) {
+    v = v.multiplyScalar(-1);
+  }
+
+  return v;
+}
+
 // Step every 10 minutes
 const cPathInc = 10*60;
 
@@ -747,7 +773,7 @@ Coriolis.prototype.pathCRot = function(t0, t1) {
   this.crotPath.forEach(p => {
     points.push(p);
   });
-  points.push(new Position(this._theta, this._phi+2*this.earth.earthRotation(time)));
+  // points.push(new Position(this._theta, this._phi+2*this.earth.earthRotation(time)));
 
   return points;
 }

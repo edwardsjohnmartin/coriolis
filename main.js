@@ -438,7 +438,7 @@ function init() {
   resetSim(false);
 
 
-  updateEarthGroup();
+  updateEarthGroup(false);
   scene.add(earthGroup);
   scene.add(fixedPathGroup);
   scene.add(counterPathGroup);
@@ -484,7 +484,7 @@ function resetSim(dorender=true, launchNorth=null, launchEast=null, newView=true
       radians(launchLatitude), radians(launchLongitude), launchV, globalEarth);
 
   if (dorender) {
-    render();
+    renderImpl();
   }
 }
 
@@ -933,7 +933,7 @@ function prepArrowHelper(arrowHelper, renderOrder) {
   });
 }
 
-function updateEarthGroup() {
+function updateEarthGroup(doStep) {
   let arrowsGroup = new THREE.Group();
   earthGroup.children = [];
   fixedPathGroup.children = [];
@@ -1000,7 +1000,10 @@ function updateEarthGroup() {
     let materialOccluded = new THREE.MeshBasicMaterial({color: vcolor});
     occludeMaterial(materialOccluded);
     let sphere = new THREE.Mesh(sgeometry, material);
-    actualTimeInc = sim.step(timeInc);
+    if (doStep) {
+      // console.log('step:', time);
+      actualTimeInc = sim.step(timeInc);
+    }
     // const p = sim.p(t);
     const p = sim.p(time);
     sphere.translateOnAxis(p.cartesian, 1);
@@ -1018,7 +1021,7 @@ function updateEarthGroup() {
       if (view == ROTATING_FRAME) {
         v = sim.vRotating(time);
       } else if (view == COUNTER_FRAME) {
-        v = sim.vRotating(time);
+        v = sim.vCounterRotating(time);
       } else {
         v = sim.vInertial(time);
       }
@@ -1097,16 +1100,16 @@ function updateEarthGroup() {
   // } else {
   //   console.log('matches');
   // }
-  if (actualTimeInc == 0) {
-    console.log('*** actualTimeInc == 0');
-  }
+  // if (actualTimeInc == 0) {
+  //   console.log('*** actualTimeInc == 0');
+  // }
   return actualTimeInc;
 }
 
 //----------------------------------------
 // render
 //----------------------------------------
-function render() {
+function renderImpl(doStep) {
   scene.traverseVisible(o => {
     if (o.materialFront) {
       o.material = o.materialFront;
@@ -1119,7 +1122,7 @@ function render() {
     plane.rotation.z = camera.rotation.z;
   }
 
-  let actualTimeInc = updateEarthGroup();
+  let actualTimeInc = updateEarthGroup(doStep);
 
   earthGroup.rotation.y = viewRotationEarth();
   starGroup.rotation.y = viewRotationSky();
@@ -1137,9 +1140,13 @@ function render() {
   return actualTimeInc;
 }
 
-function updateAndRender() {
+function render() {
+  renderImpl(false);
+}
+
+function updateAndRender(doStep) {
   controls.update();
-  let actualTimeInc = render();
+  let actualTimeInc = renderImpl(doStep);
   return actualTimeInc;
 }
 
@@ -1209,7 +1216,7 @@ function tick() {
     // incTime(animInc);
   }
 
-  actualTimeInc = updateAndRender();
+  actualTimeInc = updateAndRender(true);
   if (!timeIncremented) {
     incTime(actualTimeInc);
     // console.log('xxx',actualTimeInc);
