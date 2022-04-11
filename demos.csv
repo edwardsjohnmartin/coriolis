@@ -1,25 +1,25 @@
 ﻿Demo,Title,frame,latitude,longitude,v_north,v_east,sim speed,eccentricity,ang. Speed x 10^5 rad/s
-1,"rotating sphere; northward relative initial velocity [Ref. 1; Fig. 1(b), (e)]",inertial,40,-10,50,0,203.5,0,7.292423
-2,"stably rotating spheroid; northward relative initial velocity [Ref. 1; Fig. 1(c), (f)]",rotating,40,-10,50,0,203.5,0.08182,7.292423
-3,"rotating sphere; near equator [Ref. 1; Fig. 4(b), (e)]",rotating,0,-15,30,-40,203.5,0,7.292423
-4,"stably rotating spheroid; near equator [Ref. 1; Fig. 4(c), (f)]",rotating,0,-15,30,-40,203.5,0.08182,7.292423
-5,"non-rotating spheroid; northward initial velocity [Ref. 2, Fig. 4(a)]",inertial,30,0,250,0,48.7,0.6,0
-6,"stably rotating spheroid; northward relative initial velocity [Ref. 2, Fig. 4(b)]",rotating,30,0,250,0,48.7,0.6,54.73731
-7,"super-stably rotating spheroid; northward relative initial velocity [Ref. 2, Fig. 4(c)]",rotating,30,0,250,0,48.7,0.6,109.4746
-8,"earth; stationary at pole [Ref. 3, Fig. 3(a)]",rotating,90,0,0,0,203.5,0.08182,7.292423
-9,"earth; stationary at midlatitude [Ref. 3, Fig. 3(b)]",rotating,30,0,0,0,203.5,0.08182,7.292423
-10,"earth; nonpolar circles [Ref. 3, Fig. 3(c)]",rotating,30,0,0,-188.4937,203.5,0.08182,7.292423
-11,"earth; polar circles [Ref. 3, Fig. 3(d)]",rotating,30,0,0,-403.1439,203.5,0.08182,7.292423
-12,"earth; circumpolar circles [Ref. 3, Fig. 3(e)]",rotating,30,40,0,-617.7941,203.5,0.08182,7.292423
-13,"earth; westward at midlatitude [Ref. 3, Fig. 3(f)]",rotating,30,0,0,-806.2877,203.5,0.08182,7.292423
-14,"earth; stationary at equator [Ref. 3, Fig. 3(g)]",rotating,0,0,0,0,203.5,0.08182,7.292423
-15,"earth; nonpolar asymptote [Ref. 3, Fig. 3(h)]",rotating,0.5,40,3.5033,-232.534,203.5,0.08182,7.292423
-16,"earth; polar asymptote [Ref. 3, Fig. 3(i)]",rotating,0.5,150,4.0453,-465.1031,203.5,0.08182,7.292423
-17,"earth; circumpolar asymptote [Ref. 3, Fig. 3(j)]",rotating,0.5,70,3.5033,-697.6723,203.5,0.08182,7.292423
-18,"earth; westward at equator [Ref. 3, Fig. 3(k)]",rotating,0,0,0,-930.2415,203.5,0.08182,7.292423
-19,"earth; eastward at equator [Ref. 3, Fig. 3(l)]",rotating,0,0,0,232.7,203.5,0.08182,7.292423
-20,"earth; nonpolar waves [Ref. 3, Fig. 3(m)]",rotating,0,0,83.8508,-139.5362,203.5,0.08182,7.292423
-21,"earth; polar waves [Ref. 3, Fig. 3(n)]",rotating,0,0,268.5376,-465.1207,203.5,0.08182,7.292423
-22,"earth; circumpolar waves [Ref. 3, Fig. 3(o)]",rotating,0,0,83.8508,-790.7052,203.5,0.08182,7.292423
-23,"earth; fast westward at equator [Ref. 3, Fig. 3(p)]",rotating,0,0,0,-1162.9415,203.5,0.08182,7.292423
-24,"earth; polar circles launched from pole [Ref. 3, Fig. 8]",rotating,90,0,-250,0,203.5,0.08182,7.292423
+"1. Rotating sphere, from Portugal","rotating sphere; northward relative initial velocity [Ref. 1; Fig. 1(b), (e)]",inertial,40,-10,50,0,203.5,0,7.292423
+"2. Stably rotating spheroid, from Portugal","stably rotating spheroid; northward relative initial velocity [Ref. 1; Fig. 1(c), (f)]",rotating,40,-10,50,0,203.5,0.08182,7.292423
+"3. Rotating sphere, from equator","rotating sphere; near equator [Ref. 1; Fig. 4(b), (e)]",rotating,0,-15,30,-40,203.5,0,7.292423
+"4. Stably rotating spheroid, from equator","stably rotating spheroid; near equator [Ref. 1; Fig. 4(c), (f)]",rotating,0,-15,30,-40,203.5,0.08182,7.292423
+"5. Non-rotating spheroid, from Algeria","non-rotating spheroid; northward initial velocity [Ref. 2, Fig. 4(a)]",inertial,30,0,250,0,48.7,0.6,0
+"6. Stably rotating spheroid, from Algeria","stably rotating spheroid; northward relative initial velocity [Ref. 2, Fig. 4(b)]",rotating,30,0,250,0,48.7,0.6,54.73731
+"7. Super-stably rotating spheroid, from Algeria","super-stably rotating spheroid; northward relative initial velocity [Ref. 2, Fig. 4(c)]",rotating,30,0,250,0,48.7,0.6,109.4746
+"8. Earth, from North Pole","earth; polar circles launched from pole [Ref. 3, Fig. 8]",rotating,90,0,-250,0,203.5,0.08182,7.292423
+C1. Stationary at pole,"earth; stationary at pole [Ref. 3, Fig. 3]",rotating,90,0,0,0,203.5,0.08182,7.292423
+C2. Stationary at midlatitude,"earth; stationary at midlatitude [Ref. 3, Fig. 3]",rotating,30,0,0,0,203.5,0.08182,7.292423
+C3. Nonpolar circles,"earth; nonpolar circles [Ref. 3, Fig. 3]",rotating,30,0,0,-188.4937,203.5,0.08182,7.292423
+C4. Polar circles,"earth; polar circles [Ref. 3, Fig. 3]",rotating,30,0,0,-403.1439,203.5,0.08182,7.292423
+C5. Circumpolar circles,"earth; circumpolar circles [Ref. 3, Fig. 3]",rotating,30,40,0,-617.7941,203.5,0.08182,7.292423
+C6. Westward at midlatitude,"earth; westward at midlatitude [Ref. 3, Fig. 3]",rotating,30,0,0,-806.2877,203.5,0.08182,7.292423
+C7. Stationary at equator,"earth; stationary at equator [Ref. 3, Fig. 3]",rotating,0,0,0,0,203.5,0.08182,7.292423
+C8. Nonpolar asymptote,"earth; nonpolar asymptote [Ref. 3, Fig. 3]",rotating,0.5,40,3.5033,-232.534,203.5,0.08182,7.292423
+C9. Polar asymptote,"earth; polar asymptote [Ref. 3, Fig. 3]",rotating,0.5,150,4.0453,-465.1031,203.5,0.08182,7.292423
+C10. Circumpolar asymptote,"earth; circumpolar asymptote [Ref. 3, Fig. 3]",rotating,0.5,70,3.5033,-697.6723,203.5,0.08182,7.292423
+C11. Westward at equator,"earth; westward at equator [Ref. 3, Fig. 3]",rotating,0,0,0,-930.2415,203.5,0.08182,7.292423
+C12. Eastward at equator,"earth; eastward at equator [Ref. 3, Fig. 3]",rotating,0,0,0,232.7,203.5,0.08182,7.292423
+C13. Nonpolar waves,"earth; nonpolar waves [Ref. 3, Fig. 3]",rotating,0,0,83.8508,-139.5362,203.5,0.08182,7.292423
+C14. Polar waves,"earth; polar waves [Ref. 3, Fig. 3]",rotating,0,0,268.5376,-465.1207,203.5,0.08182,7.292423
+C15. Circumpolar waves,"earth; circumpolar waves [Ref. 3, Fig. 3]",rotating,0,0,83.8508,-790.7052,203.5,0.08182,7.292423
+C16. Fast westward at equator,"earth; fast westward at equator [Ref. 3, Fig. 3]",rotating,0,0,0,-1162.9415,203.5,0.08182,7.292423
