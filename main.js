@@ -613,7 +613,8 @@ function keydown(event) {
     updateBackgroundStars();
     changed = true;
   } else if (key == 'a') {
-    arrowsVisible = (arrowsVisible+1)%4;
+    arrowsVisible = (arrowsVisible+1)%5;
+    console.log(arrowsVisible);
     updateArrowVisibility();
     changed = true;
   } else if (key == 'r') {
